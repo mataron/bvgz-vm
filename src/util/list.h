@@ -17,6 +17,7 @@ list_t;
 
 list_t* list_make_node(void* data);
 void list_destroy_node(list_t* node);
+void list_destroy(list_t* head);
 void list_unlink(list_t* node);
 
 list_t* list_append(list_t* list, list_t* node);

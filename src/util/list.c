@@ -19,6 +19,19 @@ void list_destroy_node(list_t* node)
 }
 
 
+void list_destroy(list_t* head)
+{
+    list_t* node = head;
+    list_t* next = head ? head->next : NULL;
+    while (node)
+    {
+        free(node);
+        node = next;
+        next = node ? node->next : NULL;
+    }
+}
+
+
 void list_unlink(list_t* node) {
     if (node->prev) node->prev->next = node->next;
     if (node->next) node->next->prev = node->prev;

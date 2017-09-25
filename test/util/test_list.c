@@ -46,5 +46,12 @@ int main(int argc, char** argv) {
     assert(list_size(b) == 1);
 
     list_destroy_node(b);
+
+    a = mk_list_node(1);
+    b = mk_list_node(2);
+    c = mk_list_node(3);
+    list_prepend(a, b);
+    list_append(a, c);
+    list_destroy(b);
     return 0;
 }
