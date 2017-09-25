@@ -51,8 +51,8 @@ prs_instn_t;
 
 typedef struct _prs_result_t
 {
-    uint32_t n_instructions;
-    prs_instn_t** instructions;
+    uint32_t n_nodes;
+    prs_node_t** nodes;
 }
 prs_result_t;
 
