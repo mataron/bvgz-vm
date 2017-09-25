@@ -7,6 +7,9 @@ int main(int argc, char** argv) {
     list_t* b = mk_list_node(2);
     list_t* c = mk_list_node(3);
 
+    assert(list_append(NULL, a) == a);
+    assert(list_prepend(NULL, a) == a);
+
     assert(list_size(a) == 1);
     assert(list_size(b) == 1);
 

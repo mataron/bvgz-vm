@@ -27,6 +27,7 @@ void list_unlink(list_t* node) {
 
 list_t* list_append(list_t* list, list_t* node)
 {
+    if (list == NULL) return node;
     node->next = list->next;
     if (list->next) list->next->prev = node;
     list->next = node;
@@ -37,6 +38,7 @@ list_t* list_append(list_t* list, list_t* node)
 
 list_t* list_prepend(list_t* list, list_t* node)
 {
+    if (list == NULL) return node;
     node->prev = list->prev;
     if (list->prev) list->prev->next = node;
     list->prev = node;
