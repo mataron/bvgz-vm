@@ -49,25 +49,10 @@ typedef struct _prs_instn_t
 prs_instn_t;
 
 
-#define T_INFO  0
-#define T_WARN  1
-#define T_ERROR 2
-
-typedef struct _prs_msg_t
-{
-    char* filename;
-    uint32_t line;
-    char* message;
-    int severity;
-}
-prs_msg_t;
-
-
 typedef struct _prs_result_t
 {
     uint32_t n_instructions;
     prs_instn_t** instructions;
-    list_t* messages;
 }
 prs_result_t;
 
