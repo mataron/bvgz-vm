@@ -2,7 +2,8 @@
 #include "util/list.h"
 
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     list_t* a = mk_list_node(1);
     list_t* b = mk_list_node(2);
     list_t* c = mk_list_node(3);
