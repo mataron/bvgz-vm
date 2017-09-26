@@ -297,7 +297,14 @@ static void parse_instn(const char* filename, uint32_t lineno,
 				{
                     destroy_instn(instn);
 					return; // don't continue past first error in args
-				}
+                }
+
+                if (i == 1 && instn->args[0].type == T_ARG_IMM && (fmt->flags & F_ALLOW_IMM_1st_Arg) == 0)
+                {
+                    report(P_ERROR, filename, lineno, "instn [%s] disallows 1st arg to be imm", tokens[0]);
+                    destroy_instn(instn);
+                    return; // don't continue past first error in args
+                }
             }
 
             *result = instn;

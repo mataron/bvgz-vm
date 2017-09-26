@@ -4,11 +4,14 @@
 
 #include "instn.h"
 
-#define OP(x, n) { #x, 0, n }
-#define OP0(x) OP(x, 0)
-#define OP1(x) OP(x, 1)
-#define OP2(x) OP(x, 2)
-#define OP3(x) OP(x, 3)
+#define OP(x, n, f) { #x, 0, n, f }
+#define OP0(x) OP(x, 0, 0)
+#define OP1(x) OP(x, 1, 0)
+#define OP2(x) OP(x, 2, 0)
+#define OP3(x) OP(x, 3, 0)
+#define OP1f(x, f) OP(x, 1, f)
+#define OP2f(x, f) OP(x, 2, f)
+#define OP3f(x, f) OP(x, 3, f)
 
 
 int compare_instn_def(const void* a, const void* b)
@@ -76,13 +79,13 @@ instn_def_t InstnDefs[] = {
     OP2(set16),
     OP2(set32),
     OP2(set64),
-    OP1(jmp),
-    OP2(jtrue),
-    OP2(jfalse),
-    OP3(call),
+    OP1f(jmp, F_ALLOW_IMM_1st_Arg),
+    OP2f(jtrue, F_ALLOW_IMM_1st_Arg),
+    OP2f(jfalse, F_ALLOW_IMM_1st_Arg),
+    OP3f(call, F_ALLOW_IMM_1st_Arg),
     OP0(ret),
-    OP1(mexp),
-    OP1(mret),
+    OP1f(mexp, F_ALLOW_IMM_1st_Arg),
+    OP1f(mret, F_ALLOW_IMM_1st_Arg),
     OP0(yield),
     { NULL, 0, 0 }
 };

@@ -3,12 +3,14 @@
 
 #include <stdint.h>
 
+#define F_ALLOW_IMM_1st_Arg     0x1
 
 typedef struct _instn_def_t
 {
     const char* name;
     uint16_t opcode;
     int arg_count;
+    unsigned flags;
 }
 instn_def_t;
 
