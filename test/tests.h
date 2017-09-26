@@ -4,5 +4,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#define xstr(s) str(s)
+#define str(s) #s
 
 #endif

@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #include "parser.h"
 
@@ -19,23 +20,30 @@ static char* ReportKinds[] = {
     "Warning"
 };
 
-static void report(int kind, char* source, uint32_t line, char* message, ...);
+static void report(int kind, const char* source, uint32_t line, char* message, ...);
 
 static prs_result_t* init_parse_result();
 static void destroy_node(prs_node_t*);
+static void destroy_label(prs_label_t*);
+static void destroy_instn(prs_instn_t*);
 
-static int find_file(char* filename, list_t* include_paths,
+static int find_file(const char* filename, list_t* include_paths,
     char* filepath, int filepath_sz);
-static void parse_asm_into(char* filename, list_t* include_paths,
+static void parse_asm_into(const char* filename, list_t* include_paths,
     prs_result_t* result);
 
-static void parse_line(char* filename, uint32_t lineno, char* line,
+static void parse_line(const char* filename, uint32_t lineno, char* line,
     list_t* include_paths, prs_result_t* result);
 
-static void add_label(char* label_token, prs_result_t* result);
-static void add_instn(char* filename, uint32_t lineno, char** tokens,
-    prs_result_t* result);
+static void add_label(const char* label_token, prs_result_t* result);
+static void add_instn(const char* filename, uint32_t lineno, const char** tokens,
+    int n_tokens, prs_result_t* result);
 static void add_node(prs_node_t* node, prs_result_t* result);
+
+static void parse_instn(const char* filename, uint32_t lineno,
+	const char** tokens, int n_tokens, prs_instn_t** result);
+static int parse_arg(const char* filename, uint32_t lineno,
+	const char* token, int arg_index, prs_arg_t* result);
 
 
 prs_result_t* parse_asm(char* filename, list_t* include_paths)
@@ -67,7 +75,7 @@ void destroy_parse_result(prs_result_t* parse_result)
 }
 
 
-static void report(int kind, char* source, uint32_t line, char* message, ...)
+static void report(int kind, const char* source, uint32_t line, char* message, ...)
 {
     va_list ap;
 
@@ -76,6 +84,8 @@ static void report(int kind, char* source, uint32_t line, char* message, ...)
     va_start(ap, message);
     vfprintf(stderr, message, ap);
     va_end(ap);
+
+    fprintf(stderr, "\n");
 }
 
 
@@ -88,14 +98,41 @@ static prs_result_t* init_parse_result()
 }
 
 
-static void destroy_node(prs_node_t* instn)
+static void destroy_node(prs_node_t* node)
 {
-    // TODO: free instruction
+    if (node->type == PT_LABEL)
+    {
+        destroy_label((prs_label_t*)node);
+    }
+    if (node->type == PT_INSTN)
+    {
+        destroy_instn((prs_instn_t*)node);
+    }
+}
+
+
+static void destroy_label(prs_label_t* label)
+{
+    free(label->label);
+    free(label);
+}
+
+
+static void destroy_instn(prs_instn_t* instn)
+{
+    for (int i = 0; i < instn->instn->arg_count; i++)
+    {
+        if (instn->args[i].type == T_ARG_REF_LBL)
+        {
+            free(instn->args[i].data.label);
+        }
+    }
+    free(instn->args);
     free(instn);
 }
 
 
-static int find_file(char* filename, list_t* include_paths,
+static int find_file(const char* filename, list_t* include_paths,
     char* filepath, int filepath_sz)
 {
     struct stat st;
@@ -115,7 +152,7 @@ static int find_file(char* filename, list_t* include_paths,
 }
 
 
-static void parse_asm_into(char* filename, list_t* include_paths,
+static void parse_asm_into(const char* filename, list_t* include_paths,
     prs_result_t* result)
 {
     FILE* fp = fopen(filename, "r");
@@ -134,7 +171,7 @@ static void parse_asm_into(char* filename, list_t* include_paths,
 }
 
 
-static void parse_line(char* filename, uint32_t lineno, char* line,
+static void parse_line(const char* filename, uint32_t lineno, char* line,
     list_t* include_paths, prs_result_t* result)
 {
     char* tokens[MAX_TOKENS];
@@ -151,8 +188,8 @@ static void parse_line(char* filename, uint32_t lineno, char* line,
 
     tokens[0] = p;
 
-    int parse_instn = 1;
-    for (int tkn = 0, mark_token = 0; *p; p++)
+    int parse_instn = 1, tkn = 0;
+    for (int mark_token = 0; *p; p++)
     {
         if (*p == ';')
         {
@@ -186,12 +223,12 @@ static void parse_line(char* filename, uint32_t lineno, char* line,
 
     if (parse_instn)
     {
-        add_instn(filename, lineno, tokens, result);
+        add_instn(filename, lineno, (const char**)tokens, tkn, result);
     }
 }
 
 
-static void add_label(char* label_token, prs_result_t* result)
+static void add_label(const char* label_token, prs_result_t* result)
 {
     prs_label_t* label = malloc(sizeof(prs_label_t));
     label->type = PT_LABEL;
@@ -200,10 +237,15 @@ static void add_label(char* label_token, prs_result_t* result)
 }
 
 
-static void add_instn(char* filename, uint32_t lineno, char** tokens,
-    prs_result_t* result)
+static void add_instn(const char* filename, uint32_t lineno, const char** tokens,
+    int n_tokens, prs_result_t* result)
 {
-
+    prs_instn_t* instn = NULL;
+    parse_instn(filename, lineno, tokens, n_tokens, &instn);
+    if (instn)
+    {
+        add_node((prs_node_t*)instn, result);
+    }
 }
 
 
@@ -214,4 +256,130 @@ static void add_node(prs_node_t* node, prs_result_t* result)
         result->n_nodes * sizeof(prs_node_t*) );
 
     result->nodes[result->n_nodes - 1] = node;
+}
+
+
+static void parse_instn(const char* filename, uint32_t lineno,
+	const char** tokens, int n_tokens, prs_instn_t** result)
+{
+	instn_def_t* fmt = bsearch(tokens[0], InstnDefs, nInstnDefs,
+		sizeof(instn_def_t), (__compar_fn_t)strcmp);
+	if (!fmt)
+	{
+        report(P_ERROR, filename, lineno, "unknown instn: [%s]", tokens[0]);
+		return;
+	}
+
+	// find the first instn which matches the token:
+	while (fmt > InstnDefs && strcmp(tokens[0], (fmt - 1)->name) == 0)
+	{
+		fmt--;
+	}
+
+	// search for the matching instn:
+	for (; strcmp(tokens[0], fmt->name); fmt++)
+	{
+		if (fmt->arg_count == n_tokens - 1)
+		{
+            prs_instn_t* instn = malloc(sizeof(prs_instn_t));
+            instn->type = PT_INSTN;
+            instn->instn = fmt;
+            instn->args = malloc(fmt->arg_count * sizeof(prs_arg_t));
+
+			for (int i = 1; i < n_tokens; i++)
+			{
+				if (parse_arg(filename, lineno, tokens[i + 1], i, &instn->args[i]) < 0)
+				{
+                    destroy_instn(instn);
+					return; // don't continue past first error in args
+				}
+            }
+
+            *result = instn;
+			return;
+		}
+	}
+
+    report(P_ERROR, filename, lineno, "incorrect argument count for: [%s]", tokens[0]);
+}
+
+
+#define IS_1_BYTES_LONG(x)	(((x) & (~((uint64_t)0xff))) == 0)
+#define IS_2_BYTES_LONG(x)	(((x) & (~((uint64_t)0xffff))) == 0)
+#define IS_4_BYTES_LONG(x)	(((x) & (~((uint64_t)0xffffffff))) == 0)
+
+
+static int parse_arg(const char* filename, uint32_t lineno,
+	const char* token, int arg_index, prs_arg_t* result)
+{
+	char const * p = token;
+	char* endp = NULL;
+	int negative = 0, reference = 0;
+	int base = 0;
+
+	if (*p == '-')
+	{
+		negative = 1;
+		p++;
+	}
+
+	if (*p == '@')
+	{
+		reference = 1;
+		p++;
+	}
+
+	if (p[0] == '0' && p[1] == 'x') base = 16;
+
+	uint64_t imm = strtoull(p, &endp, base);
+	if ((imm == UINT64_MAX && errno == ERANGE) ||
+		(imm > (INT64_MAX - 1) && negative))
+	{
+        report(P_ERROR, filename, lineno, "argument (%d) overflow: [%s]", arg_index, token);
+		return -1;
+	}
+	if (!negative && imm > (INT64_MAX - 1))
+	{
+        report(P_WARN, filename, lineno, "argument (%d) overflows to negative value: [%s]", arg_index, token);
+	}
+
+	if (endp == p) // treat p as a label:
+	{
+		if (negative || reference)
+		{
+            report(P_ERROR, filename, lineno, "argument (%d) unexpected token after -/@", arg_index);
+			return -1;
+		}
+
+        result->type = T_ARG_REF_LBL;
+        result->data.label = strdup(p);
+		return 0;
+	}
+
+	if (*endp != 0)
+	{
+        report(P_ERROR, filename, lineno, "argument (%d) bad token, expcted number", arg_index);
+		return -1;
+	}
+
+	if (negative) imm = (uint64_t)(-(int64_t)imm);
+	if (reference)
+	{
+        result->type = T_ARG_REF_NUM;
+        result->data.value = imm;
+		return 0;
+	}
+
+	int n_bytes = 8;
+	if (!negative)
+	{
+		if (IS_1_BYTES_LONG(imm)) n_bytes = 1;
+		if (IS_2_BYTES_LONG(imm)) n_bytes = 2;
+		if (IS_4_BYTES_LONG(imm)) n_bytes = 4;
+	}
+
+    result->type = T_ARG_IMM;
+    result->n_bytes = n_bytes;
+    result->data.value = imm;
+    return 0;
 }
