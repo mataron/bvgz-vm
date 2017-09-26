@@ -11,11 +11,11 @@
 #define OP3(x) OP(x, 3)
 
 
-static int compare_instn_def(const void* a, const void* b)
+int compare_instn_def(const void* a, const void* b)
 {
-	int result = strcmp(a, b);
-	if (result != 0) return result;
-	return ((instn_def_t*)a)->arg_count - ((instn_def_t*)b)->arg_count;
+    char** _a = (char**)a;
+    char** _b = (char**)b;
+	return strcmp(*_a, *_b);
 }
 
 

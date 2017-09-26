@@ -65,7 +65,7 @@ prs_result_t* parse_asm(char* filename, list_t* include_paths)
 
 void destroy_parse_result(prs_result_t* parse_result)
 {
-    for (uint32_t i = 0; i < parse_result->n_nodes; ++i)
+    for (uint32_t i = 0; i < parse_result->n_nodes; i++)
     {
         destroy_node(parse_result->nodes[i]);
     }
@@ -104,7 +104,7 @@ static void destroy_node(prs_node_t* node)
     {
         destroy_label((prs_label_t*)node);
     }
-    if (node->type == PT_INSTN)
+    else if (node->type == PT_INSTN)
     {
         destroy_instn((prs_instn_t*)node);
     }
@@ -165,8 +165,11 @@ static void parse_asm_into(const char* filename, list_t* include_paths,
         lineno++;
         parse_line(filename, lineno, line, include_paths, result);
         free(line);
+        line = NULL;
+        sz = 0;
     }
 
+    free(line);
     fclose(fp);
 }
 
@@ -223,7 +226,7 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
 
     if (parse_instn)
     {
-        add_instn(filename, lineno, (const char**)tokens, tkn, result);
+        add_instn(filename, lineno, (const char**)tokens, tkn + 1, result);
     }
 }
 
@@ -252,8 +255,7 @@ static void add_instn(const char* filename, uint32_t lineno, const char** tokens
 static void add_node(prs_node_t* node, prs_result_t* result)
 {
     result->n_nodes++;
-    result->nodes = realloc(result->nodes,
-        result->n_nodes * sizeof(prs_node_t*) );
+    result->nodes = realloc(result->nodes, result->n_nodes * sizeof(prs_node_t*));
 
     result->nodes[result->n_nodes - 1] = node;
 }
@@ -262,8 +264,8 @@ static void add_node(prs_node_t* node, prs_result_t* result)
 static void parse_instn(const char* filename, uint32_t lineno,
 	const char** tokens, int n_tokens, prs_instn_t** result)
 {
-	instn_def_t* fmt = bsearch(tokens[0], InstnDefs, nInstnDefs,
-		sizeof(instn_def_t), (__compar_fn_t)strcmp);
+	instn_def_t* fmt = bsearch(&tokens[0], InstnDefs, nInstnDefs,
+		sizeof(instn_def_t), compare_instn_def);
 	if (!fmt)
 	{
         report(P_ERROR, filename, lineno, "unknown instn: [%s]", tokens[0]);
@@ -277,7 +279,7 @@ static void parse_instn(const char* filename, uint32_t lineno,
 	}
 
 	// search for the matching instn:
-	for (; strcmp(tokens[0], fmt->name); fmt++)
+	for (; strcmp(tokens[0], fmt->name) == 0; fmt++)
 	{
 		if (fmt->arg_count == n_tokens - 1)
 		{
@@ -288,7 +290,7 @@ static void parse_instn(const char* filename, uint32_t lineno,
 
 			for (int i = 1; i < n_tokens; i++)
 			{
-				if (parse_arg(filename, lineno, tokens[i + 1], i, &instn->args[i]) < 0)
+				if (parse_arg(filename, lineno, tokens[i], i - 1, &instn->args[i - 1]) < 0)
 				{
                     destroy_instn(instn);
 					return; // don't continue past first error in args
@@ -300,7 +302,7 @@ static void parse_instn(const char* filename, uint32_t lineno,
 		}
 	}
 
-    report(P_ERROR, filename, lineno, "incorrect argument count for: [%s]", tokens[0]);
+    report(P_ERROR, filename, lineno, "incorrect argument count for: [%s], found: %d", tokens[0], n_tokens - 1);
 }
 
 
@@ -312,7 +314,7 @@ static void parse_instn(const char* filename, uint32_t lineno,
 static int parse_arg(const char* filename, uint32_t lineno,
 	const char* token, int arg_index, prs_arg_t* result)
 {
-	char const * p = token;
+	char const* p = token;
 	char* endp = NULL;
 	int negative = 0, reference = 0;
 	int base = 0;
@@ -374,8 +376,8 @@ static int parse_arg(const char* filename, uint32_t lineno,
 	if (!negative)
 	{
 		if (IS_1_BYTES_LONG(imm)) n_bytes = 1;
-		if (IS_2_BYTES_LONG(imm)) n_bytes = 2;
-		if (IS_4_BYTES_LONG(imm)) n_bytes = 4;
+		else if (IS_2_BYTES_LONG(imm)) n_bytes = 2;
+		else if (IS_4_BYTES_LONG(imm)) n_bytes = 4;
 	}
 
     result->type = T_ARG_IMM;

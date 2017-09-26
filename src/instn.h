@@ -16,6 +16,9 @@ instn_def_t;
 extern instn_def_t InstnDefs[];
 extern int nInstnDefs;
 
+// works with both instn_def_t AND char** arguments
+int compare_instn_def(const void*, const void*);
+
 void setup_instn_defs();
 
 #endif
