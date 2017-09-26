@@ -8,7 +8,7 @@
 typedef struct _instn_def_t
 {
     const char* name;
-    uint16_t opcode;
+    uint8_t opcode;
     int arg_count;
     unsigned flags;
 }

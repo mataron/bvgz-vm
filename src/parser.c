@@ -364,6 +364,7 @@ static int parse_arg(const char* filename, uint32_t lineno,
 		}
 
         result->type = T_ARG_REF_LBL;
+        result->n_bytes = 4;
         result->data.label = strdup(p);
         hset_add(label_refs, result->data.label);
 		return 0;
@@ -379,6 +380,7 @@ static int parse_arg(const char* filename, uint32_t lineno,
 	if (reference)
 	{
         result->type = T_ARG_REF_NUM;
+        result->n_bytes = 4;
         result->data.value = imm;
 		return 0;
 	}

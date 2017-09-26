@@ -7,7 +7,7 @@ add_library(vm STATIC
 )
 
 add_library(bytecode STATIC
-    parser.c bytecode.c
+    parser.c bytecode_gen.c
 )
 
 add_executable(bvgz main.c)
