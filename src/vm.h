@@ -2,10 +2,21 @@
 #define _BVGZ_VM_H
 
 #include <stdint.h>
+#include "util/list.h"
 
 
 typedef struct _vm_t
 {
+    uint8_t* code;
+    uint32_t codesz;
+
+    uint8_t* memory;
+    uint32_t memsz;
+
+    unsigned flags;
+
+    // procedures: instruction pointers into 'code'
+    list_t* procedures;
 }
 vm_t;
 
