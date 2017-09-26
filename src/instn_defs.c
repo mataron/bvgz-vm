@@ -27,11 +27,17 @@ void setup_instn_defs()
     int count = 0;
     for (instn_def_t* def = InstnDefs; def->name; def++)
     {
-        def->opcode = count;
         count++;
     }
+
     nInstnDefs = count;
     qsort(InstnDefs, nInstnDefs, sizeof(instn_def_t), compare_instn_def);
+
+    uint8_t n = 0;
+    for (instn_def_t* def = InstnDefs; def->name; def++)
+    {
+        def->opcode = n++;
+    }
 }
 
 
@@ -87,5 +93,5 @@ instn_def_t InstnDefs[] = {
     OP1f(mexp, F_ALLOW_IMM_1st_Arg),
     OP1f(mret, F_ALLOW_IMM_1st_Arg),
     OP0(yield),
-    { NULL, 0, 0 }
+    { NULL }
 };

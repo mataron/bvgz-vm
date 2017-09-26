@@ -16,3 +16,7 @@ add_test(test_parser test_parser)
 add_executable(test_bytecode_gen test_bytecode_gen.c)
 target_link_libraries(test_bytecode_gen vm bytecode utils)
 add_test(test_bytecode_gen test_bytecode_gen)
+
+add_executable(test_bytecode_decode test_bytecode_decode.c)
+target_link_libraries(test_bytecode_decode vm bytecode utils)
+add_test(test_bytecode_decode test_bytecode_decode)

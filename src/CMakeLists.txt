@@ -3,7 +3,7 @@ include_directories(.)
 add_subdirectory(util)
 
 add_library(vm STATIC
-    vm.c instn.c instn_defs.c
+    vm.c instn.c instn_defs.c bytecode.c
 )
 
 add_library(bytecode STATIC
