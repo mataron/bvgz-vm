@@ -258,6 +258,8 @@ static void add_instn(const char* filename, uint32_t lineno, const char** tokens
         result->instns = realloc(result->instns, result->n_instns * sizeof(prs_instn_t*));
 
         result->instns[result->n_instns - 1] = instn;
+    } else {
+        result->consistent = -1;
     }
 }
 
@@ -287,6 +289,7 @@ static void parse_instn(const char* filename, uint32_t lineno,
             prs_instn_t* instn = malloc(sizeof(prs_instn_t));
             instn->instn = fmt;
             instn->args = malloc(fmt->arg_count * sizeof(prs_arg_t));
+            instn->mem_offset = (uint32_t)-1;
 
 			for (int i = 1; i < n_tokens; i++)
 			{

@@ -84,7 +84,7 @@ static void test_instns_lookup()
 {
     instn_def_t* fmt;
 
-    assert(nInstnDefs == 46);
+    assert(nInstnDefs == 49);
 
     const char* str = "mod";
     fmt = bsearch(&str, InstnDefs, nInstnDefs,

@@ -28,6 +28,9 @@ typedef struct _prs_instn_t
 {
     instn_def_t* instn;
     prs_arg_t* args;
+    // set by the bytecode generator: offset int memory
+    // where this instruction is found.
+    uint32_t mem_offset;
 }
 prs_instn_t;
 
@@ -38,7 +41,8 @@ typedef struct _prs_result_t
     prs_instn_t** instns;
     // maps label names to instn in the array above.
     hashmap_t labels;
-    int consistent; // when zero evrything is fine!
+    // when zero everything is fine!
+    int consistent;
 }
 prs_result_t;
 
