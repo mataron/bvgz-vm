@@ -23,8 +23,6 @@ static char* ReportKinds[] = {
 static void report(int kind, const char* source, uint32_t line, char* message, ...);
 
 static prs_result_t* init_parse_result();
-static void destroy_node(prs_node_t*);
-static void destroy_label(prs_label_t*);
 static void destroy_instn(prs_instn_t*);
 
 static int find_file(const char* filename, list_t* include_paths,
@@ -38,7 +36,6 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
 static void add_label(const char* label_token, prs_result_t* result);
 static void add_instn(const char* filename, uint32_t lineno, const char** tokens,
     int n_tokens, prs_result_t* result);
-static void add_node(prs_node_t* node, prs_result_t* result);
 
 static void parse_instn(const char* filename, uint32_t lineno,
 	const char** tokens, int n_tokens, prs_instn_t** result);
@@ -63,13 +60,21 @@ prs_result_t* parse_asm(char* filename, list_t* include_paths)
 }
 
 
+static void free_label(void* unused, char* key, void* value)
+{
+    free(key);
+}
+
 void destroy_parse_result(prs_result_t* parse_result)
 {
-    for (uint32_t i = 0; i < parse_result->n_nodes; i++)
+    for (uint32_t i = 0; i < parse_result->n_instns; i++)
     {
-        destroy_node(parse_result->nodes[i]);
+        destroy_instn(parse_result->instns[i]);
     }
-    free(parse_result->nodes);
+    free(parse_result->instns);
+
+    hmap_iterate(parse_result->labels, NULL, free_label);
+    hmap_destroy(parse_result->labels);
 
     free(parse_result);
 }
@@ -92,29 +97,10 @@ static void report(int kind, const char* source, uint32_t line, char* message, .
 static prs_result_t* init_parse_result()
 {
     prs_result_t* res = malloc(sizeof(prs_result_t));
-    res->n_nodes = 0;
-    res->nodes = NULL;
+    res->n_instns = 0;
+    res->instns = NULL;
+    res->labels = hmap_create();
     return res;
-}
-
-
-static void destroy_node(prs_node_t* node)
-{
-    if (node->type == PT_LABEL)
-    {
-        destroy_label((prs_label_t*)node);
-    }
-    else if (node->type == PT_INSTN)
-    {
-        destroy_instn((prs_instn_t*)node);
-    }
-}
-
-
-static void destroy_label(prs_label_t* label)
-{
-    free(label->label);
-    free(label);
 }
 
 
@@ -233,10 +219,7 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
 
 static void add_label(const char* label_token, prs_result_t* result)
 {
-    prs_label_t* label = malloc(sizeof(prs_label_t));
-    label->type = PT_LABEL;
-    label->label = strdup(label_token);
-    add_node((prs_node_t*)label, result);
+    hmap_put(result->labels, strdup(label_token), (void*)(long)result->n_instns);
 }
 
 
@@ -247,17 +230,11 @@ static void add_instn(const char* filename, uint32_t lineno, const char** tokens
     parse_instn(filename, lineno, tokens, n_tokens, &instn);
     if (instn)
     {
-        add_node((prs_node_t*)instn, result);
+        result->n_instns++;
+        result->instns = realloc(result->instns, result->n_instns * sizeof(prs_instn_t*));
+
+        result->instns[result->n_instns - 1] = instn;
     }
-}
-
-
-static void add_node(prs_node_t* node, prs_result_t* result)
-{
-    result->n_nodes++;
-    result->nodes = realloc(result->nodes, result->n_nodes * sizeof(prs_node_t*));
-
-    result->nodes[result->n_nodes - 1] = node;
 }
 
 
@@ -284,7 +261,6 @@ static void parse_instn(const char* filename, uint32_t lineno,
 		if (fmt->arg_count == n_tokens - 1)
 		{
             prs_instn_t* instn = malloc(sizeof(prs_instn_t));
-            instn->type = PT_INSTN;
             instn->instn = fmt;
             instn->args = malloc(fmt->arg_count * sizeof(prs_arg_t));
 

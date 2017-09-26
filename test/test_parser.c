@@ -6,10 +6,17 @@
 static void test_labels()
 {
     prs_result_t* result = parse_asm(xstr(PROJECT_ROOT) "/test/asm/labels-only.s", NULL);
-    assert(result->n_nodes == 3);
-    assert(result->nodes[0]->type == PT_LABEL);
-    assert(result->nodes[1]->type == PT_LABEL);
-    assert(result->nodes[2]->type == PT_LABEL);
+    assert(result->n_instns == 0);
+    assert(hmap_size(result->labels) == 3);
+
+    long value;
+    hmap_get(result->labels, "abc", (void**)&value);
+    assert(value == 0);
+    hmap_get(result->labels, "a000", (void**)&value);
+    assert(value == 0);
+    hmap_get(result->labels, "__zz", (void**)&value);
+    assert(value == 0);
+
     destroy_parse_result(result);
 }
 
@@ -19,18 +26,17 @@ static void test_instns()
     prs_instn_t* instn;
 
     prs_result_t* result = parse_asm(xstr(PROJECT_ROOT) "/test/asm/instn-only.s", NULL);
-    assert(result->n_nodes == 3);
+    assert(result->n_instns == 3);
+    assert(hmap_size(result->labels) == 0);
 
-    assert(result->nodes[0]->type == PT_INSTN);
-    instn = (prs_instn_t*)result->nodes[0];
+    instn = result->instns[0];
     assert(instn->instn->arg_count == 2);
     assert(instn->args[0].type == T_ARG_REF_LBL);
     assert(strcmp(instn->args[0].data.label, "x") == 0);
     assert(instn->args[1].type == T_ARG_REF_LBL);
     assert(strcmp(instn->args[1].data.label, "y") == 0);
 
-    assert(result->nodes[1]->type == PT_INSTN);
-    instn = (prs_instn_t*)result->nodes[1];
+    instn = result->instns[1];
     assert(instn->instn->arg_count == 3);
     assert(instn->args[0].type == T_ARG_REF_LBL);
     assert(strcmp(instn->args[0].data.label, "z") == 0);
@@ -41,8 +47,7 @@ static void test_instns()
     assert(instn->args[2].data.value == -34);
     assert(instn->args[2].n_bytes == 8);
 
-    assert(result->nodes[2]->type == PT_INSTN);
-    instn = (prs_instn_t*)result->nodes[2];
+    instn = result->instns[2];
     assert(instn->instn->arg_count == 3);
     assert(instn->args[0].type == T_ARG_REF_NUM);
     assert(instn->args[0].data.value == 34);

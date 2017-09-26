@@ -4,26 +4,8 @@
 #include <stdint.h>
 
 #include "util/list.h"
+#include "util/hashmap.h"
 #include "instn.h"
-
-
-#define PT_LABEL    0x1
-#define PT_INSTN    0x2
-
-
-typedef struct _prs_node_t
-{
-    uint8_t type;
-}
-prs_node_t;
-
-
-typedef struct _prs_label_t
-{
-    uint8_t type;
-    char* label;
-}
-prs_label_t;
 
 
 #define T_ARG_IMM       0
@@ -44,7 +26,6 @@ prs_arg_t;
 
 typedef struct _prs_instn_t
 {
-    uint8_t type;
     instn_def_t* instn;
     prs_arg_t* args;
 }
@@ -53,8 +34,10 @@ prs_instn_t;
 
 typedef struct _prs_result_t
 {
-    uint32_t n_nodes;
-    prs_node_t** nodes;
+    uint32_t n_instns;
+    prs_instn_t** instns;
+    // maps label names to instn in the array above.
+    hashmap_t labels;
 }
 prs_result_t;
 

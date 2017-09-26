@@ -337,3 +337,23 @@ int hmap_remove(hashmap_t map, char* key)
 	/* Data not found */
 	return MAP_MISSING;
 }
+
+
+int hmap_iterate(hashmap_t map, void* arg0, void (*visitor)(void*, char*, void*))
+{
+    int i;
+
+    hashmap_map* m = (hashmap_map*) map;
+
+    /* On empty hashmap, return immediately */
+    if (hmap_size(m) <= 0)
+        return MAP_MISSING;
+
+    /* Linear probing */
+    for(i = 0; i< m->table_size; i++)
+        if(m->data[i].in_use != 0) {
+            visitor(arg0, m->data[i].key, m->data[i].data);
+        }
+
+    return MAP_OK;
+}

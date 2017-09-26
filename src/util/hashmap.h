@@ -22,4 +22,6 @@ int hmap_put(hashmap_t map, char* key, void* value);
 int hmap_get(hashmap_t map, char* key, void** value);
 int hmap_remove(hashmap_t map, char* key);
 
+int hmap_iterate(hashmap_t map, void* arg0, void (*visitor)(void*, char*, void*));
+
 #endif
