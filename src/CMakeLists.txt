@@ -6,8 +6,8 @@ add_library(vm STATIC
     vm.c instn.c instn_defs.c
 )
 
-add_library(parser STATIC
-    parser.c
+add_library(bytecode STATIC
+    parser.c bytecode.c
 )
 
 add_executable(bvgz main.c)

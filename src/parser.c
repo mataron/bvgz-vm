@@ -9,6 +9,9 @@
 
 #include "parser.h"
 
+// TODO: preprocessor directives (at least include)
+// TODO: consistency check (labels' existence)
+
 #define FILEPATH_BUF_SZ 256
 #define MAX_TOKENS  4   // maximum number of tokens per line
 
