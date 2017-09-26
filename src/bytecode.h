@@ -8,9 +8,10 @@
 int parse_to_bytecode(prs_result_t* parse, uint8_t** memory, uint32_t* size);
 int bytecode_to_text(FILE* fp, void* memory, uint32_t* size);
 
+
 typedef struct _instn_t
 {
-    uint8_t code;
+    uint16_t code;
     uint8_t arg_sizes;
     union
     {

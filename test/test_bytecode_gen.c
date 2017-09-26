@@ -24,14 +24,14 @@ static void test_gen()
     uint32_t size = 0;
     parse_to_bytecode(result, &memory, &size);
 
-    assert(size == 2 + 4 + 1 + 2);
+    assert(size == 3 + 4 + 1 + 2);
     assert(memory != NULL);
 
-    assert((memory[0] & 0x7) == 0x6);
-    assert(memory[1] == 1 << 4);
-    assert(*(uint32_t*)(memory + 2) == 0x1234);
-    assert(memory[6] == 0x12);
-    assert(*(uint16_t*)(memory + 7) == 0x123);
+    assert((*(uint16_t*)memory & 0x7) == 0x6);
+    assert(memory[2] == 1 << 4);
+    assert(*(uint32_t*)(memory + 3) == 0x1234);
+    assert(memory[7] == 0x12);
+    assert(*(uint16_t*)(memory + 8) == 0x123);
 
     free(memory);
 

@@ -13,7 +13,7 @@ struct ref
 
 
 static uint32_t compute_layout(prs_instn_t* instn, instn_def_t* def,
-    uint8_t* OpIR, uint8_t* ISz);
+    uint16_t* OpIR, uint8_t* ISz);
 static uint8_t nlog2(uint8_t n);
 static uint32_t write_args(prs_instn_t* instn, instn_def_t* def,
     uint8_t* buffer, uint32_t offset, prs_result_t* parse,
@@ -42,7 +42,8 @@ int parse_to_bytecode(prs_result_t* parse, uint8_t** memory, uint32_t* size)
         prs_instn_t* instn = parse->instns[i];
         instn_def_t* def = instn->instn;
 
-        uint8_t OpIR, ISz;
+        uint16_t OpIR = 0;
+        uint8_t ISz = 0;
         uint32_t size = compute_layout(instn, def, &OpIR, &ISz);
 
         while (offset + size > n_blocks * BUF_BLOCK_SIZE)
@@ -53,7 +54,8 @@ int parse_to_bytecode(prs_result_t* parse, uint8_t** memory, uint32_t* size)
 
         instn->mem_offset = offset;
 
-        buffer[offset++] = OpIR;
+        *(uint16_t*)(buffer + offset) = OpIR;
+        offset += 2;
         if (OpIR & 0x7) buffer[offset++] = ISz;
 
         offset = write_args(instn, def, buffer, offset, parse, i,
@@ -74,7 +76,7 @@ int parse_to_bytecode(prs_result_t* parse, uint8_t** memory, uint32_t* size)
 
 
 static uint32_t compute_layout(prs_instn_t* instn, instn_def_t* def,
-    uint8_t* OpIR, uint8_t* ISz)
+    uint16_t* OpIR, uint8_t* ISz)
 {
     uint32_t size = 1;
     *OpIR = def->opcode << 3;

@@ -10,10 +10,13 @@ int32_t decode_instn(uint8_t* iptr, uint8_t* memory, instn_t* instn)
         return -1;
     }
 
-    instn->code = *iptr;
-    if (instn->code & 0x7) offset++;
-    instn->arg_sizes = *(iptr + offset);
-    offset++;
+    instn->code = *(uint16_t*)iptr;
+    offset += 2;
+    if (instn->code & 0x7)
+    {
+        instn->arg_sizes = *(iptr + offset);
+        offset++;
+    }
 
     for (int i = 0; i < InstnDefs[instn_idx].arg_count; i++)
     {
