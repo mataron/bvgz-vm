@@ -38,6 +38,7 @@ typedef struct _prs_result_t
     prs_instn_t** instns;
     // maps label names to instn in the array above.
     hashmap_t labels;
+    int consistent; // when zero evrything is fine!
 }
 prs_result_t;
 

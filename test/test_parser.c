@@ -10,12 +10,17 @@ static void test_labels()
     assert(hmap_size(result->labels) == 3);
 
     long value;
-    hmap_get(result->labels, "abc", (void**)&value);
+    int r = hmap_get(result->labels, "abc", (void**)&value);
+    assert(r == MAP_OK);
     assert(value == 0);
-    hmap_get(result->labels, "a000", (void**)&value);
+    r = hmap_get(result->labels, "a000", (void**)&value);
+    assert(r == MAP_OK);
     assert(value == 0);
-    hmap_get(result->labels, "__zz", (void**)&value);
+    r = hmap_get(result->labels, "__zz", (void**)&value);
+    assert(r == MAP_OK);
     assert(value == 0);
+
+    assert(result->consistent == 0);
 
     destroy_parse_result(result);
 }
@@ -58,6 +63,19 @@ static void test_instns()
     assert(instn->args[2].data.value == 0x2345);
     assert(instn->args[2].n_bytes == 2);
 
+    assert(result->consistent == -1);
+
+    destroy_parse_result(result);
+}
+
+
+static void test_instns_w_labels()
+{
+    prs_result_t* result = parse_asm(xstr(PROJECT_ROOT) "/test/asm/instn-w-labels.s", NULL);
+    assert(result->n_instns == 3);
+    assert(hmap_size(result->labels) == 3);
+    assert(result->consistent == 0);
+
     destroy_parse_result(result);
 }
 
@@ -90,9 +108,9 @@ int main(int argc, char** argv)
     setup_instn_defs();
 
     test_instns_lookup();
-
     test_labels();
     test_instns();
+    test_instns_w_labels();
 
     return 0;
 }
