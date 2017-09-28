@@ -7,8 +7,9 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "parser.h"
 #include "util/hashset.h"
+#include "parser.h"
+#include "instn.h"
 
 // TODO: preprocessor directives (at least include)
 

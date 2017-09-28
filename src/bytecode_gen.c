@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #include "bytecode.h"
+#include "parser.h"
+#include "instn.h"
 
 #define BUF_BLOCK_SIZE  256
 
@@ -178,6 +180,7 @@ static uint32_t write_imm_arg(uint8_t* buffer, uint32_t offset,
     *(uint64_t*)(buffer + offset) = arg->data.value;
     return offset + 8;
 }
+
 
 static uint32_t write_imm32bit(uint8_t* buffer, uint32_t offset,
     uint32_t value)

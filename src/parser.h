@@ -5,7 +5,6 @@
 
 #include "util/list.h"
 #include "util/hashmap.h"
-#include "instn.h"
 
 
 #define T_ARG_IMM       0
@@ -24,9 +23,10 @@ typedef struct _prs_arg_t
 prs_arg_t;
 
 
+struct _instn_def_t;
 typedef struct _prs_instn_t
 {
-    instn_def_t* instn;
+    struct _instn_def_t* instn;
     prs_arg_t* args;
     // set by the bytecode generator: offset int memory
     // where this instruction is found.

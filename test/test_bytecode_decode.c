@@ -1,5 +1,8 @@
 #include "tests.h"
 #include "bytecode.h"
+#include "parser.h"
+#include "instn.h"
+
 
 static void test_decode()
 {

@@ -1,4 +1,5 @@
 #include "bytecode.h"
+#include "instn.h"
 
 
 int32_t decode_instn(uint8_t* iptr, uint8_t* memory, instn_t* instn)
