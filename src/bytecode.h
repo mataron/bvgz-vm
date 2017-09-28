@@ -28,6 +28,7 @@ typedef struct _instn_t
 }
 instn_t;
 
-int decode_instn(uint8_t* iptr, uint8_t* memory, instn_t* instn);
+struct _vm_t;
+int decode_instn(uint8_t* iptr, struct _vm_t* vm, instn_t* instn);
 
 #endif

@@ -1,8 +1,9 @@
 #include "bytecode.h"
 #include "instn.h"
+#include "vm.h"
 
 
-int32_t decode_instn(uint8_t* iptr, uint8_t* memory, instn_t* instn)
+int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
 {
     int32_t offset = 0;
     uint8_t instn_idx = *iptr >> 3;
@@ -46,8 +47,13 @@ int32_t decode_instn(uint8_t* iptr, uint8_t* memory, instn_t* instn)
         }
         else
         {
-            // TODO: validation & exception setting @ VM
-            instn->args[i].ptr = memory + *(uint32_t*)(iptr + offset);
+            uint32_t ref = *(uint32_t*)(iptr + offset);
+            if (ref + 8 > vm->memsz) // 8 : 64bit arg
+            {
+                vm->exceptions |= VM_E_MemFault;
+                return -1;
+            }
+            instn->args[i].ptr = vm->memory + ref;
             offset += 4;
         }
     }
