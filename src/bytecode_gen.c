@@ -128,14 +128,23 @@ static uint32_t write_args(prs_instn_t* instn, instn_def_t* def,
 
         case T_ARG_REF_LBL:
         {
-            uint64_t ref_instn_index;
-            hmap_get(parse->labels, instn->args[j].data.label,
-                (void**)&ref_instn_index);
+            label_t* label = NULL;
+            hmap_get(parse->labels, instn->args[j].data.label, (void**)&label);
+
+            if (label->is_mem_ref)
+            {
+                offset = write_imm32bit(buffer, offset, label->offset);
+                break;
+            }
+
+            uint64_t ref_instn_index = label->offset;
             if (ref_instn_index <= cur_instn)
             {
                 offset = write_imm32bit(buffer, offset,
                     parse->instns[ref_instn_index]->mem_offset);
-            } else {
+            }
+            else
+            {
                 delayed_refs = add_delayed_ref(delayed_refs, *n_delayed_refs,
                     offset, ref_instn_index);
                 (*n_delayed_refs)++;

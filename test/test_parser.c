@@ -9,16 +9,19 @@ static void test_labels()
     assert(result->n_instns == 0);
     assert(hmap_size(result->labels) == 3);
 
-    long value;
+    label_t* value;
     int r = hmap_get(result->labels, "abc", (void**)&value);
     assert(r == MAP_OK);
-    assert(value == 0);
+    assert(value->offset == 0);
+    assert(value->is_mem_ref == 0);
     r = hmap_get(result->labels, "a000", (void**)&value);
     assert(r == MAP_OK);
-    assert(value == 0);
+    assert(value->offset == 0);
+    assert(value->is_mem_ref == 0);
     r = hmap_get(result->labels, "__zz", (void**)&value);
     assert(r == MAP_OK);
-    assert(value == 0);
+    assert(value->offset == 0);
+    assert(value->is_mem_ref == 0);
 
     assert(result->consistent == 0);
 

@@ -35,15 +35,23 @@ typedef struct _prs_instn_t
 prs_instn_t;
 
 
+typedef struct _label_t
+{
+    uint32_t offset;
+    // when false, ofset refers to an instn.
+    uint8_t is_mem_ref;
+}
+label_t;
+
+
 typedef struct _prs_result_t
 {
     uint32_t n_instns;
     prs_instn_t** instns;
-    // maps label names to instn in the array above.
-    hashmap_t labels;
     // memory area built from data
     uint8_t* memory;
     uint32_t memsz;
+    hashmap_t labels;
     // when zero everything is fine!
     int consistent;
 }

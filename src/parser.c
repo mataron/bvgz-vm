@@ -42,7 +42,7 @@ static void parse_preproc_data(const char* filename, uint32_t lineno, char* line
 static void parse_preproc_include(const char* filename, uint32_t lineno, char* line,
     prs_result_t* result);
 
-static void add_label(const char* label_token, prs_result_t* result);
+static void add_instn_label(const char* label_token, prs_result_t* result);
 static void add_instn(const char* filename, uint32_t lineno, const char** tokens,
     int n_tokens, prs_result_t* result, hashset_t label_refs);
 
@@ -55,12 +55,12 @@ static int parse_arg(const char* filename, uint32_t lineno,
 static void label_refs_visitor(void* parse, char* label, void* unused)
 {
     prs_result_t* result = parse;
-    long value;
+    label_t* label_val;
 
-    int r = hmap_get(result->labels, label, (void**)&value);
+    int r = hmap_get(result->labels, label, (void**)&label_val);
     if (r != MAP_OK)
     {
-        report(P_ERROR, "<unknown>", 0, "referenced label [%s] is missing", label);
+        report(P_ERROR, "<top-level>", 0, "referenced label [%s] is missing", label);
         result->consistent = -1;
     }
 }
@@ -91,6 +91,7 @@ prs_result_t* parse_asm(char* filename, list_t* include_paths)
 static void free_label(void* unused, char* key, void* value)
 {
     free(key);
+    free(value);
 }
 
 void destroy_parse_result(prs_result_t* parse_result)
@@ -127,6 +128,8 @@ static prs_result_t* init_parse_result()
     prs_result_t* res = malloc(sizeof(prs_result_t));
     res->n_instns = 0;
     res->instns = NULL;
+    res->memory = NULL;
+    res->memsz = 0;
     res->labels = hmap_create();
     res->consistent = 0;
     return res;
@@ -228,7 +231,7 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
         else if (tkn == 0 && *p == ':')
         {
             *p = 0;
-            add_label(tokens[0], result);
+            add_instn_label(tokens[0], result);
             parse_instn = 0;
         }
         else if (!parse_instn)
@@ -281,9 +284,12 @@ static void parse_preproc_include(const char* filename, uint32_t lineno, char* l
 }
 
 
-static void add_label(const char* label_token, prs_result_t* result)
+static void add_instn_label(const char* label_token, prs_result_t* result)
 {
-    hmap_put(result->labels, strdup(label_token), (void*)(long)result->n_instns);
+    label_t* label = malloc(sizeof(label_t));
+    label->offset = result->n_instns;
+    label->is_mem_ref = 0;
+    hmap_put(result->labels, strdup(label_token), label);
 }
 
 
