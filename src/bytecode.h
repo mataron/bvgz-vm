@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define BVGZ_FILE_MAGIC  0xB0C5
+
 struct _prs_result_t;
 
 // ASSUMES the 'parse' is correct & internally consistent.
@@ -30,5 +32,9 @@ instn_t;
 
 struct _vm_t;
 int decode_instn(uint8_t* iptr, struct _vm_t* vm, instn_t* instn);
+
+int write_bvgz_image(FILE *fp, struct _prs_result_t* parse,
+    uint8_t* code, uint32_t codesz, uint32_t entry_label);
+struct _vm_t* read_bvgz_image(FILE *fp);
 
 #endif

@@ -60,3 +60,9 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
 
     return offset;
 }
+
+
+struct _vm_t* read_bvgz_image(FILE *fp)
+{
+    return NULL;
+}

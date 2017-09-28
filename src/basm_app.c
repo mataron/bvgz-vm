@@ -19,22 +19,48 @@ char* entry_pt_label = NULL;
 static void print_help(FILE* out, char* program);
 static void parse_args(int argc, char** argv);
 static void free_args();
+static uint32_t resolve_entry_point(prs_result_t* result);
 
 
 int main(int argc, char** argv)
 {
+    FILE* outfp = NULL;
+    int retval = 0;
+    uint32_t entry_offset = 0;
+
     parse_args(argc, argv);
 
     prs_result_t* result = parse_asm(asmfile, include_paths);
 
     uint8_t* code = NULL;
     uint32_t codesz = 0;
-    parse_to_bytecode(result, &code, &codesz);
+    if (parse_to_bytecode(result, &code, &codesz) < 0)
+    {
+        retval = 1;
+        goto done;
+    }
 
+    entry_offset = resolve_entry_point(result);
+    if (entry_offset == (uint32_t)-1)
+    {
+        retval = 1;
+        goto done;
+    }
+
+    outfp = fopen(outfile, "w");
+    if (write_bvgz_image(outfp, result, code, codesz,
+        entry_offset) < 0)
+    {
+        retval = 1;
+        goto done;
+    }
+
+done:
+    if (outfp) fclose(outfp);
     free(code);
     destroy_parse_result(result);
     free_args();
-    return 0;
+    return retval;
 }
 
 
@@ -131,4 +157,26 @@ static void free_args()
 
     free(entry_pt_label);
     free(outfile);
+}
+
+
+static uint32_t resolve_entry_point(prs_result_t* result)
+{
+    label_t* elbl = NULL;
+
+    if (hmap_get(result->labels, entry_pt_label, (void**)&elbl) != MAP_OK)
+    {
+        fprintf(stderr, "entry label not found: %s\n",
+            entry_pt_label);
+        return (uint32_t)-1;
+    }
+
+    if (elbl->is_mem_ref)
+    {
+        fprintf(stderr, "entry label refers to memory segment: %s\n",
+            entry_pt_label);
+        return (uint32_t)-1;
+    }
+
+    return elbl->offset;
 }
