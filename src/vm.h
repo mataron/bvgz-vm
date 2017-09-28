@@ -5,8 +5,10 @@
 #include "util/list.h"
 
 
-#define VM_E_Arithmetic     0x1
-#define VM_E_MemFault       0x2
+#define VM_E_Arithmetic         0x1
+#define VM_E_MemFault           0x2
+#define VM_E_OutOfMemory        0x4
+#define VM_E_MemoryUnderflow    0x8
 
 
 typedef struct _vm_t

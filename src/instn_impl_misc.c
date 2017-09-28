@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "vm.h"
 #include "instn.h"
 #include "instn_impl.h"
@@ -47,13 +48,29 @@ int op_cp_3(instn_t* instn, vm_t* vm)
 
 int op_mexp_1(instn_t* instn, vm_t* vm)
 {
-    // TODO: implement
+    uint64_t sz = arg_value(instn, 0);
+    uint8_t* mem = realloc(vm->memory, vm->memsz + sz);
+    if (!mem)
+    {
+        vm->exceptions |= VM_E_OutOfMemory;
+        return -1;
+    }
+
+    vm->memory = mem;
+    vm->memsz += sz;
     return 0;
 }
 
 
 int op_mret_1(instn_t* instn, vm_t* vm)
 {
-    // TODO: implement
+    uint64_t sz = arg_value(instn, 0);
+    if (sz > vm->memsz)
+    {
+        vm->exceptions |= VM_E_MemoryUnderflow;
+        return -1;
+    }
+
+    vm->memsz -= sz;
     return 0;
 }
