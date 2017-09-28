@@ -36,7 +36,3 @@ Memory gaps or empty tail area are initialy set to zero.
 > `offset` := `num`
 >
 > `size` := `num`
-
-`%datasz` `num`
-> specify the total amount of memory to allocate to `num`
-
