@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.6)
 
 project(bvgz-vm)
 add_definitions(-Wall -std=c99)

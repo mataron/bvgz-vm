@@ -36,6 +36,13 @@ static void parse_asm_into(const char* filename, list_t* include_paths,
 static void parse_line(const char* filename, uint32_t lineno, char* line,
     list_t* include_paths, prs_result_t* result, hashset_t label_refs);
 
+static void parse_preproc_line(const char* filename, uint32_t lineno, char* line,
+    prs_result_t* result);
+static void parse_preproc_data(const char* filename, uint32_t lineno, char* line,
+    prs_result_t* result);
+static void parse_preproc_include(const char* filename, uint32_t lineno, char* line,
+    prs_result_t* result);
+
 static void add_label(const char* label_token, prs_result_t* result);
 static void add_instn(const char* filename, uint32_t lineno, const char** tokens,
     int n_tokens, prs_result_t* result, hashset_t label_refs);
@@ -198,6 +205,12 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
     // empty line or comment
     if (!*p || *p == ';') return;
 
+    if (*p == '%')
+    {
+        parse_preproc_line(filename, lineno, line, result);
+        return;
+    }
+
     tokens[0] = p;
 
     int parse_instn = 1, tkn = 0;
@@ -238,6 +251,34 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
         add_instn(filename, lineno, (const char**)tokens, tkn + 1,
             result, label_refs);
     }
+}
+
+
+static void parse_preproc_line(const char* filename, uint32_t lineno, char* line,
+    prs_result_t* result)
+{
+    if (strncmp(line, "%data", 5) == 0)
+    {
+        parse_preproc_data(filename, lineno, line, result);
+    }
+    else if (strncmp(line, "%include", 8) == 0)
+    {
+        parse_preproc_include(filename, lineno, line, result);
+    }
+}
+
+
+static void parse_preproc_data(const char* filename, uint32_t lineno, char* line,
+    prs_result_t* result)
+{
+    report(P_WARN, filename, lineno, "data setup not implemented yet");
+}
+
+
+static void parse_preproc_include(const char* filename, uint32_t lineno, char* line,
+    prs_result_t* result)
+{
+    report(P_WARN, filename, lineno, "file inclusion not implemented yet");
 }
 
 
