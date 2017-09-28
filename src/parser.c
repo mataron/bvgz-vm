@@ -11,8 +11,6 @@
 #include "parser.h"
 #include "instn.h"
 
-// TODO: preprocessor directives (at least include)
-
 #define FILEPATH_BUF_SZ 256
 #define MAX_TOKENS  4   // maximum number of tokens per line
 
