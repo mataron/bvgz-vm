@@ -14,11 +14,10 @@
 
 ## Function ABI
 
-Call instruction:
-> `call` _addr_ _ret_ _args_
-> * _addr_ is the location of the function code
-> * _ret_ is the ref where the result of the function will go
-> * _args_ points to the first argument (all args are 64 bit long)
+`call` _addr_ _ret_ _args_
+* _addr_ is the location of the function code
+* _ret_ is the ref where the result of the function will go
+* _args_ points to the first argument (all args are 64 bit long)
 
 The vm stack ONLY holds the return addresses
 
