@@ -30,7 +30,7 @@ Memory gaps or empty tail area are initialy set to zero.
 `%include` `filename`
 > 	include the contents of the file `filename`
 
-`%data` '@'`label` `what` ( ':' (`offset`)? (':' `size`)? )?
+`%data` '@'`label` `what` ( (`offset`)? ( `size`)? )?
 > `what` := '='`filename` | "string" | `hex`
 >
 > `offset` := `num`

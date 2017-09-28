@@ -53,7 +53,8 @@ typedef struct _prs_result_t
     prs_instn_t** instns;
     // memory area built from data
     uint8_t* memory;
-    uint32_t memsz;
+    uint32_t memsz; // bytes in 'memory' that are used
+    uint32_t mem_alloc; // allocation size of 'memory'
     hashmap_t labels;
     // when zero everything is fine!
     int consistent;

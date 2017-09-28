@@ -107,6 +107,22 @@ static void test_instns_w_labels()
 }
 
 
+static void test_data_loads()
+{
+    prs_result_t* result = parse_asm(
+        xstr(PROJECT_ROOT) "/test/asm/data.s", NULL);
+    assert(result->errors == 0);
+    assert(result->warnings == 1);
+    assert(result->n_instns == 0);
+    assert(hmap_size(result->labels) == 3);
+    assert(result->consistent == 0);
+    // true total is 226, but 12 bytes are removed due to specific size
+    assert(result->memsz == 214);
+
+    destroy_parse_result(result);
+}
+
+
 static void test_instns_lookup()
 {
     instn_def_t* fmt;
@@ -137,6 +153,7 @@ int main(int argc, char** argv)
     test_instns();
     test_instns_w_labels();
     test_include();
+    test_data_loads();
 
     return 0;
 }

@@ -1,4 +1,5 @@
 #define _GNU_SOURCE // for getline()
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -11,11 +12,22 @@
 #include "parser.h"
 #include "instn.h"
 
-#define FILEPATH_BUF_SZ 256
-#define MAX_TOKENS  4   // maximum number of tokens per line
+#define FILEPATH_BUF_SZ     256
+
+#ifndef NDEBUG
+#define MEM_ALLOC_BLOCK_SZ  10
+#else
+#define MEM_ALLOC_BLOCK_SZ  512
+#endif
+
+// maximum number of tokens per instn line
+#define MAX_TOKENS          4
 
 #define P_ERROR 0
 #define P_WARN  1
+
+#define PREPROC_DATA    "%data"
+#define PREPROC_INCL    "%include"
 
 static char* ReportKinds[] = {
     "Error",
@@ -40,13 +52,13 @@ static void parse_preproc_line(const char* filename, uint32_t lineno,
     char* line, prs_result_t* result, list_t* include_paths,
     hashset_t label_refs);
 static void parse_preproc_data(const char* filename, uint32_t lineno,
-    char* line, prs_result_t* result);
+    char* line, list_t* include_paths, prs_result_t* result);
 static void parse_preproc_include(const char* filename, uint32_t lineno,
     char* line, prs_result_t* result, list_t* include_paths,
     hashset_t label_refs);
 
-static void add_instn_label(const char* label_token,
-    prs_result_t* result);
+static void add_label(const char* label_token,
+    prs_result_t* result, uint32_t offset, uint8_t is_mem_ref);
 static void add_instn(const char* filename, uint32_t lineno,
     const char** tokens, int n_tokens, prs_result_t* result,
     hashset_t label_refs);
@@ -266,7 +278,7 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
         else if (tkn == 0 && *p == ':')
         {
             *p = 0;
-            add_instn_label(tokens[0], result);
+            add_label(tokens[0], result, result->n_instns, 0);
             parse_instn = 0;
         }
         else if (!parse_instn)
@@ -295,11 +307,12 @@ static void parse_preproc_line(const char* filename, uint32_t lineno,
     char* line, prs_result_t* result, list_t* include_paths,
     hashset_t label_refs)
 {
-    if (strncmp(line, "%data", 5) == 0)
+    if (strncmp(line, PREPROC_DATA, sizeof(PREPROC_DATA) - 1) == 0)
     {
-        parse_preproc_data(filename, lineno, line, result);
+        parse_preproc_data(filename, lineno, line, include_paths,
+            result);
     }
-    else if (strncmp(line, "%include", 8) == 0)
+    else if (strncmp(line, PREPROC_INCL, sizeof(PREPROC_INCL) - 1) == 0)
     {
         parse_preproc_include(filename, lineno, line, result,
             include_paths, label_refs);
@@ -307,11 +320,328 @@ static void parse_preproc_line(const char* filename, uint32_t lineno,
 }
 
 
-static void parse_preproc_data(const char* filename, uint32_t lineno,
-    char* line, prs_result_t* result)
+static uint32_t parse_preproc_data_no(const char* filename,
+    uint32_t lineno, char* numeric_str, const char* data_name,
+    prs_result_t* result)
 {
-    report(result, P_WARN, filename, lineno,
-        "data setup not implemented yet");
+    char* end = NULL;
+    uint32_t n = strtoul(numeric_str, &end, 10);
+    if (*end && *end != ';')
+    {
+        report(result, P_ERROR, filename, lineno,
+            "bad data specification: [%s]: base 10 integer expected",
+            data_name);
+        return 0;
+    }
+    return n;
+}
+
+
+static void ensure_memory_alloc(uint32_t alloc, prs_result_t* result)
+{
+    if (alloc > result->memsz)
+    {
+        uint32_t new_size = result->mem_alloc;
+        while (alloc > new_size) new_size += MEM_ALLOC_BLOCK_SZ;
+        if (new_size > result->mem_alloc)
+        {
+            result->memory = realloc(result->memory, new_size);
+            result->mem_alloc = new_size;
+        }
+    }
+}
+
+
+static void ensure_memory_at_offset(uint32_t size, uint32_t offset,
+    prs_result_t* result)
+{
+    if (offset == (uint32_t)-1) return;
+
+    uint32_t min_alloc = offset + (size ? size : 1);
+    ensure_memory_alloc(min_alloc, result);
+}
+
+
+static void write_to_memory(uint8_t* src, uint32_t size,
+    uint32_t mem_offset, prs_result_t* result)
+{
+    ensure_memory_alloc(mem_offset + size, result);
+    memcpy(result->memory + mem_offset, src, size);
+    result->memsz = mem_offset + size;
+}
+
+
+static void set_memory_size(const char* filename, uint32_t lineno,
+    uint32_t original_offset, uint32_t size, prs_result_t* result)
+{
+    if (size != (uint32_t)-1)
+    {
+        size += original_offset;
+        if (size < result->memsz)
+        {
+            report(result, P_WARN, filename, lineno,
+                "trimming memory size %u -> %u bytes",
+                result->memsz, size);
+        }
+        result->memsz = size;
+    }
+}
+
+
+static void add_file_to_memory(const char* filename, uint32_t lineno,
+    char* label, char* incl_file, uint32_t size, uint32_t offset,
+    list_t* include_paths, prs_result_t* result)
+{
+    char filepath[FILEPATH_BUF_SZ];
+    if (find_file(incl_file, include_paths, filepath,
+            FILEPATH_BUF_SZ) < 0)
+    {
+        report(result, P_ERROR, filename, lineno,
+            "file not found: %s", incl_file);
+        return;
+    }
+
+    ensure_memory_at_offset(size, offset, result);
+
+    uint8_t buffer[MEM_ALLOC_BLOCK_SZ];
+    FILE* fp = fopen(filepath, "r");
+
+    size_t sz;
+    uint32_t w_offset = offset != (uint32_t)-1 ? offset : result->memsz;
+    uint32_t original_offset = w_offset;
+    while((sz = fread(buffer, 1, MEM_ALLOC_BLOCK_SZ, fp)) > 0)
+    {
+        write_to_memory(buffer, sz, w_offset, result);
+        w_offset += sz;
+    }
+
+    fclose(fp);
+
+    set_memory_size(filename, lineno, original_offset, size, result);
+    if (label)
+    {
+        add_label(label, result, original_offset, 1);
+    }
+}
+
+
+static void add_str_to_memory(const char* filename, uint32_t lineno,
+    char* label, char* str, uint32_t size, uint32_t offset,
+    prs_result_t* result)
+{
+    ensure_memory_at_offset(size, offset, result);
+
+    uint32_t w_offset = offset != (uint32_t)-1 ? offset : result->memsz;
+    uint32_t original_offset = w_offset;
+    int escape_chr = 0, stop = 0;
+    char* p;
+    uint8_t tmp;
+    for (p = str + 1; *p && !stop; p++)
+    {
+        switch (*p)
+        {
+        case '\\':
+            if (escape_chr)
+            {
+                escape_chr = 0;
+                write_to_memory((uint8_t*)p, 1, w_offset, result);
+                w_offset++;
+                break;
+            }
+            escape_chr = 1;
+            break;
+
+        case '"':
+            if (escape_chr)
+            {
+                escape_chr = 0;
+                write_to_memory((uint8_t*)p, 1, w_offset, result);
+                w_offset++;
+                break;
+            }
+            stop = 1;
+            break;
+
+#define WRITE_CHR_OR_ESCAPED(escaped)   \
+            if (escape_chr)\
+            {\
+                escape_chr = 0;\
+                tmp = escaped;\
+                write_to_memory(&tmp, 1, w_offset, result);\
+                w_offset++;\
+                break;\
+            }\
+            write_to_memory((uint8_t*)p, 1, w_offset, result);\
+            w_offset++;\
+            break;
+
+        case 'a': WRITE_CHR_OR_ESCAPED(0x07);
+        case 'b': WRITE_CHR_OR_ESCAPED(0x08);
+        case 'f': WRITE_CHR_OR_ESCAPED(0x0C);
+        case 'n': WRITE_CHR_OR_ESCAPED(0x0A);
+        case 'r': WRITE_CHR_OR_ESCAPED(0x0D);
+        case 't': WRITE_CHR_OR_ESCAPED(0x09);
+        case 'v': WRITE_CHR_OR_ESCAPED(0x0B);
+
+#undef WRITE_CHR_OR_ESCAPED
+        default:
+            write_to_memory((uint8_t*)p, 1, w_offset, result);
+            w_offset++;
+        }
+    }
+
+    // NULL terminate the string
+    tmp = 0;
+    write_to_memory(&tmp, 1, w_offset, result);
+
+    if (!stop)
+    {
+        report(result, P_ERROR, filename, lineno, "bad string format");
+    }
+
+    set_memory_size(filename, lineno, original_offset, size, result);
+    if (label)
+    {
+        add_label(label, result, original_offset, 1);
+    }
+}
+
+
+static void add_hex_to_memory(const char* filename, uint32_t lineno,
+    char* label, char* hex, uint32_t size, uint32_t offset,
+    prs_result_t* result)
+{
+    ensure_memory_at_offset(size, offset, result);
+
+    char* end = NULL;
+    uint64_t n = strtoull(hex + 2, &end, 16);
+
+    if (*end)
+    {
+        report(result, P_WARN, filename, lineno, "bad hex value");
+    }
+
+    uint32_t w_offset = offset != (uint32_t)-1 ? offset : result->memsz;
+
+    size_t len = strlen(hex + 2); // skip '0x'
+#define WRITE_BITS(bits)\
+        {\
+            uint ## bits ## _t tmp = n;\
+            write_to_memory((uint8_t*)&tmp, bits / 8, w_offset,\
+                result);\
+            break;\
+        }
+
+    switch (len / 2 + (len & 1))
+    {
+        case 1: WRITE_BITS(8);
+        case 2: WRITE_BITS(16);
+        case 4: WRITE_BITS(32);
+        case 8: WRITE_BITS(64);
+        default:
+            report(result, P_WARN, filename, lineno,
+                "cannot determine number length: default to 64 bits");
+            WRITE_BITS(64);
+    }
+
+#undef WRITE_BITS
+
+    set_memory_size(filename, lineno, w_offset, size, result);
+    if (label)
+    {
+        add_label(label, result, w_offset, 1);
+    }
+}
+
+
+static void parse_preproc_data(const char* filename, uint32_t lineno,
+    char* line, list_t* include_paths, prs_result_t* result)
+{
+    uint32_t size = (uint32_t)-1;
+    uint32_t offset = (uint32_t)-1;
+    char* label = NULL;
+    char* data = NULL;
+    char* p = NULL;
+    char* token = line + sizeof(PREPROC_DATA);
+
+#define NEXT_TOKEN(required) \
+    while (*token && isspace(*token)) token++;\
+    p = token;\
+    while (*p && !isspace(*p) && *p != ';') p++;\
+    if (required && (token == p || !*p))\
+    {\
+        report(result, P_ERROR, filename, lineno,\
+            "bad data directive: incorrect specification");\
+        return;\
+    }\
+    if (*token == ';') *token = 0;\
+    *p = 0;
+
+    NEXT_TOKEN(1);
+
+    if (*token == '@')
+    {
+        label = token;
+        token = p + 1;
+        NEXT_TOKEN(1);
+    }
+
+    data = token;
+    token = p + 1;
+
+    NEXT_TOKEN(0);
+
+    if (*token)
+    {
+        if (strcmp(token, "-") != 0)
+        {
+            offset = parse_preproc_data_no(filename, lineno, token,
+                "offset", result);
+        }
+
+        if (offset && offset < result->memsz)
+        {
+            report(result, P_WARN, filename, lineno,
+                "data collide with previous allocations: %u bytes",
+                result->memsz - offset);
+        }
+
+        token = p + 1;
+    }
+
+    NEXT_TOKEN(0);
+
+    if (*token)
+    {
+        size = parse_preproc_data_no(filename, lineno, token,
+            "size", result);
+    }
+
+#undef NEXT_TOKEN
+
+    if (*data == '=')
+    {
+        add_file_to_memory(filename, lineno, label, data + 1, size,
+            offset, include_paths, result);
+    }
+    else if (*data == '"')
+    {
+        add_str_to_memory(filename, lineno, label, data, size,
+            offset, result);
+    }
+    else if (*data == '0' && *(data + 1) == 'x' && *(data + 2))
+    {
+        add_hex_to_memory(filename, lineno, label, data, size,
+            offset, result);
+    }
+    else
+    {
+        report(result, P_ERROR, filename, lineno,
+            "bad data directive: incorrect data specification");
+        return;
+    }
+
+    assert(result->memsz <= result->mem_alloc);
 }
 
 
@@ -319,7 +649,7 @@ static void parse_preproc_include(const char* filename, uint32_t lineno,
     char* line, prs_result_t* result, list_t* include_paths,
     hashset_t label_refs)
 {
-    char* file = line + 8;
+    char* file = line + sizeof(PREPROC_INCL);
     while (*file && isspace(*file)) file++;
 
     char* p = file;
@@ -345,12 +675,12 @@ static void parse_preproc_include(const char* filename, uint32_t lineno,
 }
 
 
-static void add_instn_label(const char* label_token,
-    prs_result_t* result)
+static void add_label(const char* label_token,
+    prs_result_t* result, uint32_t offset, uint8_t is_mem_ref)
 {
     label_t* label = malloc(sizeof(label_t));
-    label->offset = result->n_instns;
-    label->is_mem_ref = 0;
+    label->offset = offset;
+    label->is_mem_ref = is_mem_ref;
     hmap_put(result->labels, strdup(label_token), label);
 }
 
