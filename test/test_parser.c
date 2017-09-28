@@ -113,7 +113,7 @@ static void test_data_loads()
         xstr(PROJECT_ROOT) "/test/asm/data.s", NULL);
     assert(result->errors == 0);
     assert(result->warnings == 1);
-    assert(result->n_instns == 0);
+    assert(result->n_instns == 1);
     assert(hmap_size(result->labels) == 3);
     assert(result->consistent == 0);
     // true total is 226, but 12 bytes are removed due to specific size

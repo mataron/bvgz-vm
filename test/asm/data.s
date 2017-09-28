@@ -19,3 +19,6 @@
 ; 2 x 8 bytes:
 %data 0x112233445566778
 %data 0x1122334455667788
+
+; test data labels ::
+add bar foo 0x12184

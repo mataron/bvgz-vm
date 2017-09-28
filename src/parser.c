@@ -420,7 +420,7 @@ static void add_file_to_memory(const char* filename, uint32_t lineno,
     set_memory_size(filename, lineno, original_offset, size, result);
     if (label)
     {
-        add_label(label, result, original_offset, 1);
+        add_label(label + 1 /* skip '@' chr */, result, original_offset, 1);
     }
 }
 
@@ -502,7 +502,7 @@ static void add_str_to_memory(const char* filename, uint32_t lineno,
     set_memory_size(filename, lineno, original_offset, size, result);
     if (label)
     {
-        add_label(label, result, original_offset, 1);
+        add_label(label + 1 /* skip '@' chr */, result, original_offset, 1);
     }
 }
 
@@ -549,7 +549,7 @@ static void add_hex_to_memory(const char* filename, uint32_t lineno,
     set_memory_size(filename, lineno, w_offset, size, result);
     if (label)
     {
-        add_label(label, result, w_offset, 1);
+        add_label(label + 1 /* skip '@' chr */, result, w_offset, 1);
     }
 }
 
