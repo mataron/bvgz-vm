@@ -89,6 +89,7 @@ instn_def_t InstnDefs[] = {
     OP2f(jtrue, F_ALLOW_IMM_1st_Arg),
     OP2f(jfalse, F_ALLOW_IMM_1st_Arg),
     OP3f(call, F_ALLOW_IMM_1st_Arg),
+    OP3f(syscall, F_ALLOW_IMM_1st_Arg),
     OP0(ret),
     OP1f(mexp, F_ALLOW_IMM_1st_Arg),
     OP1f(mret, F_ALLOW_IMM_1st_Arg),
