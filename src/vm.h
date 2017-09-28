@@ -58,5 +58,8 @@ proc_t* make_func_procedure(uint32_t iptr, uint8_t* argv,
 
 void push_call_stack(proc_t* proc, uint8_t* retval,
     uint8_t* args, uint32_t ret_address, vm_t* vm);
+uint32_t pop_call_stack(proc_t* proc, vm_t* vm);
+
+void delete_current_procedure(vm_t* vm);
 
 #endif

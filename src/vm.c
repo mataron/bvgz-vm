@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "vm.h"
 
+#define STACK_FREE_THRESHOLD    ((uint32_t)(1.5 * FUNC_STACK_ALLOC_SZ))
+
 
 proc_t* make_procedure(uint32_t iptr, vm_t* vm)
 {
@@ -56,4 +58,35 @@ void push_call_stack(proc_t* proc, uint8_t* retval,
     proc->cstack[proc->cstack_sz].args = args;
     proc->cstack[proc->cstack_sz].ret_address = ret_address;
     proc->cstack_sz++;
+}
+
+
+uint32_t pop_call_stack(proc_t* proc, vm_t* vm)
+{
+    proc->cstack_sz--;
+
+    fcall_t* top = &proc->cstack[proc->cstack_sz - 1];
+    uint32_t ret_address = top->ret_address;
+
+    uint32_t excess = proc->cstack_alloc - proc->cstack_sz;
+    if (excess >= STACK_FREE_THRESHOLD)
+    {
+        proc->cstack_alloc -= FUNC_STACK_ALLOC_SZ;
+        proc->cstack = realloc(proc->cstack, proc->cstack_alloc);
+    }
+
+    return ret_address;
+}
+
+
+void delete_current_procedure(vm_t* vm)
+{
+    list_t* current = vm->procedures;
+    vm->procedures = current->next;
+
+    proc_t* proc = current->data;
+    free(proc->cstack);
+    free(proc);
+
+    list_destroy_node(current);
 }

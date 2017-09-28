@@ -67,7 +67,21 @@ int op_syscall_3(instn_t* instn, vm_t* vm)
 
 int op_ret_0(instn_t* instn, vm_t* vm)
 {
-    // TODO: implement
+    proc_t* this_proc = vm->procedures->data;
+    if (!this_proc->cstack_sz)
+    {
+        delete_current_procedure(vm);
+        return 0;
+    }
+
+    uint32_t ret_address = pop_call_stack(this_proc, vm);
+    if (ret_address == (uint32_t)-1)
+    {
+        delete_current_procedure(vm);
+        return 0;
+    }
+
+    this_proc->iptr = ret_address;
     return 0;
 }
 
