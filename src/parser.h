@@ -41,6 +41,9 @@ typedef struct _prs_result_t
     prs_instn_t** instns;
     // maps label names to instn in the array above.
     hashmap_t labels;
+    // memory area built from data
+    uint8_t* memory;
+    uint32_t memsz;
     // when zero everything is fine!
     int consistent;
 }
