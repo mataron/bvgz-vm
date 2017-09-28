@@ -30,7 +30,8 @@ static struct ref* add_delayed_ref(struct ref* refs, int n_refs,
     uint32_t offset, uint32_t instn);
 
 
-int parse_to_bytecode(prs_result_t* parse, uint8_t** memory, uint32_t* size)
+int parse_to_bytecode(prs_result_t* parse, uint8_t** memory,
+    uint32_t* size)
 {
     assert(parse->consistent == 0);
     uint8_t* buffer = NULL;
@@ -129,7 +130,8 @@ static uint32_t write_args(prs_instn_t* instn, instn_def_t* def,
         case T_ARG_REF_LBL:
         {
             label_t* label = NULL;
-            hmap_get(parse->labels, instn->args[j].data.label, (void**)&label);
+            hmap_get(parse->labels, instn->args[j].data.label,
+                (void**)&label);
 
             if (label->is_mem_ref)
             {
@@ -145,8 +147,8 @@ static uint32_t write_args(prs_instn_t* instn, instn_def_t* def,
             }
             else
             {
-                delayed_refs = add_delayed_ref(delayed_refs, *n_delayed_refs,
-                    offset, ref_instn_index);
+                delayed_refs = add_delayed_ref(delayed_refs,
+                    *n_delayed_refs, offset, ref_instn_index);
                 (*n_delayed_refs)++;
                 offset += 4;
             }

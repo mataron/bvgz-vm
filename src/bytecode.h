@@ -7,7 +7,8 @@
 struct _prs_result_t;
 
 // ASSUMES the 'parse' is correct & internally consistent.
-int parse_to_bytecode(struct _prs_result_t* parse, uint8_t** memory, uint32_t* size);
+int parse_to_bytecode(struct _prs_result_t* parse,
+    uint8_t** memory, uint32_t* size);
 int bytecode_to_text(FILE* fp, void* memory, uint32_t* size);
 
 

@@ -22,7 +22,8 @@ void setup_instn_defs()
     }
 
     nInstnDefs = count;
-    qsort(InstnDefs, nInstnDefs, sizeof(instn_def_t), compare_instn_def);
+    qsort(InstnDefs, nInstnDefs, sizeof(instn_def_t),
+        compare_instn_def);
 
     uint8_t n = 0;
     for (instn_def_t* def = InstnDefs; def->name; def++)

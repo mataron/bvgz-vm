@@ -5,28 +5,32 @@
 
 int op_l_and_3(instn_t* instn, vm_t* vm)
 {
-    lref64(instn->args[0].ptr) = arg_value(instn, 1) && arg_value(instn, 2) ? 1 : 0;
+    lref64(instn->args[0].ptr) =
+        arg_value(instn, 1) && arg_value(instn, 2) ? 1 : 0;
     return 0;
 }
 
 
 int op_l_and_2(instn_t* instn, vm_t* vm)
 {
-    lref64(instn->args[0].ptr) = lref64(instn->args[0].ptr) && arg_value(instn, 1) ? 1 : 0;
+    lref64(instn->args[0].ptr) =
+        lref64(instn->args[0].ptr) && arg_value(instn, 1) ? 1 : 0;
     return 0;
 }
 
 
 int op_l_or_3(instn_t* instn, vm_t* vm)
 {
-    lref64(instn->args[0].ptr) = arg_value(instn, 1) || arg_value(instn, 2) ? 1 : 0;
+    lref64(instn->args[0].ptr) =
+        arg_value(instn, 1) || arg_value(instn, 2) ? 1 : 0;
     return 0;
 }
 
 
 int op_l_or_2(instn_t* instn, vm_t* vm)
 {
-    lref64(instn->args[0].ptr) = lref64(instn->args[0].ptr) || arg_value(instn, 1) ? 1 : 0;
+    lref64(instn->args[0].ptr) =
+        lref64(instn->args[0].ptr) || arg_value(instn, 1) ? 1 : 0;
     return 0;
 }
 

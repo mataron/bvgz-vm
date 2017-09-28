@@ -5,7 +5,8 @@
 
 static void test_labels()
 {
-    prs_result_t* result = parse_asm(xstr(PROJECT_ROOT) "/test/asm/labels-only.s", NULL);
+    prs_result_t* result = parse_asm(
+        xstr(PROJECT_ROOT) "/test/asm/labels-only.s", NULL);
     assert(result->errors == 0);
     assert(result->warnings == 0);
     assert(result->n_instns == 0);
@@ -35,7 +36,8 @@ static void test_instns()
 {
     prs_instn_t* instn;
 
-    prs_result_t* result = parse_asm(xstr(PROJECT_ROOT) "/test/asm/instn-only.s", NULL);
+    prs_result_t* result = parse_asm(
+        xstr(PROJECT_ROOT) "/test/asm/instn-only.s", NULL);
     assert(result->errors == 3);
     assert(result->warnings == 0);
     assert(result->n_instns == 3);
@@ -78,8 +80,10 @@ static void test_instns()
 
 static void test_include()
 {
-    list_t* include_paths = list_make_node(xstr(PROJECT_ROOT) "/test/asm/foo");
-    prs_result_t* result = parse_asm(xstr(PROJECT_ROOT) "/test/asm/include.s", include_paths);
+    list_t* include_paths = list_make_node(
+        xstr(PROJECT_ROOT) "/test/asm/foo");
+    prs_result_t* result = parse_asm(
+        xstr(PROJECT_ROOT) "/test/asm/include.s", include_paths);
 
     assert(result->errors == 0); // ensures inclusions are OK
     assert(result->warnings == 0);
@@ -91,7 +95,8 @@ static void test_include()
 
 static void test_instns_w_labels()
 {
-    prs_result_t* result = parse_asm(xstr(PROJECT_ROOT) "/test/asm/instn-w-labels.s", NULL);
+    prs_result_t* result = parse_asm(
+        xstr(PROJECT_ROOT) "/test/asm/instn-w-labels.s", NULL);
     assert(result->errors == 0);
     assert(result->warnings == 0);
     assert(result->n_instns == 3);

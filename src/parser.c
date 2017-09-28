@@ -36,23 +36,27 @@ static void parse_asm_into(const char* filename, list_t* include_paths,
 static void parse_line(const char* filename, uint32_t lineno, char* line,
     list_t* include_paths, prs_result_t* result, hashset_t label_refs);
 
-static void parse_preproc_line(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result, list_t* include_paths, hashset_t label_refs);
-static void parse_preproc_data(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result);
-static void parse_preproc_include(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result, list_t* include_paths, hashset_t label_refs);
+static void parse_preproc_line(const char* filename, uint32_t lineno,
+    char* line, prs_result_t* result, list_t* include_paths,
+    hashset_t label_refs);
+static void parse_preproc_data(const char* filename, uint32_t lineno,
+    char* line, prs_result_t* result);
+static void parse_preproc_include(const char* filename, uint32_t lineno,
+    char* line, prs_result_t* result, list_t* include_paths,
+    hashset_t label_refs);
 
-static void add_instn_label(const char* label_token, prs_result_t* result);
-static void add_instn(const char* filename, uint32_t lineno, const char** tokens,
-    int n_tokens, prs_result_t* result, hashset_t label_refs);
+static void add_instn_label(const char* label_token,
+    prs_result_t* result);
+static void add_instn(const char* filename, uint32_t lineno,
+    const char** tokens, int n_tokens, prs_result_t* result,
+    hashset_t label_refs);
 
 static void parse_instn(const char* filename, uint32_t lineno,
-    const char** tokens, int n_tokens, prs_result_t* result, prs_instn_t** instn,
-    hashset_t label_refs);
+    const char** tokens, int n_tokens, prs_result_t* result,
+    prs_instn_t** instn, hashset_t label_refs);
 static int parse_arg(const char* filename, uint32_t lineno,
-    const char* token, int arg_index, prs_result_t* result, prs_arg_t* arg,
-    hashset_t label_refs);
+    const char* token, int arg_index, prs_result_t* result,
+    prs_arg_t* arg, hashset_t label_refs);
 
 
 static void label_refs_visitor(void* parse, char* label, void* unused)
@@ -63,7 +67,8 @@ static void label_refs_visitor(void* parse, char* label, void* unused)
     int r = hmap_get(result->labels, label, (void**)&label_val);
     if (r != MAP_OK)
     {
-        report(result, P_ERROR, "<top-level>", 0, "referenced label [%s] is missing", label);
+        report(result, P_ERROR, "<top-level>", 0,
+            "referenced label [%s] is missing", label);
         result->consistent = -1;
     }
 }
@@ -80,14 +85,17 @@ prs_result_t* parse_asm(char* filename, list_t* include_paths)
         char* slash = strrchr(filename, '/');
         if (slash)
         { // copy the directory of the root file.
-            list_t* head = list_make_node(strndup(filename, slash - filename));
+            list_t* head = list_make_node(
+                strndup(filename, slash - filename));
             include_paths = list_prepend(include_paths, head);
             free_first_path = 1;
         }
     }
-    else if (find_file(filename, include_paths, filepath, FILEPATH_BUF_SZ) < 0)
+    else if (find_file(filename, include_paths, filepath,
+                FILEPATH_BUF_SZ) < 0)
     {
-        report(NULL, P_ERROR, "<root>", 0, "file not found: %s", filename);
+        report(NULL, P_ERROR, "<root>", 0,
+            "file not found: %s", filename);
         return NULL;
     }
 
@@ -186,7 +194,8 @@ static int find_file(const char* filename, list_t* include_paths,
     struct stat st;
     for (list_t* p = include_paths; p; p = p->next)
     {
-        snprintf(filepath, filepath_sz, "%s/%s", (char*)p->data, filename);
+        snprintf(filepath, filepath_sz, "%s/%s",
+            (char*)p->data, filename);
         if (stat(filepath, &st) == 0) return 0;
     }
 
@@ -205,7 +214,8 @@ static void parse_asm_into(const char* filename, list_t* include_paths,
     while (getline(&line, &sz, fp) > 0)
     {
         lineno++;
-        parse_line(filename, lineno, line, include_paths, result, label_refs);
+        parse_line(filename, lineno, line, include_paths, result,
+            label_refs);
         free(line);
         line = NULL;
         sz = 0;
@@ -281,8 +291,9 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
 }
 
 
-static void parse_preproc_line(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result, list_t* include_paths, hashset_t label_refs)
+static void parse_preproc_line(const char* filename, uint32_t lineno,
+    char* line, prs_result_t* result, list_t* include_paths,
+    hashset_t label_refs)
 {
     if (strncmp(line, "%data", 5) == 0)
     {
@@ -290,21 +301,23 @@ static void parse_preproc_line(const char* filename, uint32_t lineno, char* line
     }
     else if (strncmp(line, "%include", 8) == 0)
     {
-        parse_preproc_include(filename, lineno, line, result, include_paths,
-            label_refs);
+        parse_preproc_include(filename, lineno, line, result,
+            include_paths, label_refs);
     }
 }
 
 
-static void parse_preproc_data(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result)
+static void parse_preproc_data(const char* filename, uint32_t lineno,
+    char* line, prs_result_t* result)
 {
-    report(result, P_WARN, filename, lineno, "data setup not implemented yet");
+    report(result, P_WARN, filename, lineno,
+        "data setup not implemented yet");
 }
 
 
-static void parse_preproc_include(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result, list_t* include_paths, hashset_t label_refs)
+static void parse_preproc_include(const char* filename, uint32_t lineno,
+    char* line, prs_result_t* result, list_t* include_paths,
+    hashset_t label_refs)
 {
     char* file = line + 8;
     while (*file && isspace(*file)) file++;
@@ -315,14 +328,16 @@ static void parse_preproc_include(const char* filename, uint32_t lineno, char* l
 
     if (file == p)
     {
-        report(result, P_ERROR, filename, lineno, "expected filename after %include directive");
+        report(result, P_ERROR, filename, lineno,
+            "expected filename after %include directive");
         return;
     }
 
     char filepath[FILEPATH_BUF_SZ];
     if (find_file(file, include_paths, filepath, FILEPATH_BUF_SZ) < 0)
     {
-        report(result, P_ERROR, filename, lineno, "file not found: %s", file);
+        report(result, P_ERROR, filename, lineno,
+            "file not found: %s", file);
         return;
     }
 
@@ -330,7 +345,8 @@ static void parse_preproc_include(const char* filename, uint32_t lineno, char* l
 }
 
 
-static void add_instn_label(const char* label_token, prs_result_t* result)
+static void add_instn_label(const char* label_token,
+    prs_result_t* result)
 {
     label_t* label = malloc(sizeof(label_t));
     label->offset = result->n_instns;
@@ -339,32 +355,38 @@ static void add_instn_label(const char* label_token, prs_result_t* result)
 }
 
 
-static void add_instn(const char* filename, uint32_t lineno, const char** tokens,
-    int n_tokens, prs_result_t* result, hashset_t label_refs)
+static void add_instn(const char* filename, uint32_t lineno,
+    const char** tokens, int n_tokens, prs_result_t* result,
+    hashset_t label_refs)
 {
     prs_instn_t* instn = NULL;
-    parse_instn(filename, lineno, tokens, n_tokens, result, &instn, label_refs);
+    parse_instn(filename, lineno, tokens, n_tokens, result, &instn,
+        label_refs);
     if (instn)
     {
         result->n_instns++;
-        result->instns = realloc(result->instns, result->n_instns * sizeof(prs_instn_t*));
+        result->instns = realloc(result->instns,
+            result->n_instns * sizeof(prs_instn_t*));
 
         result->instns[result->n_instns - 1] = instn;
-    } else {
+    }
+    else
+    {
         result->consistent = -1;
     }
 }
 
 
 static void parse_instn(const char* filename, uint32_t lineno,
-    const char** tokens, int n_tokens, prs_result_t* result, prs_instn_t** _instn,
-    hashset_t label_refs)
+    const char** tokens, int n_tokens, prs_result_t* result,
+    prs_instn_t** _instn, hashset_t label_refs)
 {
 	instn_def_t* fmt = bsearch(&tokens[0], InstnDefs, nInstnDefs,
 		sizeof(instn_def_t), compare_instn_def);
 	if (!fmt)
 	{
-        report(result, P_ERROR, filename, lineno, "unknown instn: [%s]", tokens[0]);
+        report(result, P_ERROR, filename, lineno,
+            "unknown instn: [%s]", tokens[0]);
 		return;
 	}
 
@@ -386,15 +408,19 @@ static void parse_instn(const char* filename, uint32_t lineno,
 
 			for (int i = 1; i < n_tokens; i++)
 			{
-				if (parse_arg(filename, lineno, tokens[i], i - 1, result, &instn->args[i - 1], label_refs) < 0)
+                if (parse_arg(filename, lineno, tokens[i], i - 1,
+                        result, &instn->args[i - 1], label_refs) < 0)
 				{
                     destroy_instn(instn);
 					return; // don't continue past first error in args
                 }
 
-                if (i == 1 && instn->args[0].type == T_ARG_IMM && (fmt->flags & F_ALLOW_IMM_1st_Arg) == 0)
+                if (i == 1 && instn->args[0].type == T_ARG_IMM &&
+                    (fmt->flags & F_ALLOW_IMM_1st_Arg) == 0)
                 {
-                    report(result, P_ERROR, filename, lineno, "instn [%s] disallows 1st arg to be imm", tokens[0]);
+                    report(result, P_ERROR, filename, lineno,
+                        "instn [%s] disallows 1st arg to be imm",
+                        tokens[0]);
                     destroy_instn(instn);
                     return; // don't continue past first error in args
                 }
@@ -405,7 +431,9 @@ static void parse_instn(const char* filename, uint32_t lineno,
 		}
 	}
 
-    report(result, P_ERROR, filename, lineno, "incorrect argument count for: [%s], found: %d", tokens[0], n_tokens - 1);
+    report(result, P_ERROR, filename, lineno,
+        "incorrect argument count for: [%s], found: %d",
+        tokens[0], n_tokens - 1);
 }
 
 
@@ -415,8 +443,8 @@ static void parse_instn(const char* filename, uint32_t lineno,
 
 
 static int parse_arg(const char* filename, uint32_t lineno,
-    const char* token, int arg_index, prs_result_t* result, prs_arg_t* arg,
-    hashset_t label_refs)
+    const char* token, int arg_index, prs_result_t* result,
+    prs_arg_t* arg, hashset_t label_refs)
 {
 	char const* p = token;
 	char* endp = NULL;
@@ -441,19 +469,23 @@ static int parse_arg(const char* filename, uint32_t lineno,
 	if ((imm == UINT64_MAX && errno == ERANGE) ||
 		(imm > (INT64_MAX - 1) && negative))
 	{
-        report(result, P_ERROR, filename, lineno, "argument (%d) overflow: [%s]", arg_index, token);
+        report(result, P_ERROR, filename, lineno,
+            "argument (%d) overflow: [%s]", arg_index, token);
 		return -1;
 	}
 	if (!negative && imm > (INT64_MAX - 1))
 	{
-        report(result, P_WARN, filename, lineno, "argument (%d) overflows to negative value: [%s]", arg_index, token);
+        report(result, P_WARN, filename, lineno,
+            "argument (%d) overflows to negative value: [%s]",
+            arg_index, token);
 	}
 
 	if (endp == p) // treat p as a label:
 	{
 		if (negative || reference)
 		{
-            report(result, P_ERROR, filename, lineno, "argument (%d) unexpected token after -/@", arg_index);
+            report(result, P_ERROR, filename, lineno,
+                "argument (%d) unexpected token after -/@", arg_index);
 			return -1;
 		}
 
@@ -466,7 +498,8 @@ static int parse_arg(const char* filename, uint32_t lineno,
 
 	if (*endp != 0)
 	{
-        report(result, P_ERROR, filename, lineno, "argument (%d) bad token, expcted number", arg_index);
+        report(result, P_ERROR, filename, lineno,
+            "argument (%d) bad token, expcted number", arg_index);
 		return -1;
 	}
 

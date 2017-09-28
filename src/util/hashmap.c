@@ -31,7 +31,8 @@ hashmap_t hmap_create()
     hashmap_map* m = malloc(sizeof(hashmap_map));
 	if (!m) goto err;
 
-	m->data = (hashmap_element*) calloc(INITIAL_SIZE, sizeof(hashmap_element));
+    m->data = (hashmap_element*)
+        calloc(INITIAL_SIZE, sizeof(hashmap_element));
 	if (!m->data) goto err;
 
 	m->table_size = INITIAL_SIZE;
@@ -117,7 +118,8 @@ unsigned long crc32(const unsigned char *s, unsigned int len)
  */
 unsigned int hashmap_hash_int(hashmap_map * m, char* keystring)
 {
-    unsigned long key = crc32((unsigned char*)(keystring), strlen(keystring));
+    unsigned long key =
+        crc32((unsigned char*)(keystring), strlen(keystring));
 
     /* Robert Jenkins' 32 bit Mix Function */
     key += (key << 12);
@@ -159,8 +161,11 @@ int hashmap_hash(hashmap_t map, char* key){
 		if (m->data[curr].in_use == 0)
 			return curr;
 
-		if (m->data[curr].in_use == 1 && (strcmp(m->data[curr].key,key)==0))
-			return curr;
+        if (m->data[curr].in_use == 1
+            && (strcmp(m->data[curr].key,key)==0))
+        {
+            return curr;
+        }
 
 		curr = (curr + 1) % m->table_size;
 	}
@@ -339,7 +344,8 @@ int hmap_remove(hashmap_t map, char* key)
 }
 
 
-int hmap_iterate(hashmap_t map, void* arg0, void (*visitor)(void*, char*, void*))
+int hmap_iterate(hashmap_t map, void* arg0,
+    void (*visitor)(void*, char*, void*))
 {
     int i;
 

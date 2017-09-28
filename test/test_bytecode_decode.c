@@ -6,7 +6,8 @@
 
 static void test_decode()
 {
-    prs_result_t* result = parse_asm(xstr(PROJECT_ROOT) "/test/asm/bytecode-gen-test.s", NULL);
+    prs_result_t* result = parse_asm(
+        xstr(PROJECT_ROOT) "/test/asm/bytecode-gen-test.s", NULL);
 
     uint8_t* memory = NULL;
     uint32_t size = 0;
