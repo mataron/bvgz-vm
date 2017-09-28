@@ -5,12 +5,17 @@
 
 #define F_ALLOW_IMM_1st_Arg     0x1
 
+struct _instn_t;
+struct _vm_t;
+typedef int (*instn_handler_f)(struct _instn_t* instn, struct _vm_t* vm);
+
 typedef struct _instn_def_t
 {
     const char* name;
     uint16_t opcode;
     int arg_count;
     unsigned flags;
+    instn_handler_f handler;
 }
 instn_def_t;
 
