@@ -5,6 +5,9 @@
 #include "util/list.h"
 
 
+#define VM_E_Arithmetic 1
+
+
 typedef struct _vm_t
 {
     uint8_t* code;
@@ -14,6 +17,7 @@ typedef struct _vm_t
     uint32_t memsz;
 
     unsigned flags;
+    unsigned exceptions;
 
     // procedures: instruction pointers into 'code'
     list_t* procedures;

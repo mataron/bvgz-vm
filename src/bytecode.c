@@ -44,6 +44,7 @@ int32_t decode_instn(uint8_t* iptr, uint8_t* memory, instn_t* instn)
                 break;
             }
         } else {
+            // TODO: validation & exception setting @ VM
             instn->args[i].ptr = memory + *(uint32_t*)(iptr + offset);
             offset += 4;
         }
