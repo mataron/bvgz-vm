@@ -46,6 +46,9 @@ label_t;
 
 typedef struct _prs_result_t
 {
+    uint32_t errors;
+    uint32_t warnings;
+
     uint32_t n_instns;
     prs_instn_t** instns;
     // memory area built from data

@@ -22,7 +22,8 @@ static char* ReportKinds[] = {
     "Warning"
 };
 
-static void report(int kind, const char* source, uint32_t line, char* message, ...);
+static void report(prs_result_t* r, int kind, const char* source,
+    uint32_t line, char* message, ...);
 
 static prs_result_t* init_parse_result();
 static void destroy_instn(prs_instn_t*);
@@ -36,20 +37,22 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
     list_t* include_paths, prs_result_t* result, hashset_t label_refs);
 
 static void parse_preproc_line(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result);
+    prs_result_t* result, list_t* include_paths, hashset_t label_refs);
 static void parse_preproc_data(const char* filename, uint32_t lineno, char* line,
     prs_result_t* result);
 static void parse_preproc_include(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result);
+    prs_result_t* result, list_t* include_paths, hashset_t label_refs);
 
 static void add_instn_label(const char* label_token, prs_result_t* result);
 static void add_instn(const char* filename, uint32_t lineno, const char** tokens,
     int n_tokens, prs_result_t* result, hashset_t label_refs);
 
 static void parse_instn(const char* filename, uint32_t lineno,
-	const char** tokens, int n_tokens, prs_instn_t** result, hashset_t label_refs);
+    const char** tokens, int n_tokens, prs_result_t* result, prs_instn_t** instn,
+    hashset_t label_refs);
 static int parse_arg(const char* filename, uint32_t lineno,
-	const char* token, int arg_index, prs_arg_t* result, hashset_t label_refs);
+    const char* token, int arg_index, prs_result_t* result, prs_arg_t* arg,
+    hashset_t label_refs);
 
 
 static void label_refs_visitor(void* parse, char* label, void* unused)
@@ -60,7 +63,7 @@ static void label_refs_visitor(void* parse, char* label, void* unused)
     int r = hmap_get(result->labels, label, (void**)&label_val);
     if (r != MAP_OK)
     {
-        report(P_ERROR, "<top-level>", 0, "referenced label [%s] is missing", label);
+        report(result, P_ERROR, "<top-level>", 0, "referenced label [%s] is missing", label);
         result->consistent = -1;
     }
 }
@@ -69,9 +72,22 @@ static void label_refs_visitor(void* parse, char* label, void* unused)
 prs_result_t* parse_asm(char* filename, list_t* include_paths)
 {
     char filepath[FILEPATH_BUF_SZ];
-    if (find_file(filename, include_paths, filepath, FILEPATH_BUF_SZ) < 0)
+    struct stat st;
+    int free_first_path = 0;
+    if (stat(filename, &st) == 0)
     {
-        report(P_ERROR, "<root>", 0, "file not found: %s", filename);
+        strncpy(filepath, filename, FILEPATH_BUF_SZ);
+        char* slash = strrchr(filename, '/');
+        if (slash)
+        { // copy the directory of the root file.
+            list_t* head = list_make_node(strndup(filename, slash - filename));
+            include_paths = list_prepend(include_paths, head);
+            free_first_path = 1;
+        }
+    }
+    else if (find_file(filename, include_paths, filepath, FILEPATH_BUF_SZ) < 0)
+    {
+        report(NULL, P_ERROR, "<root>", 0, "file not found: %s", filename);
         return NULL;
     }
 
@@ -84,6 +100,12 @@ prs_result_t* parse_asm(char* filename, list_t* include_paths)
     hmap_iterate(label_refs, result, label_refs_visitor);
 
     hset_destroy(label_refs);
+
+    if (free_first_path)
+    {
+        free(include_paths->data);
+        list_destroy_node(include_paths);
+    }
     return result;
 }
 
@@ -109,8 +131,15 @@ void destroy_parse_result(prs_result_t* parse_result)
 }
 
 
-static void report(int kind, const char* source, uint32_t line, char* message, ...)
+static void report(prs_result_t* r, int kind, const char* source,
+    uint32_t line, char* message, ...)
 {
+    if (r)
+    {
+        if (kind == P_ERROR) r->errors++;
+        else if (kind == P_WARN) r->warnings++;
+    }
+
     va_list ap;
 
     fprintf(stderr, "%s [%s@%u]: ", ReportKinds[kind], source, line);
@@ -126,6 +155,7 @@ static void report(int kind, const char* source, uint32_t line, char* message, .
 static prs_result_t* init_parse_result()
 {
     prs_result_t* res = malloc(sizeof(prs_result_t));
+    res->errors = res->warnings = 0;
     res->n_instns = 0;
     res->instns = NULL;
     res->memory = NULL;
@@ -154,12 +184,6 @@ static int find_file(const char* filename, list_t* include_paths,
     char* filepath, int filepath_sz)
 {
     struct stat st;
-    if (stat(filename, &st) == 0)
-    {
-        strncpy(filepath, filename, filepath_sz);
-        return 0;
-    }
-
     for (list_t* p = include_paths; p; p = p->next)
     {
         snprintf(filepath, filepath_sz, "%s/%s", (char*)p->data, filename);
@@ -209,7 +233,8 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
 
     if (*p == '%')
     {
-        parse_preproc_line(filename, lineno, line, result);
+        parse_preproc_line(filename, lineno, line, result, include_paths,
+            label_refs);
         return;
     }
 
@@ -236,7 +261,7 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
         }
         else if (!parse_instn)
         {
-            report(P_ERROR, filename, lineno,
+            report(result, P_ERROR, filename, lineno,
                 "end of line expected, found: '%c'", *p);
             return;
         }
@@ -257,7 +282,7 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
 
 
 static void parse_preproc_line(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result)
+    prs_result_t* result, list_t* include_paths, hashset_t label_refs)
 {
     if (strncmp(line, "%data", 5) == 0)
     {
@@ -265,7 +290,8 @@ static void parse_preproc_line(const char* filename, uint32_t lineno, char* line
     }
     else if (strncmp(line, "%include", 8) == 0)
     {
-        parse_preproc_include(filename, lineno, line, result);
+        parse_preproc_include(filename, lineno, line, result, include_paths,
+            label_refs);
     }
 }
 
@@ -273,14 +299,34 @@ static void parse_preproc_line(const char* filename, uint32_t lineno, char* line
 static void parse_preproc_data(const char* filename, uint32_t lineno, char* line,
     prs_result_t* result)
 {
-    report(P_WARN, filename, lineno, "data setup not implemented yet");
+    report(result, P_WARN, filename, lineno, "data setup not implemented yet");
 }
 
 
 static void parse_preproc_include(const char* filename, uint32_t lineno, char* line,
-    prs_result_t* result)
+    prs_result_t* result, list_t* include_paths, hashset_t label_refs)
 {
-    report(P_WARN, filename, lineno, "file inclusion not implemented yet");
+    char* file = line + 8;
+    while (*file && isspace(*file)) file++;
+
+    char* p = file;
+    while (*p && !isspace(*p) && *p != ';') p++;
+    *p = 0;
+
+    if (file == p)
+    {
+        report(result, P_ERROR, filename, lineno, "expected filename after %include directive");
+        return;
+    }
+
+    char filepath[FILEPATH_BUF_SZ];
+    if (find_file(file, include_paths, filepath, FILEPATH_BUF_SZ) < 0)
+    {
+        report(result, P_ERROR, filename, lineno, "file not found: %s", file);
+        return;
+    }
+
+    parse_asm_into(filepath, include_paths, result, label_refs);
 }
 
 
@@ -297,7 +343,7 @@ static void add_instn(const char* filename, uint32_t lineno, const char** tokens
     int n_tokens, prs_result_t* result, hashset_t label_refs)
 {
     prs_instn_t* instn = NULL;
-    parse_instn(filename, lineno, tokens, n_tokens, &instn, label_refs);
+    parse_instn(filename, lineno, tokens, n_tokens, result, &instn, label_refs);
     if (instn)
     {
         result->n_instns++;
@@ -311,13 +357,14 @@ static void add_instn(const char* filename, uint32_t lineno, const char** tokens
 
 
 static void parse_instn(const char* filename, uint32_t lineno,
-	const char** tokens, int n_tokens, prs_instn_t** result, hashset_t label_refs)
+    const char** tokens, int n_tokens, prs_result_t* result, prs_instn_t** _instn,
+    hashset_t label_refs)
 {
 	instn_def_t* fmt = bsearch(&tokens[0], InstnDefs, nInstnDefs,
 		sizeof(instn_def_t), compare_instn_def);
 	if (!fmt)
 	{
-        report(P_ERROR, filename, lineno, "unknown instn: [%s]", tokens[0]);
+        report(result, P_ERROR, filename, lineno, "unknown instn: [%s]", tokens[0]);
 		return;
 	}
 
@@ -339,7 +386,7 @@ static void parse_instn(const char* filename, uint32_t lineno,
 
 			for (int i = 1; i < n_tokens; i++)
 			{
-				if (parse_arg(filename, lineno, tokens[i], i - 1, &instn->args[i - 1], label_refs) < 0)
+				if (parse_arg(filename, lineno, tokens[i], i - 1, result, &instn->args[i - 1], label_refs) < 0)
 				{
                     destroy_instn(instn);
 					return; // don't continue past first error in args
@@ -347,18 +394,18 @@ static void parse_instn(const char* filename, uint32_t lineno,
 
                 if (i == 1 && instn->args[0].type == T_ARG_IMM && (fmt->flags & F_ALLOW_IMM_1st_Arg) == 0)
                 {
-                    report(P_ERROR, filename, lineno, "instn [%s] disallows 1st arg to be imm", tokens[0]);
+                    report(result, P_ERROR, filename, lineno, "instn [%s] disallows 1st arg to be imm", tokens[0]);
                     destroy_instn(instn);
                     return; // don't continue past first error in args
                 }
             }
 
-            *result = instn;
+            *_instn = instn;
 			return;
 		}
 	}
 
-    report(P_ERROR, filename, lineno, "incorrect argument count for: [%s], found: %d", tokens[0], n_tokens - 1);
+    report(result, P_ERROR, filename, lineno, "incorrect argument count for: [%s], found: %d", tokens[0], n_tokens - 1);
 }
 
 
@@ -368,7 +415,8 @@ static void parse_instn(const char* filename, uint32_t lineno,
 
 
 static int parse_arg(const char* filename, uint32_t lineno,
-	const char* token, int arg_index, prs_arg_t* result, hashset_t label_refs)
+    const char* token, int arg_index, prs_result_t* result, prs_arg_t* arg,
+    hashset_t label_refs)
 {
 	char const* p = token;
 	char* endp = NULL;
@@ -393,41 +441,41 @@ static int parse_arg(const char* filename, uint32_t lineno,
 	if ((imm == UINT64_MAX && errno == ERANGE) ||
 		(imm > (INT64_MAX - 1) && negative))
 	{
-        report(P_ERROR, filename, lineno, "argument (%d) overflow: [%s]", arg_index, token);
+        report(result, P_ERROR, filename, lineno, "argument (%d) overflow: [%s]", arg_index, token);
 		return -1;
 	}
 	if (!negative && imm > (INT64_MAX - 1))
 	{
-        report(P_WARN, filename, lineno, "argument (%d) overflows to negative value: [%s]", arg_index, token);
+        report(result, P_WARN, filename, lineno, "argument (%d) overflows to negative value: [%s]", arg_index, token);
 	}
 
 	if (endp == p) // treat p as a label:
 	{
 		if (negative || reference)
 		{
-            report(P_ERROR, filename, lineno, "argument (%d) unexpected token after -/@", arg_index);
+            report(result, P_ERROR, filename, lineno, "argument (%d) unexpected token after -/@", arg_index);
 			return -1;
 		}
 
-        result->type = T_ARG_REF_LBL;
-        result->n_bytes = 4;
-        result->data.label = strdup(p);
-        hset_add(label_refs, result->data.label);
+        arg->type = T_ARG_REF_LBL;
+        arg->n_bytes = 4;
+        arg->data.label = strdup(p);
+        hset_add(label_refs, arg->data.label);
 		return 0;
 	}
 
 	if (*endp != 0)
 	{
-        report(P_ERROR, filename, lineno, "argument (%d) bad token, expcted number", arg_index);
+        report(result, P_ERROR, filename, lineno, "argument (%d) bad token, expcted number", arg_index);
 		return -1;
 	}
 
 	if (negative) imm = (uint64_t)(-(int64_t)imm);
 	if (reference)
 	{
-        result->type = T_ARG_REF_NUM;
-        result->n_bytes = 4;
-        result->data.value = imm;
+        arg->type = T_ARG_REF_NUM;
+        arg->n_bytes = 4;
+        arg->data.value = imm;
 		return 0;
 	}
 
@@ -439,8 +487,8 @@ static int parse_arg(const char* filename, uint32_t lineno,
 		else if (IS_4_BYTES_LONG(imm)) n_bytes = 4;
 	}
 
-    result->type = T_ARG_IMM;
-    result->n_bytes = n_bytes;
-    result->data.value = imm;
+    arg->type = T_ARG_IMM;
+    arg->n_bytes = n_bytes;
+    arg->data.value = imm;
     return 0;
 }
