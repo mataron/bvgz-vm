@@ -17,3 +17,9 @@ add_executable(bvgz main.c)
 target_link_libraries(bvgz
     vm utils
 )
+
+add_executable(basm basm_app.c)
+
+target_link_libraries(basm
+    bytecode vm utils
+)
