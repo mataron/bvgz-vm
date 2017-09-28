@@ -147,6 +147,8 @@ void destroy_parse_result(prs_result_t* parse_result)
     hmap_iterate(parse_result->labels, NULL, free_label);
     hmap_destroy(parse_result->labels);
 
+    free(parse_result->memory);
+
     free(parse_result);
 }
 
@@ -180,6 +182,7 @@ static prs_result_t* init_parse_result()
     res->instns = NULL;
     res->memory = NULL;
     res->memsz = 0;
+    res->mem_alloc = 0;
     res->labels = hmap_create();
     res->consistent = 0;
     return res;
@@ -346,6 +349,8 @@ static void ensure_memory_alloc(uint32_t alloc, prs_result_t* result)
         if (new_size > result->mem_alloc)
         {
             result->memory = realloc(result->memory, new_size);
+            memset(result->memory + result->mem_alloc, 0,
+                new_size - result->mem_alloc);
             result->mem_alloc = new_size;
         }
     }
