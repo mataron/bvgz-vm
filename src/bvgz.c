@@ -45,6 +45,8 @@ int main(int argc, char** argv)
     execute_vm(vm);
     print_vm_state(vm);
 
+    destroy_vm(vm);
+
 done:
     if (imgfp) fclose(imgfp);
     cleanup();
@@ -102,7 +104,9 @@ static void parse_args(int argc, char** argv)
 
     imgfile = argv[optind];
     return;
+
 error:
+    print_help(stderr, argv[0]);
     cleanup();
     exit(1);
 }
@@ -111,5 +115,8 @@ error:
 static void cleanup()
 {
     free(dump_file);
-    destroy_vm(vm);
+    if (vm)
+    {
+        destroy_vm(vm);
+    }
 }
