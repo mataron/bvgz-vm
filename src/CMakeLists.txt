@@ -12,7 +12,7 @@ add_library(bytecode STATIC
     parser.c bytecode_gen.c
 )
 
-add_executable(bvgz main.c)
+add_executable(bvgz bvgz.c)
 
 target_link_libraries(bvgz
     vm utils
