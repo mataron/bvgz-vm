@@ -32,7 +32,7 @@ typedef struct _instn_t
 instn_t;
 
 struct _vm_t;
-int decode_instn(uint8_t* iptr, struct _vm_t* vm, instn_t* instn);
+int32_t decode_instn(uint8_t* iptr, struct _vm_t* vm, instn_t* instn);
 
 uint8_t* deref_mem_ptr(uint32_t ref, struct _vm_t* vm);
 
