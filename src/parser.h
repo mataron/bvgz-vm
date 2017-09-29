@@ -64,6 +64,8 @@ prs_result_t;
 
 prs_result_t* parse_asm(char* filename, list_t* include_paths);
 
+uint32_t resolve_entry_point(char* entry_label, prs_result_t* result);
+
 void destroy_parse_result(prs_result_t* parse_result);
 
 #endif

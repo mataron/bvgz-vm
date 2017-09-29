@@ -51,6 +51,9 @@ typedef struct _vm_t
     list_t* procedures;
     // currently executing instruction address
     uint32_t iptr;
+
+    // number of instructions executed so far.
+    uint64_t instns;
 }
 vm_t;
 

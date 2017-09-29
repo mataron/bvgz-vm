@@ -129,6 +129,28 @@ prs_result_t* parse_asm(char* filename, list_t* include_paths)
 }
 
 
+uint32_t resolve_entry_point(char* entry_label, prs_result_t* result)
+{
+    label_t* elbl = NULL;
+
+    if (hmap_get(result->labels, entry_label, (void**)&elbl) != MAP_OK)
+    {
+        fprintf(stderr, "entry label not found: %s\n",
+        entry_label);
+        return (uint32_t)-1;
+    }
+
+    if (elbl->is_mem_ref)
+    {
+        fprintf(stderr, "entry label refers to memory segment: %s\n",
+            entry_label);
+        return (uint32_t)-1;
+    }
+
+    return elbl->offset;
+}
+
+
 static void free_label(void* unused, char* key, void* value)
 {
     free(key);

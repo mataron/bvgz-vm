@@ -22,6 +22,7 @@ vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry)
         memset(vm->memory, 0, memsz);
     }
     make_procedure(entry, vm);
+    vm->iptr = (uint32_t)-1;
     return vm;
 }
 
@@ -55,12 +56,14 @@ proc_t* make_procedure(uint32_t iptr, vm_t* vm)
 
     list_t* proc_node = list_make_node(proc);
 
-    list_t* tail = list_tail(vm->procedures);
-    list_append(tail, proc_node);
-
     if (!vm->procedures)
     {
         vm->procedures = proc_node;
+    }
+    else
+    {
+        list_t* tail = list_tail(vm->procedures);
+        list_append(tail, proc_node);
     }
 
     return proc;
@@ -140,7 +143,7 @@ void print_vm_state(vm_t* vm)
     }
     printf("VM State: %s\n", state);
     printf("Code size: %u | Memory: %u\n", vm->codesz, vm->memsz);
-    printf("  Last instn addr: 0x%04x\n", vm->iptr);
+    printf("  Last instn addr: 0x%08x\n", vm->iptr);
     printf("  Procedures: %u\n",
         vm->procedures ? list_size(vm->procedures) : 0);
     if (vm->exceptions)

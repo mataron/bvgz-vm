@@ -31,5 +31,7 @@ void execute_vm(vm_t* vm)
         {
             break;
         }
+
+        vm->instns++;
     }
 }

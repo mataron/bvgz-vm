@@ -20,7 +20,6 @@ char* entry_pt_label = NULL;
 static void print_help(FILE* out, char* program);
 static void parse_args(int argc, char** argv);
 static void free_args();
-static uint32_t resolve_entry_point(prs_result_t* result);
 
 
 int main(int argc, char** argv)
@@ -43,7 +42,7 @@ int main(int argc, char** argv)
         goto done;
     }
 
-    entry_offset = resolve_entry_point(result);
+    entry_offset = resolve_entry_point(entry_pt_label, result);
     if (entry_offset == (uint32_t)-1)
     {
         retval = 1;
@@ -166,26 +165,4 @@ static void free_args()
 
     free(entry_pt_label);
     free(outfile);
-}
-
-
-static uint32_t resolve_entry_point(prs_result_t* result)
-{
-    label_t* elbl = NULL;
-
-    if (hmap_get(result->labels, entry_pt_label, (void**)&elbl) != MAP_OK)
-    {
-        fprintf(stderr, "entry label not found: %s\n",
-            entry_pt_label);
-        return (uint32_t)-1;
-    }
-
-    if (elbl->is_mem_ref)
-    {
-        fprintf(stderr, "entry label refers to memory segment: %s\n",
-            entry_pt_label);
-        return (uint32_t)-1;
-    }
-
-    return elbl->offset;
 }
