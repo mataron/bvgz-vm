@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "vm.h"
@@ -123,4 +124,39 @@ void delete_current_procedure(vm_t* vm)
     free(proc);
 
     list_destroy_node(current);
+}
+
+
+void print_vm_state(vm_t* vm)
+{
+    char* state = "RUNNING";
+    if (vm->exceptions)
+    {
+        state = "ERROR";
+    }
+    else if (!vm->procedures)
+    {
+        state = "STOPPED";
+    }
+    printf("VM State: %s\n", state);
+    printf("Code size: %u | Memory: %u\n", vm->codesz, vm->memsz);
+    printf("  Last instn addr: 0x%04x\n", vm->iptr);
+    printf("  Procedures: %u\n",
+        vm->procedures ? list_size(vm->procedures) : 0);
+    if (vm->exceptions)
+    {
+        printf("Exceptions:\n");
+        if (vm->exceptions & VM_E_Arithmetic)
+            printf("  Arithmetic\n");
+        if (vm->exceptions & VM_E_MemFault)
+            printf("  Mem fault\n");
+        if (vm->exceptions & VM_E_OutOfMemory)
+            printf("  Out of memory\n");
+        if (vm->exceptions & VM_E_MemoryUnderflow)
+            printf("  Memory underflow\n");
+        if (vm->exceptions & VM_E_BadInstnPointer)
+            printf("  Bad Instn ptr\n");
+        if (vm->exceptions & VM_E_BadInstnCode)
+            printf("  Bad Instn\n");
+    }
 }

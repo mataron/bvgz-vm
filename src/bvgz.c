@@ -43,6 +43,7 @@ int main(int argc, char** argv)
     imgfp = NULL;
 
     execute_vm(vm);
+    print_vm_state(vm);
 
 done:
     if (imgfp) fclose(imgfp);

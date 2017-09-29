@@ -16,6 +16,7 @@ void execute_vm(vm_t* vm)
         }
 
         proc_t* proc = vm->procedures->data;
+        vm->iptr = proc->iptr;
         uint8_t* iptr = vm->code + proc->iptr;
         int32_t offt = decode_instn(iptr, vm, &instn);
         if (offt < 0)

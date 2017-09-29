@@ -25,7 +25,7 @@ fcall_t;
 
 typedef struct _proc_t
 {
-    // instruction pointer.
+    // pointer to next instruction.
     uint32_t iptr;
 
     // call stack
@@ -49,6 +49,8 @@ typedef struct _vm_t
 
     // list of runnable procedures (proc_t)
     list_t* procedures;
+    // currently executing instruction address
+    uint32_t iptr;
 }
 vm_t;
 
@@ -61,6 +63,8 @@ vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry);
 void destroy_vm(vm_t* vm);
 
 void execute_vm(vm_t* vm);
+
+void print_vm_state(vm_t* vm);
 
 proc_t* make_procedure(uint32_t iptr, vm_t* vm);
 proc_t* make_func_procedure(uint32_t iptr, uint8_t* argv,
