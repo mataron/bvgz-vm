@@ -42,7 +42,7 @@ int main(int argc, char** argv)
     fclose(imgfp);
     imgfp = NULL;
 
-    // TODO: execute!
+    execute_vm(vm);
 
 done:
     if (imgfp) fclose(imgfp);

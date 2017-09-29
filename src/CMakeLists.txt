@@ -5,7 +5,7 @@ add_subdirectory(util)
 add_library(vm STATIC
     vm.c instn.c instn_defs.c bytecode.c instn_impl_misc.c
     instn_impl_arith.c instn_impl_bitw.c instn_impl_rel.c
-    instn_impl_logc.c instn_impl_ctrl.c
+    instn_impl_logc.c instn_impl_ctrl.c vm_exec.c
 )
 
 add_library(bytecode STATIC
