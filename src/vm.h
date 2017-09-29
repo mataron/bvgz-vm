@@ -11,6 +11,7 @@
 #define VM_E_OutOfMemory        0x4
 #define VM_E_MemoryUnderflow    0x8
 #define VM_E_BadInstnPointer    0x10
+#define VM_E_BadInstnCode       0x20
 
 
 typedef struct _fcall_t

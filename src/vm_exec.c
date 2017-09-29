@@ -1,4 +1,5 @@
 #include "vm.h"
+#include "instn.h"
 #include "bytecode.h"
 
 // TODO: stats collection
@@ -9,8 +10,14 @@ void execute_vm(vm_t* vm)
 
     while (1)
     {
+        if (!vm->procedures)
+        {
+            break;
+        }
+
         proc_t* proc = vm->procedures->data;
-        int32_t offt = decode_instn(proc->iptr, vm, &instn);
+        uint8_t* iptr = vm->code + proc->iptr;
+        int32_t offt = decode_instn(iptr, vm, &instn);
         if (offt < 0)
         {
             break;

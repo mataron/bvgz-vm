@@ -9,9 +9,17 @@
 int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
 {
     int32_t offset = 0;
+    uint8_t* bound = vm->code + vm->codesz;
+    if (bound < iptr + sizeof(uint16_t))
+    {
+        vm->exceptions |= VM_E_BadInstnPointer;
+        return -1;
+    }
+    
     uint8_t instn_idx = *iptr >> 3;
     if (instn_idx > nInstnDefs)
     {
+        vm->exceptions |= VM_E_BadInstnCode;
         return -1;
     }
 
@@ -19,6 +27,11 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
     offset += 2;
     if (instn->code & 0x7)
     {
+        if (bound < iptr + sizeof(uint8_t))
+        {
+            vm->exceptions |= VM_E_BadInstnPointer;
+            return -1;
+        }
         instn->arg_sizes = *(iptr + offset);
         offset++;
     }
@@ -28,6 +41,11 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
         if (instn->code & (1 << i))
         {
             int n_bytes = 1 << ((instn->arg_sizes >> (2 * i)) & 3);
+            if (bound < iptr + n_bytes)
+            {
+                vm->exceptions |= VM_E_BadInstnPointer;
+                return -1;
+            }
             switch (n_bytes)
             {
             case 1:
@@ -50,6 +68,12 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
         }
         else
         {
+            if (bound < iptr + sizeof(uint32_t))
+            {
+                vm->exceptions |= VM_E_BadInstnPointer;
+                return -1;
+            }
+
             uint32_t ref = *(uint32_t*)(iptr + offset);
             instn->args[i].ptr = deref_mem_ptr(ref, vm);
             if (!instn->args[i].ptr)

@@ -19,6 +19,8 @@ static void test_decode()
 
     destroy_parse_result(result);
 
+    vm.code = memory;
+    vm.codesz = size;
     vm.memory = memory;
     instn_t instn;
     int32_t offset = decode_instn(memory, &vm, &instn);
