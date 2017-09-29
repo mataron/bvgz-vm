@@ -53,11 +53,34 @@ static void test_nop3()
 }
 
 
+static void test_arithm()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "arithm.s");
+
+    assert(vm->memsz == sizeof(uint64_t) * 5);
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->instns == 5);
+    assert(*(uint64_t*)(vm->memory) == 5 + 3);
+    assert(*(uint64_t*)(vm->memory + 8) == 5 - 3);
+    assert(*(uint64_t*)(vm->memory + 16) == 5 * 3);
+    assert(*(uint64_t*)(vm->memory + 24) == 15 / 5);
+    assert(*(uint64_t*)(vm->memory + 32) == 5 % 3);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
 
     test_nop3();
+    test_arithm();
 
     return 0;
 }
