@@ -221,7 +221,7 @@ static int find_file(const char* filename, list_t* include_paths,
 static void parse_asm_into(const char* filename, list_t* include_paths,
     prs_result_t* result, hashset_t label_refs)
 {
-    FILE* fp = fopen(filename, "rb");
+    FILE* fp = fopen(filename, "rt");
 
     char* line = NULL;
     size_t sz = 0;
@@ -409,7 +409,7 @@ static void add_file_to_memory(const char* filename, uint32_t lineno,
     ensure_memory_at_offset(size, offset, result);
 
     uint8_t buffer[MEM_ALLOC_BLOCK_SZ];
-    FILE* fp = fopen(filepath, "rb");
+    FILE* fp = fopen(filepath, "rt");
 
     size_t sz;
     uint32_t w_offset = offset != (uint32_t)-1 ? offset : result->memsz;

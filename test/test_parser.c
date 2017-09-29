@@ -116,6 +116,8 @@ static void test_data_loads()
     assert(result->n_instns == 1);
     assert(hmap_size(result->labels) == 3);
     assert(result->consistent == 0);
+
+    printf("memsz = %u\n", result->memsz);
     // true total is 226, but 12 bytes are removed due to specific size
     assert(result->memsz == 214);
 
