@@ -52,6 +52,9 @@ typedef struct _vm_t
 vm_t;
 
 
+vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry);
+void destroy_vm(vm_t* vm);
+
 proc_t* make_procedure(uint32_t iptr, vm_t* vm);
 proc_t* make_func_procedure(uint32_t iptr, uint8_t* argv,
     uint8_t* retv, vm_t* vm);

@@ -1,7 +1,38 @@
 #include <stdlib.h>
+#include <string.h>
 #include "vm.h"
 
 #define STACK_FREE_THRESHOLD    ((uint32_t)(1.5 * FUNC_STACK_ALLOC_SZ))
+
+
+vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry)
+{
+    vm_t* vm = malloc(sizeof(vm_t));
+    memset(vm, 0, sizeof(vm_t));
+    vm->codesz = codesz;
+    vm->memsz = memsz;
+    vm->code = malloc(codesz);
+    if (memsz)
+    {
+        vm->memory = malloc(memsz);
+        memset(vm->memory, 0, memsz);
+    }
+    make_procedure(entry, vm);
+    return vm;
+}
+
+
+void destroy_vm(vm_t* vm)
+{
+    while (vm->procedures)
+    {
+        delete_current_procedure(vm);
+    }
+
+    free(vm->memory);
+    free(vm->code);
+    free(vm);
+}
 
 
 proc_t* make_procedure(uint32_t iptr, vm_t* vm)

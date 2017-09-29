@@ -1,3 +1,6 @@
+#include <string.h>
+#include <errno.h>
+
 #include "bytecode.h"
 #include "instn.h"
 #include "vm.h"
@@ -74,5 +77,64 @@ uint8_t* deref_mem_ptr(uint32_t ref, vm_t* vm)
 
 vm_t* read_bvgz_image(FILE *fp)
 {
+    uint16_t magic = 0;
+    if (fread(&magic, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    {
+        fprintf(stderr, "fread(magic): %s\n", strerror(errno));
+        return NULL;
+    }
+    if (magic != BVGZ_FILE_MAGIC)
+    {
+        fprintf(stderr, "bad magic: expected 0x%X, found: 0x%x\n",
+            BVGZ_FILE_MAGIC, magic);
+        return NULL;
+    }
+
+    uint32_t entry_label = 0;
+    if (fread(&entry_label, sizeof(uint32_t), 1, fp) !=
+        sizeof(uint32_t))
+    {
+        fprintf(stderr, "fread(entry): %s\n", strerror(errno));
+        return NULL;
+    }
+
+    uint32_t codesz;
+    if (fread(&codesz, sizeof(uint32_t), 1, fp) != sizeof(uint32_t))
+    {
+        fprintf(stderr, "fread(codesz): %s\n", strerror(errno));
+        return NULL;
+    }
+    if (!codesz)
+    {
+        fprintf(stderr, "zero code size, aborting");
+        return NULL;
+    }
+
+    uint32_t memsz;
+    if (fread(&memsz, sizeof(uint32_t), 1, fp) !=
+        sizeof(uint32_t))
+    {
+        fprintf(stderr, "fread(memsz): %s\n", strerror(errno));
+        return NULL;
+    }
+
+    vm_t* vm = make_vm(codesz, memsz, entry_label);
+
+    if (fread(vm->code, codesz, 1, fp) != codesz)
+    {
+        fprintf(stderr, "fread(code:%u): %s\n",
+            codesz, strerror(errno));
+        goto error;
+    }
+
+    if (fread(vm->memory, memsz, 1, fp) != memsz)
+    {
+        fprintf(stderr, "fread(mem:%u): %s\n", memsz, strerror(errno));
+        goto error;
+    }
+
+    return vm;
+error:
+    destroy_vm(vm);
     return NULL;
 }
