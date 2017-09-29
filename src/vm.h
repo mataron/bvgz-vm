@@ -52,6 +52,10 @@ typedef struct _vm_t
 vm_t;
 
 
+extern int verbose;
+extern int collect_stats;
+
+
 vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry);
 void destroy_vm(vm_t* vm);
 

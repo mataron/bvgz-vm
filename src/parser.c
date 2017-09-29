@@ -1,4 +1,3 @@
-#define _GNU_SOURCE // for getline()
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>

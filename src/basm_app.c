@@ -1,8 +1,8 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <errno.h>
 
 #include "parser.h"
 #include "bytecode.h"
@@ -48,6 +48,13 @@ int main(int argc, char** argv)
     }
 
     outfp = fopen(outfile, "wb");
+    if (!outfp)
+    {
+        fprintf(stderr, "open(%s): %s\n", outfile, strerror(errno));
+        retval = 1;
+        goto done;
+    }
+
     if (write_bvgz_image(outfp, result, code, codesz,
         entry_offset) < 0)
     {
@@ -131,8 +138,7 @@ static void parse_args(int argc, char** argv)
 
     if (optind >= argc)
     {
-        print_help(stderr, argv[0]);
-        exit(1);
+        goto error;
     }
 
     asmfile = argv[optind];
