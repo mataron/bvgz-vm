@@ -6,6 +6,7 @@
 
 #include "parser.h"
 #include "bytecode.h"
+#include "instn.h"
 
 #define DefaultEntryPointLabel  "_entry"
 
@@ -29,6 +30,8 @@ int main(int argc, char** argv)
     uint32_t entry_offset = 0;
 
     parse_args(argc, argv);
+
+    setup_instn_defs();
 
     prs_result_t* result = parse_asm(asmfile, include_paths);
 

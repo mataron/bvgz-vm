@@ -7,6 +7,7 @@
 
 #include "vm.h"
 #include "bytecode.h"
+#include "instn.h"
 
 
 char* imgfile = NULL;
@@ -23,6 +24,8 @@ int main(int argc, char** argv)
 {
     int retval = 0;
     parse_args(argc, argv);
+
+    setup_instn_defs();
 
     FILE* imgfp = fopen(imgfile, "rb");
     if (!imgfp)
