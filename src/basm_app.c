@@ -47,7 +47,7 @@ int main(int argc, char** argv)
         goto done;
     }
 
-    outfp = fopen(outfile, "w");
+    outfp = fopen(outfile, "wb");
     if (write_bvgz_image(outfp, result, code, codesz,
         entry_offset) < 0)
     {
