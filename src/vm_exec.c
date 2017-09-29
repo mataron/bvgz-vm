@@ -16,6 +16,12 @@ void execute_vm(vm_t* vm)
         }
 
         proc_t* proc = vm->procedures->data;
+        if (proc->iptr >= vm->codesz)
+        {
+            delete_current_procedure(vm);
+            continue;
+        }
+
         vm->iptr = proc->iptr;
         uint8_t* iptr = vm->code + proc->iptr;
         int32_t offt = decode_instn(iptr, vm, &instn);

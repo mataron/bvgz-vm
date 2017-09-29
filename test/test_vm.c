@@ -38,6 +38,9 @@ static void test_nop3()
 {
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "nop3.s");
 
+    assert(vm->codesz == sizeof(uint16_t) * 3);
+    assert(vm->memsz == 0);
+
     execute_vm(vm);
     print_vm_state(vm);
 

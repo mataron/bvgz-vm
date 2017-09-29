@@ -15,8 +15,8 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
         vm->exceptions |= VM_E_BadInstnPointer;
         return -1;
     }
-    
-    uint8_t instn_idx = *iptr >> 3;
+
+    uint8_t instn_idx = *(uint16_t*)iptr >> 3;
     if (instn_idx > nInstnDefs)
     {
         vm->exceptions |= VM_E_BadInstnCode;
