@@ -49,7 +49,7 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
         {
             uint32_t ref = *(uint32_t*)(iptr + offset);
             instn->args[i].ptr = deref_mem_ptr(ref, vm);
-            if (instn->args[i].ptr)
+            if (!instn->args[i].ptr)
             {
                 return -1;
             }
