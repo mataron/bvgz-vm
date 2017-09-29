@@ -46,6 +46,20 @@ int op_cp_3(instn_t* instn, vm_t* vm)
 }
 
 
+int op_deref_2(instn_t* instn, vm_t* vm)
+{
+    uint32_t ref = arg_value(instn, 1);
+    uint8_t* mem = deref_mem_ptr(ref, vm);
+    if (!mem)
+    {
+        return -1;
+    }
+
+    lref64(instn->args[0].ptr) = *(uint64_t*)mem;
+    return 0;
+}
+
+
 int op_mexp_1(instn_t* instn, vm_t* vm)
 {
     uint64_t sz = arg_value(instn, 0);
