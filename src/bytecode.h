@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define BVGZ_FILE_MAGIC  0xB0C5
+#define BVGZ_IMG_MAGIC      0xB0C5
+#define BVGZ_IMG_F_EXEC     0x1
 
 struct _prs_result_t;
 

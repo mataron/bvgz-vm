@@ -83,10 +83,22 @@ vm_t* read_bvgz_image(FILE *fp)
         fprintf(stderr, "fread(magic): %s\n", strerror(errno));
         return NULL;
     }
-    if (magic != BVGZ_FILE_MAGIC)
+    if (magic != BVGZ_IMG_MAGIC)
     {
         fprintf(stderr, "bad magic: expected 0x%X, found: 0x%x\n",
-            BVGZ_FILE_MAGIC, magic);
+            BVGZ_IMG_MAGIC, magic);
+        return NULL;
+    }
+
+    uint16_t flags;
+    if (fread(&flags, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    {
+        fprintf(stderr, "fread(flags): %s\n", strerror(errno));
+        return NULL;
+    }
+    if ((flags & BVGZ_IMG_F_EXEC) == 0)
+    {
+        fprintf(stderr, "input file is not an executable bvgz image\n");
         return NULL;
     }
 

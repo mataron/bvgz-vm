@@ -216,10 +216,17 @@ static struct ref* add_delayed_ref(struct ref* refs, int n_refs,
 int write_bvgz_image(FILE *fp, struct _prs_result_t* parse,
     uint8_t* code, uint32_t codesz, uint32_t entry_label)
 {
-    uint16_t magic = BVGZ_FILE_MAGIC;
+    uint16_t magic = BVGZ_IMG_MAGIC;
     if (fwrite(&magic, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
     {
         fprintf(stderr, "fwrite(magic): %s\n", strerror(errno));
+        return -1;
+    }
+
+    uint16_t flags = BVGZ_IMG_F_EXEC;
+    if (fwrite(&flags, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    {
+        fprintf(stderr, "fwrite(flags): %s\n", strerror(errno));
         return -1;
     }
 
