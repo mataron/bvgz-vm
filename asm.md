@@ -11,7 +11,7 @@
 
 `arg` := `imm` | `ref`
 
-`ref` := `word` | '@' `num`
+`ref` := `word` | '*' `num`
 
 `imm` := '-'? `num`
 

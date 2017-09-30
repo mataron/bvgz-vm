@@ -5,5 +5,5 @@ add x y
 y:
 add z 0x1 -34 ; comment
 z:
-add @34 -0x9090909090 0x2345
+add *34 -0x9090909090 0x2345
 ; comment

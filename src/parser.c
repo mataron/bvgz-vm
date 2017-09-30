@@ -840,7 +840,7 @@ static int parse_arg(const char* filename, uint32_t lineno,
 		p++;
 	}
 
-	if (*p == '@')
+	if (*p == '*')
 	{
 		reference = 1;
 		p++;
