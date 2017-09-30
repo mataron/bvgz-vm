@@ -20,7 +20,7 @@
 * _ret_ is the ref where the result of the function will go
 * _args_ points to the first argument (all args are 64 bit long)
 
-The vm stack ONLY holds the return addresses
+The vm stack ONLY holds the return addresses, return value address & argument list address.
 
 ## Procedure model
 
@@ -30,5 +30,6 @@ The vm stack ONLY holds the return addresses
 * as long as a procedure runs out of instns or `ret` is called when the stack is empty, the procedure gets removed (w/o any error being raised)
 * if the last procedure of the list exits, then the vm stops
 * if a procedure executes `yield`, it pushes itself at the end of the runnable list
+	* `yield` is a system call.
 * i/o, timers and such exec-later stuff are implemented by having the vm insert callback codes at the end of the proc list
 	* NOTE: memory is shared & all ptrs refer to the same memory segments. Thus, no data may be passed from VM owned memory to procedure memory, cause the later cannot address the former. Therefore, for each listener that needs data, the location must be provided at listener registration time.

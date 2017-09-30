@@ -1,6 +1,7 @@
 # Assembler
 
 ## Assembly syntax
+
 `asm` := `line`*
 
 `line` := `label_ln` | `instn_ln`
