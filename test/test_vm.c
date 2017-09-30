@@ -100,6 +100,29 @@ static void test_logical()
 }
 
 
+static void test_bitwise()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "bitwise.s");
+
+    assert(vm->memsz == sizeof(uint64_t) * 6);
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->instns == 6);
+    assert(*(uint64_t*)(vm->memory) == (0x4));
+    assert(*(uint64_t*)(vm->memory + 8) == 0x44);
+    assert(*(uint64_t*)(vm->memory + 16) == 0x0f0f0f0f0f0f0f0fULL);
+    assert(*(uint64_t*)(vm->memory + 24) == 0x40);
+    assert(*(uint64_t*)(vm->memory + 32) == 0x40000);
+    assert(*(uint64_t*)(vm->memory + 40) == 0x4);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
@@ -107,6 +130,7 @@ int main(int argc, char** argv)
     test_nop3();
     test_arithm();
     test_logical();
+    test_bitwise();
 
     return 0;
 }
