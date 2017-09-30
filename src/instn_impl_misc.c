@@ -46,10 +46,52 @@ int op_cp_3(instn_t* instn, vm_t* vm)
 }
 
 
-int op_deref_2(instn_t* instn, vm_t* vm)
+int op_deref8_2(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = arg_value(instn, 1);
-    uint8_t* mem = deref_mem_ptr(ref, vm);
+    uint32_t ref = lref32(instn->args[1].ptr);
+    uint8_t* mem = deref_mem_ptr(ref, 1, vm);
+    if (!mem)
+    {
+        return -1;
+    }
+
+    lref8(instn->args[0].ptr) = *mem;
+    return 0;
+}
+
+
+int op_deref16_2(instn_t* instn, vm_t* vm)
+{
+    uint32_t ref = lref32(instn->args[1].ptr);
+    uint8_t* mem = deref_mem_ptr(ref, 2, vm);
+    if (!mem)
+    {
+        return -1;
+    }
+
+    lref16(instn->args[0].ptr) = *(uint16_t*)mem;
+    return 0;
+}
+
+
+int op_deref32_2(instn_t* instn, vm_t* vm)
+{
+    uint32_t ref = lref32(instn->args[1].ptr);
+    uint8_t* mem = deref_mem_ptr(ref, 4, vm);
+    if (!mem)
+    {
+        return -1;
+    }
+
+    lref32(instn->args[0].ptr) = *(uint32_t*)mem;
+    return 0;
+}
+
+
+int op_deref64_2(instn_t* instn, vm_t* vm)
+{
+    uint32_t ref = lref32(instn->args[1].ptr);
+    uint8_t* mem = deref_mem_ptr(ref, 8, vm);
     if (!mem)
     {
         return -1;

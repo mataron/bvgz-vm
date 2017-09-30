@@ -16,8 +16,8 @@
 %data 0x112
 %data 0x1122
 ; 2 x 4 bytes:
-%data 0x1122334
-%data 0x11223344
+%data @ptr 0x1122334
+%data @ptr2 0x11223344
 ; 2 x 8 bytes:
 %data 0x112233445566778
 %data 0x1122334455667788
@@ -26,3 +26,4 @@
 
 ; test data labels ::
 add bar, foo, 0x12184
+deref64 ptr &ptr

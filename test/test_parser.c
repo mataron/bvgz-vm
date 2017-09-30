@@ -113,8 +113,8 @@ static void test_data_loads()
         xstr(PROJECT_ROOT) "/test/asm/data.s", NULL);
     assert(result->errors == 0);
     assert(result->warnings == 1);
-    assert(result->n_instns == 1);
-    assert(hmap_size(result->labels) == 3);
+    assert(result->n_instns == 2);
+    assert(hmap_size(result->labels) == 5);
     assert(result->consistent == 0);
 
     printf("memsz = %u\n", result->memsz);

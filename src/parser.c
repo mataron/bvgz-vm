@@ -214,7 +214,8 @@ static void destroy_instn(prs_instn_t* instn)
 {
     for (int i = 0; i < instn->instn->arg_count; i++)
     {
-        if (instn->args[i].type == T_ARG_REF_LBL)
+        uint8_t type = instn->args[i].type;
+        if (type == T_ARG_REF_LBL || type == T_ARG_IMM_LBL)
         {
             free(instn->args[i].data.label);
         }
@@ -808,7 +809,7 @@ static int parse_arg(const char* filename, uint32_t lineno,
 {
 	char const* p = token;
 	char* endp = NULL;
-	int negative = 0, reference = 0;
+	int negative = 0, reference = 0, imm_ref = 0;
 	int base = 0;
 
 	if (*p == '-')
@@ -821,7 +822,13 @@ static int parse_arg(const char* filename, uint32_t lineno,
 	{
 		reference = 1;
 		p++;
-	}
+    }
+
+    if (*p == '&')
+    {
+        imm_ref = 1;
+        p++;
+    }
 
 	if (p[0] == '0' && p[1] == 'x') base = 16;
 
@@ -849,7 +856,7 @@ static int parse_arg(const char* filename, uint32_t lineno,
 			return -1;
 		}
 
-        arg->type = T_ARG_REF_LBL;
+        arg->type = imm_ref ? T_ARG_IMM_LBL : T_ARG_REF_LBL;
         arg->n_bytes = 4;
         arg->data.label = strdup(p);
         hset_add(label_refs, arg->data.label);

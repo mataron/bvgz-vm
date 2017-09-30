@@ -87,7 +87,8 @@ static uint32_t compute_layout(prs_instn_t* instn, instn_def_t* def,
     *OpIR = def->opcode << 3;
     for (uint32_t j = 0; j < def->arg_count; j++)
     {
-        if (instn->args[j].type == T_ARG_IMM)
+        uint8_t arg_type = instn->args[j].type;
+        if (arg_type == T_ARG_IMM || arg_type == T_ARG_IMM_LBL)
         {
             *OpIR |= 1 << j;
             *ISz |= nlog2(instn->args[j].n_bytes) << (2 * j);
@@ -129,6 +130,7 @@ static uint32_t write_args(prs_instn_t* instn, instn_def_t* def,
             offset = write_imm_arg(buffer, offset, &instn->args[j]);
             break;
 
+        case T_ARG_IMM_LBL:
         case T_ARG_REF_LBL:
         {
             label_t* label = NULL;

@@ -146,6 +146,7 @@ void print_vm_state(vm_t* vm)
     printf("  Last instn addr: 0x%08x\n", vm->iptr);
     printf("  Procedures: %u\n",
         vm->procedures ? list_size(vm->procedures) : 0);
+    printf("  Instns run: %lu\n", vm->instns);
     if (vm->exceptions)
     {
         printf("Exceptions:\n");

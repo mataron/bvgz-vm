@@ -171,6 +171,28 @@ static void test_set()
 }
 
 
+static void test_deref()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "deref.s");
+
+    printf("deref-mem-sz: %u\n", vm->memsz);
+    assert(vm->memsz == 91);
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->instns == 5);
+    assert(*(uint8_t*)(vm->memory) == 0x88);
+    assert(*(uint16_t*)(vm->memory + 1) == 0x7788);
+    assert(*(uint32_t*)(vm->memory + 3) == 0x55667788);
+    assert(*(uint64_t*)(vm->memory + 7) == 0x1122334455667788);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
@@ -181,6 +203,7 @@ int main(int argc, char** argv)
     test_bitwise();
     test_rel();
     test_set();
+    test_deref();
 
     return 0;
 }

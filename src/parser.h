@@ -10,6 +10,7 @@
 #define T_ARG_IMM       0
 #define T_ARG_REF_NUM   1
 #define T_ARG_REF_LBL   2
+#define T_ARG_IMM_LBL   3
 
 typedef struct _prs_arg_t
 {

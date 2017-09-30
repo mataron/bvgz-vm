@@ -75,7 +75,8 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
             }
 
             uint32_t ref = *(uint32_t*)(iptr + offset);
-            instn->args[i].ptr = deref_mem_ptr(ref, vm);
+            instn->args[i].ptr =
+                deref_mem_ptr(ref, sizeof(uint32_t), vm);
             if (!instn->args[i].ptr)
             {
                 return -1;
@@ -88,9 +89,9 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
 }
 
 
-uint8_t* deref_mem_ptr(uint32_t ref, vm_t* vm)
+uint8_t* deref_mem_ptr(uint32_t ref, uint32_t size, vm_t* vm)
 {
-    if (ref + 8 > vm->memsz) // 8 : 64bit arg
+    if (ref + size > vm->memsz) // 8 : 64bit arg
     {
         vm->exceptions |= VM_E_MemFault;
         return NULL;

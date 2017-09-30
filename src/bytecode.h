@@ -34,7 +34,7 @@ instn_t;
 struct _vm_t;
 int32_t decode_instn(uint8_t* iptr, struct _vm_t* vm, instn_t* instn);
 
-uint8_t* deref_mem_ptr(uint32_t ref, struct _vm_t* vm);
+uint8_t* deref_mem_ptr(uint32_t ref, uint32_t size, struct _vm_t* vm);
 
 int write_bvgz_image(FILE *fp, struct _prs_result_t* parse,
     uint8_t* code, uint32_t codesz, uint32_t entry_label);
