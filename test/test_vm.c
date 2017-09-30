@@ -193,6 +193,24 @@ static void test_deref()
 }
 
 
+static void test_cp()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "cp.s");
+
+    assert(vm->memsz == 126);
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->instns == 3);
+    assert(strncmp((char*)vm->memory, "this is a nice string", 22) == 0);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
@@ -204,6 +222,7 @@ int main(int argc, char** argv)
     test_rel();
     test_set();
     test_deref();
+    test_cp();
 
     return 0;
 }

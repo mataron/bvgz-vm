@@ -585,6 +585,26 @@ static void add_hex_to_memory(const char* filename, uint32_t lineno,
 }
 
 
+static void parse_string_literal(char* token, char** p)
+{
+    char* c = token + 1;
+    char prev = 0;
+    while (*c)
+    {
+        if (*c == '"' && prev != '\\')
+        {
+            c++;
+            break;
+        }
+
+        prev = *c;
+        c++;
+    }
+    *c = 0;
+    *p = c;
+}
+
+
 static void parse_preproc_data(const char* filename, uint32_t lineno,
     char* line, list_t* include_paths, prs_result_t* result)
 {
@@ -593,6 +613,7 @@ static void parse_preproc_data(const char* filename, uint32_t lineno,
     char* label = NULL;
     char* data = NULL;
     char* p = NULL;
+    char p_value = 0;
     char* token = line + sizeof(PREPROC_DATA);
 
 #define NEXT_TOKEN(required) \
@@ -606,6 +627,7 @@ static void parse_preproc_data(const char* filename, uint32_t lineno,
         return;\
     }\
     if (*token == ';') *token = 0;\
+    p_value = *p;\
     *p = 0;
 
     NEXT_TOKEN(1);
@@ -618,6 +640,11 @@ static void parse_preproc_data(const char* filename, uint32_t lineno,
     }
 
     data = token;
+    if (*data == '"')
+    {
+        *p = p_value;
+        parse_string_literal(token, &p);
+    }
     token = p + 1;
 
     while (1)
