@@ -226,6 +226,36 @@ static void test_jmp()
 }
 
 
+static void test_ret()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "ret.s");
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->instns == 1);
+
+    destroy_vm(vm);
+}
+
+
+static void test_func()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "func.s");
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(*(uint64_t*)(vm->memory) == 3);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
@@ -239,6 +269,8 @@ int main(int argc, char** argv)
     test_deref();
     test_cp();
     test_jmp();
+    test_ret();
+    test_func();
 
     return 0;
 }

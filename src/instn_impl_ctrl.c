@@ -45,15 +45,14 @@ int op_jfalse_2(instn_t* instn, vm_t* vm)
 
 int op_call_3(instn_t* instn, vm_t* vm)
 {
-    uint8_t* argv = instn->args[1].ptr;
-    uint8_t* retv = instn->args[2].ptr;
     uint32_t iptr = arg_value(instn, 0);
+    uint32_t argv = arg_value(instn, 1);
+    uint32_t retv = arg_value(instn, 2);
 
-    if (!make_func_procedure(iptr, argv, retv, vm))
-    {
-        return -1;
-    }
+    proc_t* this_proc = vm->procedures->data;
+    push_call_stack(this_proc, retv, argv, this_proc->iptr, vm);
 
+    this_proc->iptr = iptr;
     return 0;
 }
 
@@ -88,32 +87,43 @@ int op_ret_0(instn_t* instn, vm_t* vm)
 
 int op_argv_1(instn_t* instn, vm_t* vm)
 {
-    uint64_t args = 0;
+    uint32_t args = 0;
 
     proc_t* this_proc = vm->procedures->data;
     if (this_proc->cstack_sz)
     {
         uint32_t idx = this_proc->cstack_sz - 1;
-        args = (uint64_t) this_proc->cstack[idx].args;
+        args = this_proc->cstack[idx].args;
     }
 
-    lref64(instn->args[0].ptr) = args;
+    lref32(instn->args[0].ptr) = args;
     return 0;
 }
 
 
 int op_retv_1(instn_t* instn, vm_t* vm)
 {
-    uint64_t retv = 0;
+    uint32_t retv = 0;
 
     proc_t* this_proc = vm->procedures->data;
     if (this_proc->cstack_sz)
     {
         uint32_t idx = this_proc->cstack_sz - 1;
-        retv = (uint64_t) this_proc->cstack[idx].retval;
+        retv = this_proc->cstack[idx].retval;
+    }
+    else
+    {
+        vm->exceptions |= VM_E_MemFault;
+        return -1;
     }
 
-    lref64(instn->args[0].ptr) = retv;
+    uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
+    if (!ret)
+    {
+        return -1;
+    }
+
+    *ret = arg_value(instn, 0);
     return 0;
 }
 

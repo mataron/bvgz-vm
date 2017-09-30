@@ -16,8 +16,8 @@
 
 typedef struct _fcall_t
 {
-    uint8_t* retval;
-    uint8_t* args;
+    uint32_t retval;
+    uint32_t args;
     uint32_t ret_address;
 }
 fcall_t;
@@ -70,11 +70,11 @@ void execute_vm(vm_t* vm);
 void print_vm_state(vm_t* vm);
 
 proc_t* make_procedure(uint32_t iptr, vm_t* vm);
-proc_t* make_func_procedure(uint32_t iptr, uint8_t* argv,
-    uint8_t* retv, vm_t* vm);
+proc_t* make_func_procedure(uint32_t iptr, uint32_t argv,
+    uint32_t retv, vm_t* vm);
 
-void push_call_stack(proc_t* proc, uint8_t* retval,
-    uint8_t* args, uint32_t ret_address, vm_t* vm);
+void push_call_stack(proc_t* proc, uint32_t retval,
+    uint32_t args, uint32_t ret_address, vm_t* vm);
 uint32_t pop_call_stack(proc_t* proc, vm_t* vm);
 
 void delete_current_procedure(vm_t* vm);

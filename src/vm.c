@@ -70,8 +70,8 @@ proc_t* make_procedure(uint32_t iptr, vm_t* vm)
 }
 
 
-proc_t* make_func_procedure(uint32_t iptr, uint8_t* argv,
-    uint8_t* retv, vm_t* vm)
+proc_t* make_func_procedure(uint32_t iptr, uint32_t argv,
+    uint32_t retv, vm_t* vm)
 {
     proc_t* proc = make_procedure(iptr, vm);
     if (proc)
@@ -82,8 +82,8 @@ proc_t* make_func_procedure(uint32_t iptr, uint8_t* argv,
 }
 
 
-void push_call_stack(proc_t* proc, uint8_t* retval,
-    uint8_t* args, uint32_t ret_address, vm_t* vm)
+void push_call_stack(proc_t* proc, uint32_t retval,
+    uint32_t args, uint32_t ret_address, vm_t* vm)
 {
     if (proc->cstack_alloc <= proc->cstack_sz + 1)
     {
@@ -103,7 +103,7 @@ uint32_t pop_call_stack(proc_t* proc, vm_t* vm)
 {
     proc->cstack_sz--;
 
-    fcall_t* top = &proc->cstack[proc->cstack_sz - 1];
+    fcall_t* top = &proc->cstack[proc->cstack_sz];
     uint32_t ret_address = top->ret_address;
 
     uint32_t excess = proc->cstack_alloc - proc->cstack_sz;
