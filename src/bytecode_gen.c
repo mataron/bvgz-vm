@@ -21,7 +21,7 @@ static uint32_t compute_layout(prs_instn_t* instn, instn_def_t* def,
 static uint8_t nlog2(uint8_t n);
 static uint32_t write_args(prs_instn_t* instn, instn_def_t* def,
     uint8_t* buffer, uint32_t offset, prs_result_t* parse,
-    uint32_t cur_instn, struct ref* delayed_refs, int* n_delayed_refs);
+    uint32_t cur_instn, struct ref** delayed_refs, int* n_delayed_refs);
 static uint32_t write_num_ref_arg(uint8_t* buffer, uint32_t offset,
     prs_arg_t* arg);
 static uint32_t write_imm_arg(uint8_t* buffer, uint32_t offset,
@@ -64,7 +64,7 @@ int parse_to_bytecode(prs_result_t* parse, uint8_t** memory,
         if (OpIR & 0x7) buffer[offset++] = ISz;
 
         offset = write_args(instn, def, buffer, offset, parse, i,
-            delayed_refs, &n_delayed_refs);
+            &delayed_refs, &n_delayed_refs);
     }
 
     for (int i = 0; i < n_delayed_refs; i++)
@@ -115,7 +115,7 @@ static uint8_t nlog2(uint8_t n)
 
 static uint32_t write_args(prs_instn_t* instn, instn_def_t* def,
     uint8_t* buffer, uint32_t offset, prs_result_t* parse,
-    uint32_t cur_instn, struct ref* delayed_refs, int* n_delayed_refs)
+    uint32_t cur_instn, struct ref** delayed_refs, int* n_delayed_refs)
 {
     for (uint32_t j = 0; j < def->arg_count; j++)
     {
@@ -151,7 +151,7 @@ static uint32_t write_args(prs_instn_t* instn, instn_def_t* def,
             }
             else
             {
-                delayed_refs = add_delayed_ref(delayed_refs,
+                *delayed_refs = add_delayed_ref(*delayed_refs,
                     *n_delayed_refs, offset, ref_instn_index);
                 (*n_delayed_refs)++;
                 offset += 4;
