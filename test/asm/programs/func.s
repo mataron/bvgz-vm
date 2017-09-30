@@ -6,7 +6,7 @@
 %data @ptr 0x0 /4
 
 _entry:
-    set64 num   2
+    cp64 num   2
 
 loop1:
     call &dec_f &num &num
@@ -16,7 +16,7 @@ loop1:
     jtrue &loop1 test
 
 past_loop1:
-    set64 num 0
+    cp64 num 0
 
 loop2:
     call &inc_f &num &num
@@ -29,14 +29,14 @@ past_loop2:
 ;; functions:
 dec_f:
     argv ptr
-    deref64 tmp ptr
+    read64 tmp ptr
     sub tmp 1
     retv tmp
     ret
 
 inc_f:
     argv ptr
-    deref64 tmp ptr
+    read64 tmp ptr
     add tmp 1
     retv tmp
     ret

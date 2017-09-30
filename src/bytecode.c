@@ -38,6 +38,7 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
 
     for (int i = 0; i < InstnDefs[instn_idx].arg_count; i++)
     {
+        instn->args[i].u64 = 0;
         if (instn->code & (1 << i))
         {
             int n_bytes = 1 << ((instn->arg_sizes >> (2 * i)) & 3);

@@ -85,7 +85,7 @@ proc_t* make_func_procedure(uint32_t iptr, uint32_t argv,
 void push_call_stack(proc_t* proc, uint32_t retval,
     uint32_t args, uint32_t ret_address, vm_t* vm)
 {
-    if (proc->cstack_alloc <= proc->cstack_sz + 1)
+    if (proc->cstack_alloc < proc->cstack_sz + 1)
     {
         proc->cstack_alloc += FUNC_STACK_ALLOC_SZ;
         proc->cstack = realloc(proc->cstack,

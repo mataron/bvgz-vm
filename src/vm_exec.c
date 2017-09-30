@@ -4,6 +4,13 @@
 
 // TODO: stats collection
 
+#undef ENABLE_INSTN_PRINT
+// #define ENABLE_INSTN_PRINT
+
+#ifdef ENABLE_INSTN_PRINT
+static void print_instn(instn_t* instn);
+#endif
+
 void execute_vm(vm_t* vm)
 {
     instn_t instn;
@@ -32,6 +39,9 @@ void execute_vm(vm_t* vm)
 
         proc->iptr += offt;
 
+#ifdef ENABLE_INSTN_PRINT
+        print_instn(&instn);
+#endif
         uint32_t instn_idx = instn.code >> 3;
         if (InstnDefs[instn_idx].handler(&instn, vm) < 0)
         {
@@ -41,3 +51,30 @@ void execute_vm(vm_t* vm)
         vm->instns++;
     }
 }
+
+#ifdef ENABLE_INSTN_PRINT
+static void print_instn(instn_t* instn)
+{
+    uint32_t instn_idx = instn->code >> 3;
+
+    printf("%s/%d\t", InstnDefs[instn_idx].name, InstnDefs[instn_idx].arg_count);
+    for (int i = 0; i < InstnDefs[instn_idx].arg_count; ++i)
+    {
+        if (instn->code & 1 << i)
+        {
+            switch(1 << ((instn->arg_sizes >> (2 * i)) & 3))
+            {
+                case 1: printf(" 0x%02lX", (uint64_t)instn->args[i].u8); break;
+                case 2: printf(" 0x%04lX", (uint64_t)instn->args[i].u16); break;
+                case 4: printf(" 0x%08lX", (uint64_t)instn->args[i].u32); break;
+            }
+            printf(" 0x%016lX", instn->args[i].u64);
+        }
+        else
+        {
+            printf(" *0x%016lX", (uint64_t)instn->args[i].ptr);
+        }
+    }
+    printf("\n");
+}
+#endif

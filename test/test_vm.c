@@ -146,9 +146,9 @@ static void test_rel()
 }
 
 
-static void test_set()
+static void test_cpn()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "set.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "cpn.s");
 
     assert(vm->memsz == 30);
 
@@ -171,11 +171,11 @@ static void test_set()
 }
 
 
-static void test_deref()
+static void test_read()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "deref.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "read.s");
 
-    printf("deref-mem-sz: %u\n", vm->memsz);
+    printf("read-mem-sz: %u\n", vm->memsz);
     assert(vm->memsz == 91);
 
     execute_vm(vm);
@@ -256,6 +256,45 @@ static void test_func()
 }
 
 
+static void test_fib_n(uint64_t n, uint64_t expect)
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "fib.s");
+
+    *(uint64_t*)(vm->memory + 48) = n;
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    printf("fib(%lu) = %lu vs. %lu\n", n, *(uint64_t*)(vm->memory), expect);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(*(uint64_t*)(vm->memory) == expect);
+
+    destroy_vm(vm);
+}
+
+
+static void test_fib()
+{
+    test_fib_n(0, 0);
+    test_fib_n(1, 1);
+    test_fib_n(2, 1);
+    test_fib_n(3, 2);
+    test_fib_n(4, 3);
+    test_fib_n(5, 5);
+    test_fib_n(6, 8);
+    test_fib_n(7, 13);
+    test_fib_n(8, 21);
+    test_fib_n(9, 34);
+    test_fib_n(10, 55);
+    test_fib_n(11, 89);
+    test_fib_n(12, 144);
+    test_fib_n(13, 233);
+    test_fib_n(14, 377);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
@@ -265,12 +304,13 @@ int main(int argc, char** argv)
     test_logical();
     test_bitwise();
     test_rel();
-    test_set();
-    test_deref();
+    test_cpn();
+    test_read();
     test_cp();
     test_jmp();
     test_ret();
     test_func();
+    test_fib();
 
     return 0;
 }

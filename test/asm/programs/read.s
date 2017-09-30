@@ -10,8 +10,8 @@
 
 
 _entry:
-    set32    ptr  &data
-    deref8   b8   ptr
-    deref16  b16  ptr
-    deref32  b32  ptr
-    deref64  b64  ptr
+    cp32    ptr  &data
+    read8   b8   ptr
+    read16  b16  ptr
+    read32  b32  ptr
+    read64  b64  ptr

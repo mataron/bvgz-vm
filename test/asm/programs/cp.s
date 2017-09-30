@@ -6,6 +6,6 @@
 %data @num 0x0 /8
 
 _entry:
-    set32 num &srcend
+    cp32 num &srcend
     sub num &src
     cp dest, src, num

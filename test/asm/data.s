@@ -26,4 +26,4 @@
 
 ; test data labels ::
 add bar, foo, 0x12184
-deref64 ptr &ptr
+cp64 ptr &ptr
