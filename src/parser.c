@@ -620,32 +620,54 @@ static void parse_preproc_data(const char* filename, uint32_t lineno,
     data = token;
     token = p + 1;
 
-    NEXT_TOKEN(0);
-
-    if (*token)
+    while (1)
     {
-        if (strcmp(token, "-") != 0)
+        NEXT_TOKEN(0);
+        if (!*token) break;
+
+        if (*token == ':')
         {
+            token++;
+
+            if (offset != (uint32_t)-1)
+            {
+                report(result, P_ERROR, filename, lineno,
+                    "multiple offset definitions");
+            }
+
             offset = parse_preproc_data_no(filename, lineno, token,
                 "offset", result);
-        }
 
-        if (offset && offset < result->memsz)
+            if (offset && offset < result->memsz)
+            {
+                report(result, P_WARN, filename, lineno,
+                    "data collide with previous allocations: %u bytes",
+                    result->memsz - offset);
+            }
+
+            token = p + 1;
+        }
+        else if (*token == '/')
         {
-            report(result, P_WARN, filename, lineno,
-                "data collide with previous allocations: %u bytes",
-                result->memsz - offset);
+            token++;
+
+            if (offset != (uint32_t)-1)
+            {
+                report(result, P_ERROR, filename, lineno,
+                    "multiple size definitions");
+            }
+
+            size = parse_preproc_data_no(filename, lineno, token,
+                "size", result);
+
+            token = p + 1;
         }
-
-        token = p + 1;
-    }
-
-    NEXT_TOKEN(0);
-
-    if (*token)
-    {
-        size = parse_preproc_data_no(filename, lineno, token,
-            "size", result);
+        else
+        {
+            report(result, P_ERROR, filename, lineno,
+                "unexpected token: %s", token);
+            break;
+        }
     }
 
 #undef NEXT_TOKEN

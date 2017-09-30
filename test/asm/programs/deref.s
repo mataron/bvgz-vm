@@ -2,10 +2,10 @@
 %data @b8   0x00
 %data @b16  0x0000
 %data @b32  0x00000000
-%data @b64  0x0 - 8
-%data 0x0 - 32  ; spacing
+%data @b64  0x0 /8
+%data 0x0 /32  ; spacing
 %data @data 0x1122334455667788
-%data 0x0 - 32  ; spacing
+%data 0x0 /32  ; spacing
 %data @ptr  0x00000000
 
 

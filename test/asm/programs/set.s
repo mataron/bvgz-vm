@@ -3,11 +3,11 @@
 %data @v_s8  0x00
 %data @v_s16 0x0000
 %data @v_s32 0x00000000
-%data @v_s64 0x0 - 8
+%data @v_s64 0x0 /8
 %data @m_s8  0x00
 %data @m_s16 0x0000
 %data @m_s32 0x00000000
-%data @m_s64 0x0 - 8
+%data @m_s64 0x0 /8
 
 
 _entry:
