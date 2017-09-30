@@ -7,7 +7,7 @@
 
 `label_ln` := `word` ':'
 
-`instn_ln` := `word` `arg`*
+`instn_ln` := `word` (`arg` (','? `arg`)* )?
 
 `arg` := `imm` | `ref`
 
