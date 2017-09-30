@@ -146,6 +146,31 @@ static void test_rel()
 }
 
 
+static void test_set()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "set.s");
+
+    assert(vm->memsz == 30);
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->instns == 8);
+    assert(*(uint8_t*)(vm->memory) == 0x11);
+    assert(*(uint16_t*)(vm->memory + 1) == 0x1122);
+    assert(*(uint32_t*)(vm->memory + 3) == 0x11223344);
+    assert(*(uint64_t*)(vm->memory + 7) == 0x1122334455667788);
+    assert(*(uint8_t*)(vm->memory + 15) == 0x11);
+    assert(*(uint16_t*)(vm->memory + 16) == 0x1122);
+    assert(*(uint32_t*)(vm->memory + 18) == 0x11223344);
+    assert(*(uint64_t*)(vm->memory + 22) == 0x1122334455667788);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
@@ -155,6 +180,7 @@ int main(int argc, char** argv)
     test_logical();
     test_bitwise();
     test_rel();
+    test_set();
 
     return 0;
 }
