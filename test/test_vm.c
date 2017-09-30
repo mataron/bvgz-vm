@@ -211,6 +211,21 @@ static void test_cp()
 }
 
 
+static void test_jmp()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "jmp.s");
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(*(uint64_t*)(vm->memory) == 3);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
@@ -223,6 +238,7 @@ int main(int argc, char** argv)
     test_set();
     test_deref();
     test_cp();
+    test_jmp();
 
     return 0;
 }
