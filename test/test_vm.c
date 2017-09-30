@@ -75,12 +75,38 @@ static void test_arithm()
 }
 
 
+static void test_logical()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "logical.s");
+
+    assert(vm->memsz == sizeof(uint64_t) * 8);
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->instns == 8);
+    assert(*(uint64_t*)(vm->memory) == (0 && 1));
+    assert(*(uint64_t*)(vm->memory + 8) == (1 && 1));
+    assert(*(uint64_t*)(vm->memory + 16) == (0 || 1));
+    assert(*(uint64_t*)(vm->memory + 24) == (0 || 0));
+    assert(*(uint64_t*)(vm->memory + 32) == !1);
+    assert(*(uint64_t*)(vm->memory + 40) == !0);
+    assert(*(uint64_t*)(vm->memory + 48) == !!1);
+    assert(*(uint64_t*)(vm->memory + 56) == !!0);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
 
     test_nop3();
     test_arithm();
+    test_logical();
 
     return 0;
 }
