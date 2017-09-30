@@ -294,7 +294,7 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
             *p = 0;
             break;
         }
-        else if (isspace(*p))
+        else if (isspace(*p) || *p == ',')
         {
             *p = 0;
             mark_token = 1;

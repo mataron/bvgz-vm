@@ -20,5 +20,7 @@
 %data 0x112233445566778
 %data 0x1122334455667788
 
+;%data 0x0 - 8
+
 ; test data labels ::
-add bar foo 0x12184
+add bar, foo, 0x12184
