@@ -138,11 +138,6 @@ static void test_instns_lookup()
     fmt = bsearch(&str, InstnDefs, nInstnDefs,
         sizeof(instn_def_t), compare_instn_def);
     assert(fmt != NULL);
-
-    str = "yield";
-    fmt = bsearch(&str, InstnDefs, nInstnDefs,
-        sizeof(instn_def_t), compare_instn_def);
-    assert(fmt != NULL);
 }
 
 

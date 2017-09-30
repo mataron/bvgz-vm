@@ -57,13 +57,6 @@ int op_call_3(instn_t* instn, vm_t* vm)
 }
 
 
-int op_syscall_3(instn_t* instn, vm_t* vm)
-{
-    // TODO: implement
-    return 0;
-}
-
-
 int op_ret_0(instn_t* instn, vm_t* vm)
 {
     proc_t* this_proc = vm->procedures->data;
@@ -124,24 +117,5 @@ int op_retv_1(instn_t* instn, vm_t* vm)
     }
 
     *ret = arg_value(instn, 0);
-    return 0;
-}
-
-
-int op_yield_0(instn_t* instn, vm_t* vm)
-{
-    list_t* next = vm->procedures->next;
-    if (!next)
-    {
-        return 0;
-    }
-
-    list_t* current = vm->procedures;
-    list_unlink(current);
-    vm->procedures = next;
-
-    list_t* tail = list_tail(vm->procedures);
-    list_append(tail, current);
-
     return 0;
 }
