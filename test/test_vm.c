@@ -123,6 +123,29 @@ static void test_bitwise()
 }
 
 
+static void test_rel()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "rel.s");
+
+    assert(vm->memsz == sizeof(uint64_t) * 6);
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->instns == 6);
+    assert(*(uint64_t*)(vm->memory) == 0);
+    assert(*(uint64_t*)(vm->memory + 8) == 1);
+    assert(*(uint64_t*)(vm->memory + 16) == 1);
+    assert(*(uint64_t*)(vm->memory + 24) == 0);
+    assert(*(uint64_t*)(vm->memory + 32) == 1);
+    assert(*(uint64_t*)(vm->memory + 40) == 1);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     setup_instn_defs();
@@ -131,6 +154,7 @@ int main(int argc, char** argv)
     test_arithm();
     test_logical();
     test_bitwise();
+    test_rel();
 
     return 0;
 }
