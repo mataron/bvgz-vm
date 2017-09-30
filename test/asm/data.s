@@ -5,7 +5,9 @@
 %data @bar "\nstn-only.s" ; 11+1 bytes
 
 ; ONLY one warning here (trim)
-%data @bar2 "sdf\nstn\"-only.s" - 4 ; 15+1 bytes
+%data @bar2 "sdf\nstn\"-only.s" - 4 ; 15+1 bytes -> 4
+
+%data "sdf\nstn\"-only.s" - 53 ; 15+1 bytes -> 53
 
 ; 2 x 1 byte:
 %data 0x1
@@ -20,7 +22,7 @@
 %data 0x112233445566778
 %data 0x1122334455667788
 
-;%data 0x0 - 8
+%data 0x0 - 8
 
 ; test data labels ::
 add bar, foo, 0x12184

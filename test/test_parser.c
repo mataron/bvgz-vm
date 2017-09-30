@@ -118,8 +118,8 @@ static void test_data_loads()
     assert(result->consistent == 0);
 
     printf("memsz = %u\n", result->memsz);
-    // true total is 226, but 12 bytes are removed due to specific size
-    assert(result->memsz == 214);
+    // true total is 287, but 12 bytes are removed due to specific size
+    assert(result->memsz == 275);
 
     destroy_parse_result(result);
 }

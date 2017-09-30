@@ -402,14 +402,18 @@ static void set_memory_size(const char* filename, uint32_t lineno,
 {
     if (size != (uint32_t)-1)
     {
-        size += original_offset;
-        if (size < result->memsz)
+        uint32_t total = size + original_offset;
+        if (total < result->memsz)
         {
             report(result, P_WARN, filename, lineno,
                 "trimming memory size %u -> %u bytes",
-                result->memsz, size);
+                result->memsz, total);
         }
-        result->memsz = size;
+        else if (total > result->memsz)
+        {
+            ensure_memory_alloc(total, result);
+        }
+        result->memsz = total;
     }
 }
 
