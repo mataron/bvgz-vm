@@ -9,4 +9,7 @@
 #define xstr(s) str(s)
 #define str(s) #s
 
+struct _vm_t;
+struct _vm_t* mk_vm_for_asm(char* asmfile);
+
 #endif

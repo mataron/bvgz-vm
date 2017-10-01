@@ -1,8 +1,16 @@
+#include <stdlib.h>
+#include <time.h>
+#include <errno.h>
+
 #include "vm.h"
 #include "instn.h"
 #include "bytecode.h"
 
+#define IDLE_STEP_DURATION_MS   10
+
 // TODO: stats collection
+
+
 
 #undef ENABLE_INSTN_PRINT
 // #define ENABLE_INSTN_PRINT
@@ -11,15 +19,31 @@
 static void print_instn(instn_t* instn);
 #endif
 
+
 void execute_vm(vm_t* vm)
 {
+    struct timespec idle_step = {
+        MILLISECONDS_TO_SECONDS(IDLE_STEP_DURATION_MS),
+        MILLISECONDS_TO_NANOSECONDS(IDLE_STEP_DURATION_MS)
+    };
     instn_t instn;
 
     while (1)
     {
         if (!vm->procedures)
         {
-            break;
+            if (!vm->n_timers)
+            {
+                break;
+            }
+            if (fire_vm_events(vm) == 0)
+            {
+                if (nanosleep(&idle_step, NULL) < 0)
+                {
+                    vm->error_no = errno;
+                }
+                continue;
+            }
         }
 
         proc_t* proc = vm->procedures->data;
@@ -52,21 +76,66 @@ void execute_vm(vm_t* vm)
     }
 }
 
+
+uint32_t fire_vm_events(vm_t* vm)
+{
+    uint32_t events = 0;
+
+    struct timespec now = { 0, 0 };
+    if (clock_gettime(CLOCK_REALTIME, &now) < 0)
+    {
+        vm->error_no = errno;
+    }
+
+    uint32_t n_timers = vm->n_timers;
+    for (uint32_t i = 0; i < n_timers; i++)
+    {
+        vm_timer_t* tmr = vm->timers + i;
+        if (TIMESPEC_GREATER_EQUAL(now, tmr->expires_at))
+        {
+            events++;
+            make_procedure(tmr->iptr, vm);
+            if (i + 1 < n_timers)
+            {
+                *tmr = vm->timers[n_timers - 1];
+            }
+            n_timers--;
+            i--;
+        }
+    }
+
+    if (n_timers != vm->n_timers)
+    {
+        vm->timers = realloc(vm->timers, n_timers * sizeof(vm_timer_t));
+        vm->n_timers = n_timers;
+    }
+
+    return events;
+}
+
+
 #ifdef ENABLE_INSTN_PRINT
 static void print_instn(instn_t* instn)
 {
     uint32_t instn_idx = instn->code >> 3;
 
-    printf("%s/%d\t", InstnDefs[instn_idx].name, InstnDefs[instn_idx].arg_count);
+    printf("%s/%d\t", InstnDefs[instn_idx].name,
+        InstnDefs[instn_idx].arg_count);
     for (int i = 0; i < InstnDefs[instn_idx].arg_count; ++i)
     {
         if (instn->code & 1 << i)
         {
             switch(1 << ((instn->arg_sizes >> (2 * i)) & 3))
             {
-                case 1: printf(" 0x%02lX", (uint64_t)instn->args[i].u8); break;
-                case 2: printf(" 0x%04lX", (uint64_t)instn->args[i].u16); break;
-                case 4: printf(" 0x%08lX", (uint64_t)instn->args[i].u32); break;
+                case 1:
+                    printf(" 0x%02lX", (uint64_t)instn->args[i].u8);
+                    break;
+                case 2:
+                    printf(" 0x%04lX", (uint64_t)instn->args[i].u16);
+                    break;
+                case 4:
+                    printf(" 0x%08lX", (uint64_t)instn->args[i].u32);
+                    break;
             }
             printf(" 0x%016lX", instn->args[i].u64);
         }

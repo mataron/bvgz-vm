@@ -9,6 +9,11 @@ add_subdirectory(util)
 add_definitions(-DPROJECT_ROOT=${PROJECT_SOURCE_DIR})
 
 
+add_library(testing STATIC
+    tests.c
+)
+
+
 add_executable(test_parser test_parser.c)
 target_link_libraries(test_parser vm bytecode utils)
 add_test(test_parser test_parser)
@@ -22,5 +27,9 @@ target_link_libraries(test_bytecode_decode vm bytecode utils)
 add_test(test_bytecode_decode test_bytecode_decode)
 
 add_executable(test_vm test_vm.c)
-target_link_libraries(test_vm vm bytecode utils)
+target_link_libraries(test_vm testing vm bytecode utils)
 add_test(test_vm test_vm)
+
+add_executable(test_vm_sys test_vm_sys.c)
+target_link_libraries(test_vm_sys testing vm bytecode utils)
+add_test(test_vm_sys test_vm_sys)

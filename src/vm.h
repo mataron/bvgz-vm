@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "util/list.h"
+#include "timers.h"
 
 #define FUNC_STACK_ALLOC_SZ     64
 
@@ -12,6 +13,7 @@
 #define VM_E_MemoryUnderflow    0x8
 #define VM_E_BadInstnPointer    0x10
 #define VM_E_BadInstnCode       0x20
+#define VM_E_BadSyscallNo       0x40
 
 
 typedef struct _fcall_t
@@ -54,6 +56,12 @@ typedef struct _vm_t
 
     // number of instructions executed so far.
     uint64_t instns;
+
+    // error number (set by system calls)
+    int error_no;
+
+    vm_timer_t* timers;
+    uint32_t n_timers;
 }
 vm_t;
 
@@ -62,10 +70,14 @@ extern int verbose;
 extern int collect_stats;
 
 
+void initialize_engine();
+
+
 vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry);
 void destroy_vm(vm_t* vm);
 
 void execute_vm(vm_t* vm);
+uint32_t fire_vm_events(vm_t* vm);
 
 void print_vm_state(vm_t* vm);
 
@@ -78,5 +90,8 @@ void push_call_stack(proc_t* proc, uint32_t retval,
 uint32_t pop_call_stack(proc_t* proc, vm_t* vm);
 
 void delete_current_procedure(vm_t* vm);
+
+void make_vm_timer(vm_t* vm, struct timespec* exprires_at,
+    uint32_t iptr);
 
 #endif

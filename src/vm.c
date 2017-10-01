@@ -2,11 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vm.h"
+#include "instn.h"
+#include "syscall.h"
 
 int verbose = 0;
 int collect_stats = 0;
 
 #define STACK_FREE_THRESHOLD    ((uint32_t)(1.5 * FUNC_STACK_ALLOC_SZ))
+
+
+void initialize_engine()
+{
+    setup_instn_defs();
+    setup_system_call_table();
+}
 
 
 vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry)
@@ -130,6 +139,18 @@ void delete_current_procedure(vm_t* vm)
 }
 
 
+void make_vm_timer(vm_t* vm, struct timespec* exprires_at,
+    uint32_t iptr)
+{
+    vm->timers = realloc(vm->timers,
+        sizeof(vm_timer_t) * (vm->n_timers + 1));
+
+    vm->timers[vm->n_timers].expires_at = *exprires_at;
+    vm->timers[vm->n_timers].iptr = iptr;
+    vm->n_timers++;
+}
+
+
 void print_vm_state(vm_t* vm)
 {
     char* state = "RUNNING";
@@ -162,5 +183,7 @@ void print_vm_state(vm_t* vm)
             printf("  Bad Instn ptr\n");
         if (vm->exceptions & VM_E_BadInstnCode)
             printf("  Bad Instn\n");
+        if (vm->exceptions & VM_E_BadSyscallNo)
+            printf("  Bad syscall\n");
     }
 }
