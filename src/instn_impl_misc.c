@@ -171,7 +171,7 @@ int op_write8_2(instn_t* instn, vm_t* vm)
         return -1;
     }
 
-    *mem = lref8(instn->args[1].ptr);
+    *mem = arg_value(instn, 1);
     return 0;
 }
 
@@ -185,7 +185,7 @@ int op_write16_2(instn_t* instn, vm_t* vm)
         return -1;
     }
 
-    *(uint16_t*)mem = lref16(instn->args[1].ptr);
+    *(uint16_t*)mem = arg_value(instn, 1);
     return 0;
 }
 
@@ -199,7 +199,7 @@ int op_write32_2(instn_t* instn, vm_t* vm)
         return -1;
     }
 
-    *(uint32_t*)mem = lref32(instn->args[1].ptr);
+    *(uint32_t*)mem = arg_value(instn, 1);
     return 0;
 }
 
@@ -213,7 +213,7 @@ int op_write64_2(instn_t* instn, vm_t* vm)
         return -1;
     }
 
-    *(uint64_t*)mem = lref64(instn->args[1].ptr);
+    *(uint64_t*)mem = arg_value(instn, 1);
     return 0;
 }
 
@@ -228,7 +228,7 @@ int op_write8_3(instn_t* instn, vm_t* vm)
         return -1;
     }
 
-    *mem = lref8(instn->args[2].ptr);
+    *mem = arg_value(instn, 2);
     return 0;
 }
 
@@ -243,7 +243,7 @@ int op_write16_3(instn_t* instn, vm_t* vm)
         return -1;
     }
 
-    *(uint16_t*)mem = lref16(instn->args[2].ptr);
+    *(uint16_t*)mem = arg_value(instn, 2);
     return 0;
 }
 
@@ -258,7 +258,7 @@ int op_write32_3(instn_t* instn, vm_t* vm)
         return -1;
     }
 
-    *(uint32_t*)mem = lref32(instn->args[2].ptr);
+    *(uint32_t*)mem = arg_value(instn, 2);
     return 0;
 }
 
@@ -273,6 +273,6 @@ int op_write64_3(instn_t* instn, vm_t* vm)
         return -1;
     }
 
-    *(uint64_t*)mem = lref64(instn->args[2].ptr);
+    *(uint64_t*)mem = arg_value(instn, 2);
     return 0;
 }
