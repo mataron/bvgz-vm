@@ -3,7 +3,7 @@
 #include <string.h>
 #include "vm.h"
 #include "instns/instn.h"
-#include "syscall.h"
+#include "syscalls/syscall.h"
 
 int verbose = 0;
 int collect_stats = 0;

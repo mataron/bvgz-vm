@@ -1,7 +1,7 @@
 #include "vm.h"
 #include "instn.h"
 #include "instn_impl.h"
-#include "syscall.h"
+#include "syscalls/syscall.h"
 
 
 int op_syscall_3(instn_t* instn, vm_t* vm)
