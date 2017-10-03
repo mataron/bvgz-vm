@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     int retval = 0;
     parse_args(argc, argv);
 
-    setup_instn_defs();
+    initialize_engine();
 
     FILE* imgfp = fopen(imgfile, "rb");
     if (!imgfp)
