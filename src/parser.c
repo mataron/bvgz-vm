@@ -9,7 +9,7 @@
 
 #include "util/hashset.h"
 #include "parser.h"
-#include "instn.h"
+#include "instns/instn.h"
 
 #define FILEPATH_BUF_SZ     256
 

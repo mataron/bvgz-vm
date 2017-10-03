@@ -1,7 +1,7 @@
 #include "tests.h"
 #include "bytecode.h"
 #include "parser.h"
-#include "instn.h"
+#include "instns/instn.h"
 #include "vm.h"
 
 

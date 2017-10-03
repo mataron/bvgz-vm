@@ -15,24 +15,9 @@ int parse_to_bytecode(struct _prs_result_t* parse,
 int bytecode_to_text(FILE* fp, void* memory, uint32_t* size);
 
 
-typedef struct _instn_t
-{
-    uint16_t code;
-    uint8_t arg_sizes;
-    union
-    {
-        uint8_t u8;
-        uint16_t u16;
-        uint32_t u32;
-        uint64_t u64;
-        uint8_t* ptr;
-    }
-    args[3];
-}
-instn_t;
-
+struct _instn_t;
 struct _vm_t;
-int32_t decode_instn(uint8_t* iptr, struct _vm_t* vm, instn_t* instn);
+int32_t decode_instn(uint8_t* iptr, struct _vm_t* vm, struct _instn_t* instn);
 
 uint8_t* deref_mem_ptr(uint32_t ref, uint32_t size, struct _vm_t* vm);
 

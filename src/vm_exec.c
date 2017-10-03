@@ -1,5 +1,5 @@
 #include "vm.h"
-#include "instn.h"
+#include "instns/instn.h"
 #include "bytecode.h"
 
 // TODO: stats collection

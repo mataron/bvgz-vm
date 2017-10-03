@@ -1,12 +1,10 @@
 include_directories(.)
 
 add_subdirectory(util)
+add_subdirectory(instns)
 
 add_library(vm STATIC
-    vm.c instn.c instn_defs.c bytecode.c instn_impl_misc.c
-    instn_impl_arith.c instn_impl_bitw.c instn_impl_rel.c
-    instn_impl_logc.c instn_impl_ctrl.c vm_exec.c
-    instn_impl_sys.c
+    vm.c bytecode.c vm_exec.c
 )
 
 add_library(bytecode STATIC
@@ -16,11 +14,11 @@ add_library(bytecode STATIC
 add_executable(bvgz bvgz.c)
 
 target_link_libraries(bvgz
-    vm utils
+    instns vm utils
 )
 
 add_executable(basm basm_app.c)
 
 target_link_libraries(basm
-    bytecode vm utils
+    instns bytecode vm utils
 )

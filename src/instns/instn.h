@@ -5,9 +5,26 @@
 
 #define F_ALLOW_IMM_1st_Arg     0x1
 
-struct _instn_t;
+typedef struct _instn_t
+{
+    uint16_t code;
+    uint8_t arg_sizes;
+    union
+    {
+        uint8_t u8;
+        uint16_t u16;
+        uint32_t u32;
+        uint64_t u64;
+        uint8_t* ptr;
+    }
+    args[3];
+}
+instn_t;
+
+
 struct _vm_t;
 typedef int (*instn_handler_f)(struct _instn_t* instn, struct _vm_t* vm);
+
 
 typedef struct _instn_def_t
 {
