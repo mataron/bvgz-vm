@@ -5,7 +5,7 @@
 
 #include "bytecode.h"
 #include "parser.h"
-#include "instn.h"
+#include "instns/instn.h"
 
 #define BUF_BLOCK_SIZE  256
 

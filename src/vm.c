@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vm.h"
-#include "instn.h"
+#include "instns/instn.h"
 #include "syscall.h"
 
 int verbose = 0;

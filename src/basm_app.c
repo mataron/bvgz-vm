@@ -6,7 +6,7 @@
 
 #include "parser.h"
 #include "bytecode.h"
-#include "instn.h"
+#include "instns/instn.h"
 
 #define DefaultEntryPointLabel  "_entry"
 

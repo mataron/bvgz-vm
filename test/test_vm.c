@@ -1,6 +1,7 @@
 #include "tests.h"
+#include "instns/instn.h"
+#include "parser.h"
 #include "vm.h"
-#include "instn.h"
 
 
 #define PRG_PATH    "/test/asm/programs/"

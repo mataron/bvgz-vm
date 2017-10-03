@@ -3,7 +3,7 @@
 #include <errno.h>
 
 #include "vm.h"
-#include "instn.h"
+#include "instns/instn.h"
 #include "bytecode.h"
 
 #define IDLE_STEP_DURATION_MS   10

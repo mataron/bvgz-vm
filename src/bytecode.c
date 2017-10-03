@@ -2,7 +2,7 @@
 #include <errno.h>
 
 #include "bytecode.h"
-#include "instn.h"
+#include "instns/instn.h"
 #include "vm.h"
 
 

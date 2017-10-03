@@ -1,5 +1,5 @@
 #include "tests.h"
-#include "instn.h"
+#include "instns/instn.h"
 #include "parser.h"
 
 

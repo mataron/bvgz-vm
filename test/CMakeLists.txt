@@ -15,21 +15,21 @@ add_library(testing STATIC
 
 
 add_executable(test_parser test_parser.c)
-target_link_libraries(test_parser vm bytecode utils)
+target_link_libraries(test_parser instns vm bytecode utils)
 add_test(test_parser test_parser)
 
 add_executable(test_bytecode_gen test_bytecode_gen.c)
-target_link_libraries(test_bytecode_gen vm bytecode utils)
+target_link_libraries(test_bytecode_gen instns vm bytecode utils)
 add_test(test_bytecode_gen test_bytecode_gen)
 
 add_executable(test_bytecode_decode test_bytecode_decode.c)
-target_link_libraries(test_bytecode_decode vm bytecode utils)
+target_link_libraries(test_bytecode_decode instns vm bytecode utils)
 add_test(test_bytecode_decode test_bytecode_decode)
 
 add_executable(test_vm test_vm.c)
-target_link_libraries(test_vm testing vm bytecode utils)
+target_link_libraries(test_vm -Wl,--start-group instns testing vm bytecode utils -Wl,--end-group)
 add_test(test_vm test_vm)
 
 add_executable(test_vm_sys test_vm_sys.c)
-target_link_libraries(test_vm_sys testing vm bytecode utils)
+target_link_libraries(test_vm_sys -Wl,--start-group instns testing vm bytecode utils -Wl,--end-group)
 add_test(test_vm_sys test_vm_sys)
