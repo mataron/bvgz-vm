@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "util/list.h"
 #include "timers.h"
+#include "syscalls/syscall_io.h"
 
 #define FUNC_STACK_ALLOC_SZ     64
 
@@ -62,6 +63,8 @@ typedef struct _vm_t
 
     vm_timer_t* timers;
     uint32_t n_timers;
+
+    vm_io_t io;
 }
 vm_t;
 

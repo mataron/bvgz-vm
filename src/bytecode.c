@@ -101,6 +101,18 @@ uint8_t* deref_mem_ptr(uint32_t ref, uint32_t size, vm_t* vm)
 }
 
 
+int ensure_nul_term_str(uint8_t* base, vm_t* vm)
+{
+    uint8_t* mem_end = vm->memory + vm->memsz;
+    for (uint8_t* p = base; p < mem_end; p++)
+    {
+        if (!*p) return 0;
+    }
+    vm->exceptions |= VM_E_MemFault;
+    return -1;
+}
+
+
 vm_t* read_bvgz_image(FILE *fp)
 {
     uint16_t magic = 0;

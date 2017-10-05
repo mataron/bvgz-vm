@@ -11,3 +11,30 @@
 
 // void yield()
 /* 4 */ SYSCALL(yield)
+
+// error = close(handle64)
+/* 5 */ SYSCALL(close)
+// error = read(handle64, ptr, size64,
+//              callback(handle64, errno, size64))
+/* 6 */ SYSCALL(read)
+// error = write(handle64, ptr, size64,
+//               callback(handle64, errno, size64))
+/* 7 */ SYSCALL(write)
+
+// handle64 = fs_open(path, options64)
+// handle64 is zero on error
+/* 8 */ SYSCALL(fs_open)
+// error = fs_stat(path, stat_ptr, callback(path, errno, stat_ptr))
+/* 9 */ SYSCALL(fs_stat)
+// error = fs_unlink(path, callback(path, errno))
+/* 10 */ SYSCALL(fs_unlink)
+// error = fs_seek(handle64, pos, offt, callback(handle64, pos, errno))
+/* 11 */ SYSCALL(fs_seek)
+
+// error = fs_mkdir(path, callback(path, errno))
+/* 12 */ SYSCALL(fs_mkdir)
+// error = fs_rmdir(path, callback(path, errno))
+/* 13 */ SYSCALL(fs_rmdir)
+// error = fs_readdir(path, buf, buflen,
+//                    callback(path, errno, buf, count, real_count))
+/* 14 */ SYSCALL(fs_readdir)
