@@ -13,6 +13,10 @@ typedef struct _vm_timer_t
 vm_timer_t;
 
 
+struct _vm_t;
+uint32_t fire_timer_events(struct _vm_t* vm);
+
+
 #define TIMESPEC_GREATER_EQUAL(a, b) \
     ((a).tv_sec > (b).tv_sec || \
         ((a).tv_sec == (b).tv_sec && (a).tv_nsec >= (b).tv_nsec))
