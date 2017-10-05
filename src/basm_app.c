@@ -145,7 +145,11 @@ static void parse_args(int argc, char** argv)
 
     asmfile = argv[optind];
 
-    make_output_filename(strlen(asmfile));
+    if (outfile == NULL)
+    {
+        make_output_filename(strlen(asmfile));
+    }
+
     return;
 
 error:

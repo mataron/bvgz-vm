@@ -48,8 +48,6 @@ int main(int argc, char** argv)
     execute_vm(vm);
     print_vm_state(vm);
 
-    destroy_vm(vm);
-
 done:
     if (imgfp) fclose(imgfp);
     cleanup();

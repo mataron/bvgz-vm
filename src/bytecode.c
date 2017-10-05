@@ -104,7 +104,7 @@ uint8_t* deref_mem_ptr(uint32_t ref, uint32_t size, vm_t* vm)
 vm_t* read_bvgz_image(FILE *fp)
 {
     uint16_t magic = 0;
-    if (fread(&magic, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    if (fread(&magic, sizeof(uint16_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(magic): %s\n", strerror(errno));
         return NULL;
@@ -117,7 +117,7 @@ vm_t* read_bvgz_image(FILE *fp)
     }
 
     uint16_t flags;
-    if (fread(&flags, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    if (fread(&flags, sizeof(uint16_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(flags): %s\n", strerror(errno));
         return NULL;
@@ -129,15 +129,14 @@ vm_t* read_bvgz_image(FILE *fp)
     }
 
     uint32_t entry_label = 0;
-    if (fread(&entry_label, sizeof(uint32_t), 1, fp) !=
-        sizeof(uint32_t))
+    if (fread(&entry_label, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(entry): %s\n", strerror(errno));
         return NULL;
     }
 
     uint32_t codesz;
-    if (fread(&codesz, sizeof(uint32_t), 1, fp) != sizeof(uint32_t))
+    if (fread(&codesz, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(codesz): %s\n", strerror(errno));
         return NULL;
@@ -149,8 +148,7 @@ vm_t* read_bvgz_image(FILE *fp)
     }
 
     uint32_t memsz;
-    if (fread(&memsz, sizeof(uint32_t), 1, fp) !=
-        sizeof(uint32_t))
+    if (fread(&memsz, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(memsz): %s\n", strerror(errno));
         return NULL;
@@ -158,14 +156,14 @@ vm_t* read_bvgz_image(FILE *fp)
 
     vm_t* vm = make_vm(codesz, memsz, entry_label);
 
-    if (fread(vm->code, codesz, 1, fp) != codesz)
+    if (fread(vm->code, codesz, 1, fp) != 1)
     {
         fprintf(stderr, "fread(code:%u): %s\n",
             codesz, strerror(errno));
         goto error;
     }
 
-    if (fread(vm->memory, memsz, 1, fp) != memsz)
+    if (fread(vm->memory, memsz, 1, fp) != 1)
     {
         fprintf(stderr, "fread(mem:%u): %s\n", memsz, strerror(errno));
         goto error;
