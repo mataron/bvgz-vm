@@ -79,7 +79,7 @@ void execute_vm(vm_t* vm)
 
 uint32_t fire_vm_events(vm_t* vm)
 {
-    return fire_timer_events(vm);
+    return fire_timer_events(vm) + fire_io_events(vm);
 }
 
 

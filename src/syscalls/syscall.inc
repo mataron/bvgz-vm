@@ -14,10 +14,10 @@
 
 // error = close(handle64)
 /* 5 */ SYSCALL(close)
-// error = read(handle64, ptr, size64,
+// error = read(handle64, ptr64, size64,
 //              callback(handle64, errno, size64))
 /* 6 */ SYSCALL(read)
-// error = write(handle64, ptr, size64,
+// error = write(handle64, ptr64, size64,
 //               callback(handle64, errno, size64))
 /* 7 */ SYSCALL(write)
 

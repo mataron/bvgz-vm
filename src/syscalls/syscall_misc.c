@@ -6,40 +6,42 @@
 #include "syscall.h"
 
 
-int sys_getlasterr(vm_t* vm, uint32_t argv, uint32_t retv)
+void sys_getlasterr(vm_t* vm, uint32_t argv, uint32_t retv)
 {
-    uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
+    uint64_t* ret = (uint64_t*)deref(retv, 8, vm);
     if (!ret)
     {
-        return -1;
+        vm->error_no = EFAULT;
+        return;
     }
 
     *ret = vm->error_no;
     vm->error_no = 0;
-    return 0;
 }
 
 
-int sys_setlasterr(vm_t* vm, uint32_t argv, uint32_t retv)
+void sys_setlasterr(vm_t* vm, uint32_t argv, uint32_t retv)
 {
-    uint64_t* args =  (uint64_t*)deref_mem_ptr(argv, 8, vm);
+    uint64_t* args =  (uint64_t*)deref(argv, 8, vm);
     if (!args)
     {
-        return -1;
+        vm->error_no = EFAULT;
+        return;
     }
 
     vm->error_no = *args;
-    return 0;
 }
 
 
-int sys_time(vm_t* vm, uint32_t argv, uint32_t retv)
+void sys_time(vm_t* vm, uint32_t argv, uint32_t retv)
 {
-    uint64_t* args =  (uint64_t*)deref_mem_ptr(argv, 2 * 8, vm);
-    uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
+    uint64_t* args =  (uint64_t*)deref(argv, 2 * 8, vm);
+    uint64_t* ret = (uint64_t*)deref(retv, 8, vm);
     if (!args || !ret)
     {
-        return -1;
+        vm->error_no = EFAULT;
+        if (ret) *ret = 1;
+        return;
     }
 
     struct timespec tp;
@@ -47,24 +49,25 @@ int sys_time(vm_t* vm, uint32_t argv, uint32_t retv)
     {
         vm->error_no = errno;
         *ret = 1;
-        return -1;
+        return;
     }
 
     *args = tp.tv_sec;
     *(args + 1) = tp.tv_nsec;
 
     *ret = 0;
-    return 0;
 }
 
 
-int sys_timeout(vm_t* vm, uint32_t argv, uint32_t retv)
+void sys_timeout(vm_t* vm, uint32_t argv, uint32_t retv)
 {
-    uint8_t* args = deref_mem_ptr(argv, 4 + 8, vm);
-    uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
+    uint8_t* args = deref(argv, 4 + 8, vm);
+    uint64_t* ret = (uint64_t*)deref(retv, 8, vm);
     if (!args || !ret)
     {
-        return -1;
+        vm->error_no = EFAULT;
+        if (ret) *ret = 1;
+        return;
     }
 
     uint32_t f_ptr = *(uint32_t*)args;
@@ -72,8 +75,9 @@ int sys_timeout(vm_t* vm, uint32_t argv, uint32_t retv)
 
     if (f_ptr > vm->codesz)
     {
-        vm->exceptions |= VM_E_BadInstnPointer;
-        return -1;
+        vm->error_no = EINVAL;
+        *ret = 1;
+        return;
     }
 
     struct timespec tp;
@@ -81,22 +85,21 @@ int sys_timeout(vm_t* vm, uint32_t argv, uint32_t retv)
     {
         vm->error_no = errno;
         *ret = 1;
-        return -1;
+        return;
     }
 
     tp.tv_sec += MILLISECONDS_TO_SECONDS(timeout_millis);
     tp.tv_nsec += MILLISECONDS_TO_NANOSECONDS(timeout_millis);
 
     make_vm_timer(vm, &tp, f_ptr);
-    return 0;
 }
 
 
-int sys_yield(vm_t* vm, uint32_t argv, uint32_t retv)
+void sys_yield(vm_t* vm, uint32_t argv, uint32_t retv)
 {
     if (!vm->procedures->next)
     {
-        return 0;
+        return;
     }
 
     list_t* self = vm->procedures;
@@ -105,5 +108,4 @@ int sys_yield(vm_t* vm, uint32_t argv, uint32_t retv)
 
     list_t* tail = list_tail(vm->procedures);
     list_append(tail, self);
-    return 0;
 }

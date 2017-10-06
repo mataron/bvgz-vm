@@ -92,24 +92,12 @@ int32_t decode_instn(uint8_t* iptr, vm_t* vm, instn_t* instn)
 
 uint8_t* deref_mem_ptr(uint32_t ref, uint32_t size, vm_t* vm)
 {
-    if (ref + size > vm->memsz) // 8 : 64bit arg
+    if (ref + size > vm->memsz)
     {
         vm->exceptions |= VM_E_MemFault;
         return NULL;
     }
     return vm->memory + ref;
-}
-
-
-int ensure_nul_term_str(uint8_t* base, vm_t* vm)
-{
-    uint8_t* mem_end = vm->memory + vm->memsz;
-    for (uint8_t* p = base; p < mem_end; p++)
-    {
-        if (!*p) return 0;
-    }
-    vm->exceptions |= VM_E_MemFault;
-    return -1;
 }
 
 
