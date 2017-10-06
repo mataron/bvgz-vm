@@ -168,6 +168,10 @@ void print_vm_state(vm_t* vm)
     printf("  Procedures: %u\n",
         vm->procedures ? list_size(vm->procedures) : 0);
     printf("  Instns run: %lu\n", vm->instns);
+    if (vm->error_no)
+    {
+        printf("  Last error: %s\n", strerror(vm->error_no));
+    }
     if (vm->exceptions)
     {
         printf("Exceptions:\n");
