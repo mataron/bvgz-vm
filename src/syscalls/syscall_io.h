@@ -2,7 +2,6 @@
 #define _BVGZ_SYS_IO_H
 
 #include <stdint.h>
-#include <sys/select.h>
 
 #include "syscall.h"
 
@@ -19,6 +18,7 @@ typedef struct _io_mem_t
     uint32_t ptr;
     uint32_t len;
     uint32_t callback;
+    uint32_t args;
 }
 io_mem_t;
 
@@ -46,9 +46,6 @@ typedef struct _vm_io_t
     vm_fd_t* fds;
     uint32_t n_fds;
     uint32_t used_fds;
-
-    fd_set read_fds;
-    fd_set write_fds;
 }
 vm_io_t;
 

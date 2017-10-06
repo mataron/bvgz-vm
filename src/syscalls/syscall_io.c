@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <unistd.h>
 #include <errno.h>
 
@@ -46,9 +47,148 @@ void dealloc_fd(uint64_t fd, vm_t* vm)
 }
 
 
-uint32_t fire_io_events(struct _vm_t* vm)
+static uint32_t fire_io_event(vm_t* vm, vm_fd_t* fd, int is_read);
+static void fire_read_event(vm_t* vm, vm_fd_t* fd, io_mem_t* evt,
+    uint8_t* buf, uint64_t* cb_args);
+static void fire_write_event(vm_t* vm, vm_fd_t* fd, io_mem_t* evt,
+    uint8_t* buf, uint64_t* cb_args);
+
+
+uint32_t fire_io_events(vm_t* vm)
 {
-    return 0;
+    struct timespec tm = { 0, 0 };
+    fd_set readset, writeset;
+    int maxfd = 0;
+
+    for (uint32_t fd_idx = 0; fd_idx < vm->io.n_fds; fd_idx++)
+    {
+        vm_fd_t* fd = vm->io.fds + fd_idx;
+        if (fd->n_read_bufs)
+        {
+            FD_SET(fd->fd, &readset);
+            if (maxfd < fd->fd) maxfd = fd->fd;
+        }
+        if (fd->n_write_bufs)
+        {
+            FD_SET(fd->fd, &writeset);
+            if (maxfd < fd->fd) maxfd = fd->fd;
+        }
+    }
+
+    int ret = pselect(maxfd + 1, &readset, &writeset, NULL, &tm, NULL);
+    if (ret <= 0)
+    {
+        if (ret < 0) vm->error_no = errno;
+        return 0;
+    }
+
+    uint32_t events = 0;
+    for (uint32_t fd_idx = 0; fd_idx < vm->io.n_fds; fd_idx++)
+    {
+        vm_fd_t* fd = vm->io.fds + fd_idx;
+        if (fd->n_read_bufs && FD_ISSET(fd->fd, &readset))
+        {
+            events += fire_io_event(vm, fd, 1);
+        }
+        if (fd->n_write_bufs && FD_ISSET(fd->fd, &writeset))
+        {
+            events += fire_io_event(vm, fd, 0);
+        }
+    }
+
+    return events;
+}
+
+
+static uint32_t fire_io_event(vm_t* vm, vm_fd_t* fd, int is_read)
+{
+    io_mem_t* evt = fd->read_bufs;
+    uint64_t* cb_args = (uint64_t*)deref(evt->args, 4 * 8, vm);
+    if (!cb_args)
+    {
+        // not much to do...
+        vm->error_no = EFAULT;
+        return 0;
+    }
+
+    cb_args[0] = FD_IDX_TO_HANDLE(fd - vm->io.fds);
+    cb_args[1] = 0; // errno
+    cb_args[2] = evt->ptr;
+    cb_args[3] = 0; // bytes read
+
+    uint8_t* buf = deref(evt->ptr, evt->len, vm);
+    if (!buf)
+    {
+        cb_args[1] = EFAULT;
+        return 0;
+    }
+
+    if (is_read)
+    {
+        fire_read_event(vm, fd, evt, buf, cb_args);
+    }
+    else
+    {
+        fire_write_event(vm, fd, evt, buf, cb_args);
+    }
+
+    return 1;
+}
+
+
+static void fire_read_event(vm_t* vm, vm_fd_t* fd, io_mem_t* evt,
+    uint8_t* buf, uint64_t* cb_args)
+{
+    int fd_idx = fd - vm->io.fds;
+
+    ssize_t len = read(fd->fd, buf, evt->len);
+    cb_args[3] = len < 0 ? 0 : len;
+    cb_args[1] = len < 0 ? errno : 0;
+
+    make_func_procedure(evt->callback, evt->args, 0, vm);
+
+    int rest_bufs = fd->n_read_bufs - fd_idx - 1;
+    if (rest_bufs)
+    {
+        memmove(fd, fd + 1, rest_bufs * sizeof(io_mem_t));
+    }
+
+    fd->n_read_bufs--;
+    if (fd->n_read_bufs &&
+        fd->alloc_read_bufs - fd->n_read_bufs > IO_BUF_ALLOC)
+    {
+        fd->read_bufs = realloc(fd->read_bufs,
+            sizeof(io_mem_t) * (fd->alloc_read_bufs - IO_BUF_ALLOC));
+        fd->alloc_read_bufs -= IO_BUF_ALLOC;
+    }
+}
+
+
+static void fire_write_event(vm_t* vm, vm_fd_t* fd, io_mem_t* evt,
+    uint8_t* buf, uint64_t* cb_args)
+{
+    int fd_idx = fd - vm->io.fds;
+
+    ssize_t len = write(fd->fd, buf, evt->len);
+    cb_args[3] = len < 0 ? 0 : len;
+    cb_args[1] = len < 0 ? errno : 0;
+
+    make_func_procedure(evt->callback, evt->args, 0, vm);
+
+    int rest_bufs = fd->n_write_bufs - fd_idx - 1;
+    if (rest_bufs)
+    {
+        memmove(fd, fd + 1, rest_bufs * sizeof(io_mem_t));
+    }
+
+    fd->n_write_bufs--;
+    if (fd->n_write_bufs &&
+        fd->alloc_write_bufs - fd->n_write_bufs > IO_BUF_ALLOC)
+    {
+        fd->write_bufs = realloc(fd->write_bufs,
+            sizeof(io_mem_t) * (fd->alloc_write_bufs - IO_BUF_ALLOC));
+        fd->alloc_write_bufs -= IO_BUF_ALLOC;
+    }
 }
 
 
@@ -87,9 +227,9 @@ void sys_close(vm_t* vm, uint32_t argv, uint32_t retv)
 
 static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
     uint32_t retv, uint32_t* ptr, uint32_t* len, uint32_t* f_ptr,
-    vm_fd_t** fd)
+    uint32_t* args_ptr, vm_fd_t** fd)
 {
-    uint64_t* args =  (uint64_t*)deref_mem_ptr(argv, 4 * 8, vm);
+    uint64_t* args =  (uint64_t*)deref_mem_ptr(argv, 5 * 8, vm);
     uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
     if (!args || !ret)
     {
@@ -99,7 +239,8 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
     }
 
     if (!FITS_IN_32Bit(args[0]) || !FITS_IN_32Bit(args[1]) ||
-        !FITS_IN_32Bit(args[2]) || !FITS_IN_32Bit(args[3]))
+        !FITS_IN_32Bit(args[2]) || !FITS_IN_32Bit(args[3]) ||
+        !FITS_IN_32Bit(args[4]))
     {
         vm->error_no = EINVAL;
         *ret = 1;
@@ -125,7 +266,15 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
         return NULL;
     }
 
-    *f_ptr = args[3];
+    *args_ptr = args[3];
+    if (!deref(*args_ptr, 4 * 8, vm))
+    {
+        vm->error_no = EFAULT;
+        *ret = 1;
+        return NULL;
+    }
+
+    *f_ptr = args[4];
     if (*f_ptr > vm->codesz)
     {
         vm->error_no = EINVAL;
@@ -142,10 +291,11 @@ void sys_read(vm_t* vm, uint32_t argv, uint32_t retv)
     uint32_t ptr;
     uint32_t len;
     uint32_t f_ptr;
+    uint32_t args_ptr;
     vm_fd_t* fd;
 
     uint64_t* ret = get_io_task_params(vm, argv, retv,
-        &ptr, &len, &f_ptr, &fd);
+        &ptr, &len, &f_ptr, &args_ptr, &fd);
     if (!ret)
     {
         return;
@@ -164,6 +314,7 @@ void sys_read(vm_t* vm, uint32_t argv, uint32_t retv)
     buf->ptr = ptr;
     buf->len = len;
     buf->callback = f_ptr;
+    buf->args = args_ptr;
 
     *ret = 0;
 }
@@ -174,10 +325,11 @@ void sys_write(vm_t* vm, uint32_t argv, uint32_t retv)
     uint32_t ptr;
     uint32_t len;
     uint32_t f_ptr;
+    uint32_t args_ptr;
     vm_fd_t* fd;
 
     uint64_t* ret = get_io_task_params(vm, argv, retv,
-        &ptr, &len, &f_ptr, &fd);
+        &ptr, &len, &f_ptr, &args_ptr, &fd);
     if (!ret)
     {
         return;
@@ -196,6 +348,7 @@ void sys_write(vm_t* vm, uint32_t argv, uint32_t retv)
     buf->ptr = ptr;
     buf->len = len;
     buf->callback = f_ptr;
+    buf->args = args_ptr;
 
     *ret = 0;
 }
