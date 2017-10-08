@@ -32,7 +32,7 @@ void execute_vm(vm_t* vm)
     {
         if (!vm->procedures)
         {
-            if (!vm->n_timers)
+            if (!has_pending_events(vm))
             {
                 break;
             }
@@ -80,6 +80,12 @@ void execute_vm(vm_t* vm)
 uint32_t fire_vm_events(vm_t* vm)
 {
     return fire_timer_events(vm) + fire_io_events(vm);
+}
+
+
+int has_pending_events(vm_t* vm)
+{
+    return has_pending_timer_events(vm) || has_pending_io_events(vm);
 }
 
 

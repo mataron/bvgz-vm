@@ -81,6 +81,7 @@ void destroy_vm(vm_t* vm);
 
 void execute_vm(vm_t* vm);
 uint32_t fire_vm_events(vm_t* vm);
+int has_pending_events(vm_t* vm);
 
 void print_vm_state(vm_t* vm);
 

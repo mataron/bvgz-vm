@@ -40,3 +40,9 @@ uint32_t fire_timer_events(vm_t* vm)
 
     return events;
 }
+
+
+int has_pending_timer_events(vm_t* vm)
+{
+    return vm->n_timers > 0;
+}

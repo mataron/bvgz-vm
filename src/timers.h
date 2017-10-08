@@ -15,6 +15,7 @@ vm_timer_t;
 
 struct _vm_t;
 uint32_t fire_timer_events(struct _vm_t* vm);
+int has_pending_timer_events(struct _vm_t* vm);
 
 
 #define TIMESPEC_GREATER_EQUAL(a, b) \

@@ -34,6 +34,15 @@ static void test_file_open_close()
     assert(*((uint64_t*)vm->memory) == 0);
     assert(*((uint64_t*)(vm->memory + 8)) > 0); // the fd
 
+    FILE* fp = fopen("Makefile", "rb");
+    fseek(fp, 0, SEEK_END);
+    long sz = ftell(fp);
+    fclose(fp);
+
+    // printf("sz = %lu / %ld\n", *((uint64_t*)(vm->memory + 16)), sz);
+
+    assert(*((uint64_t*)(vm->memory + 16)) == sz); // the size
+
     destroy_vm(vm);
 }
 

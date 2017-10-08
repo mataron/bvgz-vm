@@ -46,6 +46,8 @@ typedef struct _vm_io_t
     vm_fd_t* fds;
     uint32_t n_fds;
     uint32_t used_fds;
+
+    uint32_t n_io_bufs;
 }
 vm_io_t;
 
@@ -55,6 +57,7 @@ uint64_t alloc_fd(struct _vm_t* vm);
 void dealloc_fd(uint64_t fd, struct _vm_t* vm);
 
 uint32_t fire_io_events(struct _vm_t* vm);
+int has_pending_io_events(struct _vm_t* vm);
 
 #define FD_HANDLE_TO_IDX(arg)  ((arg) - 1)
 #define FD_IDX_TO_HANDLE(arg)  ((arg) + 1)
