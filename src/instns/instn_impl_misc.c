@@ -164,7 +164,7 @@ int op_read64_3(instn_t* instn, vm_t* vm)
 
 int op_write8_2(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = lref32(instn->args[0].ptr);
+    uint32_t ref = arg_value(instn, 0);
     uint8_t* mem = deref_mem_ptr(ref, 1, vm);
     if (!mem)
     {
@@ -178,7 +178,7 @@ int op_write8_2(instn_t* instn, vm_t* vm)
 
 int op_write16_2(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = lref32(instn->args[0].ptr);
+    uint32_t ref = arg_value(instn, 0);
     uint8_t* mem = deref_mem_ptr(ref, 2, vm);
     if (!mem)
     {
@@ -192,7 +192,7 @@ int op_write16_2(instn_t* instn, vm_t* vm)
 
 int op_write32_2(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = lref32(instn->args[0].ptr);
+    uint32_t ref = arg_value(instn, 0);
     uint8_t* mem = deref_mem_ptr(ref, 4, vm);
     if (!mem)
     {
@@ -206,7 +206,7 @@ int op_write32_2(instn_t* instn, vm_t* vm)
 
 int op_write64_2(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = lref32(instn->args[0].ptr);
+    uint32_t ref = arg_value(instn, 0);
     uint8_t* mem = deref_mem_ptr(ref, 8, vm);
     if (!mem)
     {
@@ -220,7 +220,7 @@ int op_write64_2(instn_t* instn, vm_t* vm)
 
 int op_write8_3(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = lref32(instn->args[0].ptr);
+    uint32_t ref = arg_value(instn, 0);
     uint32_t offset = arg_value(instn, 1);
     uint8_t* mem = deref_mem_ptr(ref + offset, 1, vm);
     if (!mem)
@@ -235,7 +235,7 @@ int op_write8_3(instn_t* instn, vm_t* vm)
 
 int op_write16_3(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = lref32(instn->args[0].ptr);
+    uint32_t ref = arg_value(instn, 0);
     uint32_t offset = arg_value(instn, 1);
     uint8_t* mem = deref_mem_ptr(ref + offset, 2, vm);
     if (!mem)
@@ -250,7 +250,7 @@ int op_write16_3(instn_t* instn, vm_t* vm)
 
 int op_write32_3(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = lref32(instn->args[0].ptr);
+    uint32_t ref = arg_value(instn, 0);
     uint32_t offset = arg_value(instn, 1);
     uint8_t* mem = deref_mem_ptr(ref + offset, 4, vm);
     if (!mem)
@@ -265,7 +265,7 @@ int op_write32_3(instn_t* instn, vm_t* vm)
 
 int op_write64_3(instn_t* instn, vm_t* vm)
 {
-    uint32_t ref = lref32(instn->args[0].ptr);
+    uint32_t ref = arg_value(instn, 0);
     uint32_t offset = arg_value(instn, 1);
     uint8_t* mem = deref_mem_ptr(ref + offset, 8, vm);
     if (!mem)

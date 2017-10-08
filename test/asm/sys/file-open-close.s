@@ -7,7 +7,7 @@
 
 _entry:
     cp32        open_args   &path
-    write64     open_args   4       0x0
+    write64     &open_args  4  0x0
 
     syscall 8   &open_args  &fd
     eq          test        fd 0
