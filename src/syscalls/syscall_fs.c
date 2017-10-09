@@ -1,5 +1,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include "vm.h"
@@ -64,6 +65,35 @@ void sys_fs_stat(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_fs_unlink(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint8_t* args = deref(argv, 4, vm);
+    uint64_t* ret = (uint64_t*)deref(retv, 8, vm);
+    if (!args || !ret)
+    {
+        vm->error_no = EFAULT;
+        if (ret) *ret = 1;
+        return;
+    }
+
+    uint8_t* path = deref(*(uint32_t*)args, 1, vm);
+    if (path == NULL)
+    {
+        vm->error_no = EFAULT;
+        *ret = 1;
+        return;
+    }
+    if (ensure_nul_term_str(path, vm) < 0)
+    {
+        vm->error_no = EINVAL;
+        *ret = 1;
+        return;
+    }
+
+    *ret = 0;
+    if (unlink((char*)path) < 0)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+    }
 }
 
 

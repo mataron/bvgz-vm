@@ -27,7 +27,7 @@
 // error = fs_stat(path, stat_ptr, cb_args_ptr,
 //                 callback(path, errno, stat_ptr))
 /* 9 */ SYSCALL(fs_stat)
-// error = fs_unlink(path, cb_args_ptr, callback(path, errno))
+// error = fs_unlink(path)
 /* 10 */ SYSCALL(fs_unlink)
 // error = fs_seek(handle64, pos, offt, cb_args_ptr,
 //                 callback(handle64, pos, errno))
