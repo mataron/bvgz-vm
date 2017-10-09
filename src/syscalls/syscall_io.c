@@ -263,7 +263,7 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
     }
 
     uint32_t fd_idx = FD_HANDLE_TO_IDX(args[0]);
-    if (fd_idx > vm->io.n_fds || !vm->io.fds[fd_idx].used)
+    if (fd_idx >= vm->io.n_fds || !vm->io.fds[fd_idx].used)
     {
         vm->error_no = EBADF;
         *ret = 1;

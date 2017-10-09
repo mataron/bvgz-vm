@@ -14,31 +14,47 @@
     O_RDONLY | O_RDWR | O_WRONLY | O_APPEND | O_CREAT
 
 
-void sys_fs_open(vm_t* vm, uint32_t argv, uint32_t retv)
+static int setup_sys_fs_call(vm_t* vm, uint32_t argv, uint32_t retv,
+    uint32_t argslen, uint8_t** args, uint64_t** ret, char** path)
 {
-    uint8_t* args = deref(argv, 4 + 8, vm);
-    uint64_t* ret = (uint64_t*)deref(retv, 8, vm);
-    if (!args || !ret)
+    *args = deref(argv, argslen, vm);
+    *ret = (uint64_t*)deref(retv, 8, vm);
+    if (!*args || !*ret)
     {
         vm->error_no = EFAULT;
-        if (ret) *ret = 1;
-        return;
+        if (*ret) **ret = 1;
+        return -1;
     }
 
-    uint8_t* path = deref(*(uint32_t*)args, 1, vm);
-    if (path == NULL)
+    *path = (char*)deref(*(uint32_t*)*args, 1, vm);
+    if (*path == NULL)
     {
         vm->error_no = EFAULT;
-        *ret = 1;
-        return;
+        **ret = 1;
+        return -1;
     }
-    if (ensure_nul_term_str(path, vm) < 0)
+    if (ensure_nul_term_str((uint8_t*)*path, vm) < 0)
     {
         vm->error_no = EINVAL;
-        *ret = 1;
-        return;
+        **ret = 1;
+        return -1;
     }
 
+    return 0;
+}
+
+
+void sys_fs_open(vm_t* vm, uint32_t argv, uint32_t retv)
+{
+    uint8_t* args = NULL;
+    uint64_t* ret = NULL;
+    char* path = NULL;
+    if (setup_sys_fs_call(vm, argv, retv, 4 + 8,
+                          &args, &ret, &path) < 0)
+    {
+        return;
+    }
+    
     uint64_t options = *(uint64_t*)(args + 4);
     options &= FS_OPEN_FLAG_MASK;
     options |= O_SYNC;
@@ -65,26 +81,12 @@ void sys_fs_stat(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_fs_unlink(vm_t* vm, uint32_t argv, uint32_t retv)
 {
-    uint8_t* args = deref(argv, 4, vm);
-    uint64_t* ret = (uint64_t*)deref(retv, 8, vm);
-    if (!args || !ret)
+    uint8_t* args = NULL;
+    uint64_t* ret = NULL;
+    char* path = NULL;
+    if (setup_sys_fs_call(vm, argv, retv, 4,
+                          &args, &ret, &path) < 0)
     {
-        vm->error_no = EFAULT;
-        if (ret) *ret = 1;
-        return;
-    }
-
-    uint8_t* path = deref(*(uint32_t*)args, 1, vm);
-    if (path == NULL)
-    {
-        vm->error_no = EFAULT;
-        *ret = 1;
-        return;
-    }
-    if (ensure_nul_term_str(path, vm) < 0)
-    {
-        vm->error_no = EINVAL;
-        *ret = 1;
         return;
     }
 
