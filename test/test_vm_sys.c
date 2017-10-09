@@ -1,3 +1,8 @@
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string.h>
+
 #include "tests.h"
 #include "vm.h"
 
@@ -72,6 +77,30 @@ static void test_file_unlink()
 }
 
 
+static void test_file_stat()
+{
+    struct stat stat_s;
+    int ret = stat("Makefile", &stat_s);
+    assert(ret == 0);
+
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
+        "file-stat.s");
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->error_no == 0);
+    assert(*((uint64_t*)vm->memory) == 0);
+
+    ret = memcmp(&stat_s, vm->memory + 8, sizeof(struct stat));
+    assert(ret == 0);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     initialize_engine();
@@ -79,6 +108,7 @@ int main(int argc, char** argv)
     test_timers();
     test_file_open_close();
     test_file_unlink();
+    test_file_stat();
 
     return 0;
 }

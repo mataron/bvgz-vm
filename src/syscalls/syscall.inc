@@ -24,8 +24,7 @@
 // handle64 = fs_open(path, options64)
 // handle64 is zero on error
 /* 8 */ SYSCALL(fs_open)
-// error = fs_stat(path, stat_ptr, cb_args_ptr,
-//                 callback(path, errno, stat_ptr))
+// error = fs_stat(path, stat_ptr)
 /* 9 */ SYSCALL(fs_stat)
 // error = fs_unlink(path)
 /* 10 */ SYSCALL(fs_unlink)

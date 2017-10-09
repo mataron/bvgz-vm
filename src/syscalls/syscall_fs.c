@@ -1,3 +1,4 @@
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -76,6 +77,31 @@ void sys_fs_open(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_fs_stat(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint8_t* args = NULL;
+    uint64_t* ret = NULL;
+    char* path = NULL;
+    if (setup_sys_fs_call(vm, argv, retv, 2 * 4,
+                          &args, &ret, &path) < 0)
+    {
+        return;
+    }
+
+    uint32_t stat_ptr = *(uint32_t*)(args + 4);
+    struct stat* stat_s = (struct stat*)
+        deref_mem_ptr(stat_ptr, sizeof(struct stat), vm);
+    if (stat_s == NULL)
+    {
+        vm->error_no = EFAULT;
+        *ret = 1;
+        return;
+    }
+
+    *ret = 0;
+    if (stat(path, stat_s) < 0)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+    }
 }
 
 
