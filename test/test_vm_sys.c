@@ -120,6 +120,51 @@ static void test_file_seek()
 }
 
 
+static void test_dir_mkrm()
+{
+    struct stat stat_s;
+    int ret = stat("test.dir.123", &stat_s);
+    if (!ret)
+    {
+        ret = rmdir("test.dir.123");
+        assert(ret == 0);
+    }
+
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
+        "mkdir.s");
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->error_no == 0);
+    assert(*((uint64_t*)vm->memory) == 0);
+
+    destroy_vm(vm);
+
+    ret = stat("test.dir.123", &stat_s);
+    assert(ret == 0);
+    assert(S_ISDIR(stat_s.st_mode));
+    
+    vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
+        "rmdir.s");
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->error_no == 0);
+    assert(*((uint64_t*)vm->memory) == 0);
+
+    destroy_vm(vm);
+
+    ret = stat("test.dir.123", &stat_s);
+    assert(ret < 0);
+}
+
+
 int main(int argc, char** argv)
 {
     initialize_engine();
@@ -129,6 +174,7 @@ int main(int argc, char** argv)
     test_file_unlink();
     test_file_stat();
     test_file_seek();
+    test_dir_mkrm();
 
     return 0;
 }

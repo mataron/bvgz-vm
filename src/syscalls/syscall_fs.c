@@ -171,11 +171,46 @@ void sys_fs_seek(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_fs_mkdir(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint8_t* args = NULL;
+    uint64_t* ret = NULL;
+    char* path = NULL;
+    if (setup_sys_fs_call(vm, argv, retv, 4,
+                          &args, &ret, &path) < 0)
+    {
+        return;
+    }
+
+    mode_t mask = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+    if (mkdir((char*)path, mask) < 0)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+        return;
+    }
+
+    *ret = 0;
 }
 
 
 void sys_fs_rmdir(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint8_t* args = NULL;
+    uint64_t* ret = NULL;
+    char* path = NULL;
+    if (setup_sys_fs_call(vm, argv, retv, 4,
+                          &args, &ret, &path) < 0)
+    {
+        return;
+    }
+
+    if (rmdir((char*)path) < 0)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+        return;
+    }
+
+    *ret = 0;
 }
 
 

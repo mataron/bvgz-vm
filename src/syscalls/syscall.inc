@@ -31,9 +31,9 @@
 // error = fs_seek(handle64, offset64, whence64)
 /* 11 */ SYSCALL(fs_seek)
 
-// error = fs_mkdir(path, cb_args_ptr, callback(path, errno))
+// error = fs_mkdir(path)
 /* 12 */ SYSCALL(fs_mkdir)
-// error = fs_rmdir(path, cb_args_ptr, callback(path, errno))
+// error = fs_rmdir(path)
 /* 13 */ SYSCALL(fs_rmdir)
 // error = fs_readdir(path, buf, buflen, cb_args_ptr,
 //                    callback(path, errno, buf, count, real_count))
