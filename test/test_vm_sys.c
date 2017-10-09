@@ -165,6 +165,44 @@ static void test_dir_mkrm()
 }
 
 
+static void test_readdir()
+{
+    struct stat stat_s;
+    int ret = stat("test.dir.456", &stat_s);
+    if (ret < 0)
+    {
+        ret = mkdir("test.dir.456",
+            S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        assert(ret == 0);
+
+        fclose(fopen("test.dir.456/a.txt", "wb+"));
+        fclose(fopen("test.dir.456/b.txt", "wb+"));
+        fclose(fopen("test.dir.456/c.txt", "wb+"));
+    }
+
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
+        "readdir.s");
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->error_no == 0);
+    assert(*((uint64_t*)vm->memory) == 0);
+    assert(*((uint64_t*)vm->memory + 8) == 3); // saved
+    assert(*((uint64_t*)vm->memory + 16) == 3); // total
+    assert(*((uint64_t*)vm->memory + 24) == 4 * 8 + 3 * 6); // bytes required
+    
+    destroy_vm(vm);
+
+    unlink("test.dir.456/a.txt");
+    unlink("test.dir.456/b.txt");
+    unlink("test.dir.456/c.txt");
+    rmdir("test.dir.456");
+}
+
+
 int main(int argc, char** argv)
 {
     initialize_engine();
@@ -175,6 +213,7 @@ int main(int argc, char** argv)
     test_file_stat();
     test_file_seek();
     test_dir_mkrm();
+    test_readdir();
 
     return 0;
 }

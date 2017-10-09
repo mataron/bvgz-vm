@@ -35,6 +35,7 @@
 /* 12 */ SYSCALL(fs_mkdir)
 // error = fs_rmdir(path)
 /* 13 */ SYSCALL(fs_rmdir)
-// error = fs_readdir(path, buf, buflen, cb_args_ptr,
-//                    callback(path, errno, buf, count, real_count))
+// error = fs_readdir(path, buf32, buflen64,
+//                    *n_saved_entries, *n_total_entries,
+//                    *min_buf_sz)
 /* 14 */ SYSCALL(fs_readdir)

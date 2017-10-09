@@ -2,6 +2,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <string.h>
+#include <assert.h>
 #include <errno.h>
 
 #include "vm.h"
@@ -216,4 +219,99 @@ void sys_fs_rmdir(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_fs_readdir(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint8_t* args = NULL;
+    uint64_t* ret = NULL;
+    char* path = NULL;
+    if (setup_sys_fs_call(vm, argv, retv, 5 * 4 + 8,
+                          &args, &ret, &path) < 0)
+    {
+        return;
+    }
+
+    uint32_t buf_ref = *(uint32_t*)(args + 4);
+    uint64_t buf_len = *(uint64_t*)(args + 8);
+    uint32_t n_saved_entries_ref = *(uint32_t*)(args + 16);
+    uint32_t n_total_entries_ref = *(uint32_t*)(args + 20);
+    uint32_t min_buf_sz_ref = *(uint32_t*)(args + 24);
+
+    uint8_t* buf = NULL;
+    if (buf_len > 0)
+    {
+        buf = deref(buf_ref, buf_len, vm);
+        if (!buf)
+        {
+            vm->error_no = EFAULT;
+            *ret = 1;
+            return;
+        }
+    }
+
+    uint64_t* n_saved_entries = (uint64_t*)
+        deref(n_saved_entries_ref, 4, vm);
+    uint64_t* n_total_entries = (uint64_t*)
+        deref(n_total_entries_ref, 4, vm);
+    uint64_t* min_buf_sz = (uint64_t*)
+        deref(min_buf_sz_ref, 4, vm);
+    
+    if (!buf && !min_buf_sz)
+    {
+        vm->error_no = EINVAL;
+        *ret = 1;
+        return;
+    }
+
+    DIR* dir = opendir(path);
+    if (!dir)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+        return;
+    }
+
+    uint32_t saved_entries = 0;
+    uint32_t total_entries = 0;
+    uint32_t buf_used = 0;
+    uint32_t buf_required = 4;
+    uint8_t* end_of_buf = buf + buf_len;
+    struct dirent *dent;
+
+    *ret = 0;
+    vm->error_no = errno = 0;
+    while ((dent = readdir(dir)) != NULL)
+    {
+        if (errno)
+        {
+            vm->error_no = errno;
+            *ret = 1;
+            break;
+        }
+
+        int len = strlen(dent->d_name);
+        buf_required += 5 + len;
+
+        if (buf_used + len + 5 >= buf_len)
+        {
+            end_of_buf -= len - 1;
+            assert(end_of_buf > buf + saved_entries * 4);
+
+            memcpy(end_of_buf, dent->d_name, len + 1);
+            
+            *(uint32_t*)(buf + saved_entries * 4) =
+                buf_ref + (uint32_t)(end_of_buf - buf);
+            
+            saved_entries++;
+            *(uint32_t*)(buf + saved_entries * 4) = 0;
+            buf_used += len + 5;
+        }
+
+        total_entries++;
+    }
+
+    if (n_saved_entries) *n_saved_entries = saved_entries;
+    if (n_total_entries) *n_total_entries = total_entries;
+    if (min_buf_sz) *min_buf_sz = buf_required;
+
+    // DO NOT set the 'ret' past this point
+
+    closedir(dir);
 }
