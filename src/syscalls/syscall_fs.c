@@ -116,17 +116,54 @@ void sys_fs_unlink(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    *ret = 0;
     if (unlink((char*)path) < 0)
     {
         vm->error_no = errno;
         *ret = 1;
+        return;
     }
+
+    *ret = 0;
 }
 
 
 void sys_fs_seek(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint64_t* args =  (uint64_t*)deref_mem_ptr(argv, 3 * 8, vm);
+    uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
+    if (!args || !ret)
+    {
+        vm->error_no = EFAULT;
+        if (ret) *ret = 1;
+        return;
+    }
+
+    uint32_t fd_idx = FD_HANDLE_TO_IDX(args[0]);
+    if (fd_idx >= vm->io.n_fds || !vm->io.fds[fd_idx].used)
+    {
+        vm->error_no = EBADF;
+        *ret = 1;
+        return;
+    }
+
+    int64_t offset = *(int64_t*)(args + 1);
+    uint64_t whence = args[2];
+    if (whence > 2)
+    {
+        vm->error_no = EINVAL;
+        *ret = 1;
+        return;
+    }
+
+    off_t result = lseek(vm->io.fds[fd_idx].fd, offset, whence);
+    if (result == (off_t)-1)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+        return;
+    }
+
+    *ret = 0;
 }
 
 

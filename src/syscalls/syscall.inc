@@ -28,8 +28,7 @@
 /* 9 */ SYSCALL(fs_stat)
 // error = fs_unlink(path)
 /* 10 */ SYSCALL(fs_unlink)
-// error = fs_seek(handle64, pos, offt, cb_args_ptr,
-//                 callback(handle64, pos, errno))
+// error = fs_seek(handle64, offset64, whence64)
 /* 11 */ SYSCALL(fs_seek)
 
 // error = fs_mkdir(path, cb_args_ptr, callback(path, errno))
