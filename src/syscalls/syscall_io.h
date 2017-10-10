@@ -22,7 +22,9 @@ struct _vmt_t;
 struct _vm_fd_t;
 struct _vm_io_evt_t;
 typedef uint32_t (*vm_io_evt_handler_t)
-    (struct _vm_t*, struct _vm_fd_t*, struct _vm_io_evt_t*);
+    (struct _vm_t*, struct _vm_fd_t*, struct _vm_io_evt_t*,
+     int* /* set to zero/one depending on whether to remove
+     the event or not (respectively). */);
 
 
 #define IO_EVT_SELECT_READ    0x1
@@ -38,7 +40,7 @@ typedef struct _vm_io_evt_t
 vm_io_evt_t;
 
 
-typedef uint32_t (*vm_io_close_handler_t)
+typedef void (*vm_io_close_handler_t)
     (struct _vm_t*, struct _vm_fd_t*);
 
 typedef struct _vm_fd_t

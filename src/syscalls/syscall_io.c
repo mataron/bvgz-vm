@@ -72,9 +72,9 @@ void dealloc_fd(uint64_t fd_idx, vm_t* vm)
 
 
 static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
-    vm_io_evt_t* evt);
+    vm_io_evt_t* evt, int* remove);
 static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
-    vm_io_evt_t* evt);
+    vm_io_evt_t* evt, int* remove);
 
 
 static int setup_select_rwsets(int maxfd, vm_fd_t* fd,
@@ -105,22 +105,26 @@ static uint32_t activate_event(vm_t* vm, vm_fd_t* fd, int flag_mask)
         vm_io_evt_t* evt = fd->events + e;
         if (evt->flags != flag_mask) continue;
 
-        uint32_t result = evt->activate(vm, fd, evt);
+        int remove = 1;
+        uint32_t result = evt->activate(vm, fd, evt, &remove);
 
-        if (e != fd->n_events - 1)
+        if (remove)
         {
-            fd->events[e] = fd->events[fd->n_events - 1];
+            if (e != fd->n_events - 1)
+            {
+                fd->events[e] = fd->events[fd->n_events - 1];
+            }
+    
+            fd->n_events--;
+            if (fd->n_events &&
+                fd->alloc_events - fd->n_events > IO_EVT_ALLOC)
+            {
+                fd->events = realloc(fd->events,
+                    sizeof(io_mem_t) * (fd->alloc_events - IO_EVT_ALLOC));
+                fd->alloc_events -= IO_EVT_ALLOC;
+            }
+            vm->io.n_io_events--;
         }
-
-        fd->n_events--;
-        if (fd->n_events &&
-            fd->alloc_events - fd->n_events > IO_EVT_ALLOC)
-        {
-            fd->events = realloc(fd->events,
-                sizeof(io_mem_t) * (fd->alloc_events - IO_EVT_ALLOC));
-            fd->alloc_events -= IO_EVT_ALLOC;
-        }
-        vm->io.n_io_events--;
 
         return result;
     }
@@ -209,8 +213,10 @@ static int common_io_evt_handler(vm_t* vm, vm_fd_t* fd,
 }
 
 static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
-    vm_io_evt_t* evt)
+    vm_io_evt_t* evt, int* remove)
 {
+    *remove = 1;
+
     uint8_t* buf = NULL;
     uint64_t* cb_args = NULL;
     if (common_io_evt_handler(vm, fd, evt, &buf, &cb_args) < 0)
@@ -233,8 +239,10 @@ static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
 
 
 static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
-    vm_io_evt_t* evt)
+    vm_io_evt_t* evt, int* remove)
 {
+    *remove = 1;
+    
     uint8_t* buf = NULL;
     uint64_t* cb_args = NULL;
     if (common_io_evt_handler(vm, fd, evt, &buf, &cb_args) < 0)
