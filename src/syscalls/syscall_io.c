@@ -47,6 +47,7 @@ uint64_t alloc_fd(vm_t* vm)
         if (!vm->io.fds[i].used)
         {
             vm->io.fds[i].used = 1;
+            vm->io.fds[i].on_close = NULL;
             vm->io.used_fds++;
             return i;
         }
@@ -61,6 +62,8 @@ uint64_t alloc_fd(vm_t* vm)
 void dealloc_fd(uint64_t fd_idx, vm_t* vm)
 {
     vm_fd_t* fd = vm->io.fds + fd_idx;
+
+    if (fd->on_close) fd->on_close(vm, fd);
 
     fd->used = 0;
     free(fd->events);
@@ -347,7 +350,7 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
 }
 
 
-static vm_io_evt_t* alloc_event(vm_t* vm, vm_fd_t* fd)
+vm_io_evt_t* alloc_event(vm_t* vm, vm_fd_t* fd)
 {
     if (fd->n_events + 1 > fd->alloc_events)
     {
@@ -357,8 +360,11 @@ static vm_io_evt_t* alloc_event(vm_t* vm, vm_fd_t* fd)
     }
 
     vm_io_evt_t* evt = fd->events + fd->n_events;
+    evt->data = NULL;
+
     fd->n_events++;
     vm->io.n_io_events++;
+
     return evt;
 }
 

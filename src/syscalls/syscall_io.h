@@ -38,6 +38,9 @@ typedef struct _vm_io_evt_t
 vm_io_evt_t;
 
 
+typedef uint32_t (*vm_io_close_handler_t)
+    (struct _vm_t*, struct _vm_fd_t*);
+
 typedef struct _vm_fd_t
 {
     int fd;
@@ -46,6 +49,9 @@ typedef struct _vm_fd_t
     vm_io_evt_t* events;
     uint32_t n_events;
     uint32_t alloc_events;
+
+    vm_io_close_handler_t on_close;
+    void* data;
 }
 vm_fd_t;
 
@@ -68,6 +74,8 @@ void dealloc_fd(uint64_t fd, struct _vm_t* vm);
 
 uint32_t fire_io_events(struct _vm_t* vm);
 int has_pending_io_events(struct _vm_t* vm);
+
+vm_io_evt_t* alloc_event(struct _vm_t* vm, vm_fd_t* fd);
 
 #define FD_HANDLE_TO_IDX(arg)  ((arg) - 1)
 #define FD_IDX_TO_HANDLE(arg)  ((arg) + 1)
