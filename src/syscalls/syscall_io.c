@@ -25,6 +25,8 @@ void destroy_vm_io(vm_t* vm)
 
         close(vm->io.fds[n].fd);
     }
+
+    free(vm->io.fds);
 }
 
 
