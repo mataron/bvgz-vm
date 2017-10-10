@@ -39,3 +39,17 @@
 //                    *n_saved_entries, *n_total_entries,
 //                    *min_buf_sz)
 /* 14 */ SYSCALL(fs_readdir)
+
+// handle64 = socket(kind)
+/* 15 */ SYSCALL(socket)
+// error = bind(handle64, addr_ptr)
+/* 16 */ SYSCALL(bind)
+// error = connect(handle64, addr_ptr, cb_args_ptr,
+//                 callback(handle64, errno))
+/* 17 */ SYSCALL(connect)
+// error = listen(handle64)
+/* 19 */ SYSCALL(listen)
+// error = accept(handle64, cb_args_ptr, callback(handle64))
+/* 20 */ SYSCALL(accept)
+// error = peer_address(handle64, addr_ptr)
+/* 21 */ SYSCALL(peer_address)
