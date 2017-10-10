@@ -1,6 +1,10 @@
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 
 #include "vm.h"
@@ -40,6 +44,7 @@ void sys_socket(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
+    fcntl(r, F_SETFL, O_NONBLOCK);
     vm->io.fds[fd].fd = r;
 
     *ret = FD_IDX_TO_HANDLE(fd);
@@ -48,6 +53,48 @@ void sys_socket(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_bind(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint8_t* args = deref(argv, 8 + 4, vm);
+    uint64_t* ret = (uint64_t*)deref(retv, 8, vm);
+    if (!args || !ret)
+    {
+        vm->error_no = EFAULT;
+        if (ret) *ret = 1;
+        return;
+    }
+
+    uint32_t fd_idx = FD_HANDLE_TO_IDX(*(uint64_t*)args);
+    if (fd_idx >= vm->io.n_fds || !vm->io.fds[fd_idx].used)
+    {
+        vm->error_no = EBADF;
+        *ret = 1;
+        return;
+    }
+
+    uint32_t addr_ref = *(uint32_t*)(args + 8);
+    uint8_t* addr_ptr = deref(addr_ref, 6, vm);
+    if (!addr_ptr)
+    {
+        vm->error_no = EFAULT;
+        *ret = 1;
+        return;
+    }
+
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = *(uint32_t*)addr_ptr;
+    addr.sin_port = *(uint16_t*)(addr_ptr + 4);
+    memset(addr.sin_zero, 0, sizeof(addr.sin_zero));
+
+    int r = bind(vm->io.fds[fd_idx].fd,
+        (struct sockaddr*)&addr, sizeof(addr));
+    if (r < 0)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+        return;
+    }
+
+    *ret = 0;
 }
 
 
@@ -58,6 +105,43 @@ void sys_connect(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_listen(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint64_t* args = (uint64_t*)deref(argv, 8, vm);
+    uint64_t* ret = (uint64_t*)deref(retv, 8, vm);
+    if (!args || !ret)
+    {
+        vm->error_no = EFAULT;
+        if (ret) *ret = 1;
+        return;
+    }
+
+    uint32_t fd_idx = FD_HANDLE_TO_IDX(*args);
+    if (fd_idx >= vm->io.n_fds || !vm->io.fds[fd_idx].used)
+    {
+        vm->error_no = EBADF;
+        *ret = 1;
+        return;
+    }
+
+    int fd = vm->io.fds[fd_idx].fd;
+    int param = 1;
+    int r = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
+        &param, sizeof(param));
+    if (r < 0)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+        return;
+    }
+
+    r = listen(fd, LISTEN_BACKLOG);
+    if (r < 0)
+    {
+        vm->error_no = errno;
+        *ret = 1;
+        return;
+    }
+
+    *ret = 0;
 }
 
 
