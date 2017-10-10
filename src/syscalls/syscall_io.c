@@ -18,12 +18,11 @@ void destroy_vm_io(vm_t* vm)
 
     for (uint32_t n = 0; n < vm->io.n_fds; n++)
     {
-        if (!vm->io.fds[n].used) continue;
+        vm_fd_t* fd = vm->io.fds + n;
+        if (!fd->used) continue;
 
-        free(vm->io.fds[n].read_bufs);
-        free(vm->io.fds[n].write_bufs);
-
-        close(vm->io.fds[n].fd);
+        free(fd->events);
+        close(fd->fd);
     }
 
     free(vm->io.fds);
@@ -59,20 +58,72 @@ uint64_t alloc_fd(vm_t* vm)
 }
 
 
-void dealloc_fd(uint64_t fd, vm_t* vm)
+void dealloc_fd(uint64_t fd_idx, vm_t* vm)
 {
-    vm->io.fds[fd].used = 0;
-    free(vm->io.fds[fd].read_bufs);
-    free(vm->io.fds[fd].write_bufs);
+    vm_fd_t* fd = vm->io.fds + fd_idx;
+
+    fd->used = 0;
+    free(fd->events);
     vm->io.used_fds--;
 }
 
 
-static uint32_t fire_io_event(vm_t* vm, vm_fd_t* fd, int is_read);
-static void fire_read_event(vm_t* vm, vm_fd_t* fd, io_mem_t* evt,
-    uint8_t* buf, uint64_t* cb_args);
-static void fire_write_event(vm_t* vm, vm_fd_t* fd, io_mem_t* evt,
-    uint8_t* buf, uint64_t* cb_args);
+static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
+    vm_io_evt_t* evt);
+static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
+    vm_io_evt_t* evt);
+
+
+static int setup_select_rwsets(int maxfd, vm_fd_t* fd,
+    fd_set* readset, fd_set* writeset)
+{
+    int set_r = 0, set_w = 0;
+    for (uint32_t e = 0;
+         e < fd->n_events && (!set_r || !set_w); e++)
+    {
+        vm_io_evt_t* evt = fd->events + e;
+        set_r |= evt->flags & IO_EVT_SELECT_READ;
+        set_w |= evt->flags & IO_EVT_SELECT_WRITE;
+    }
+    if (set_r || set_w)
+    {
+        if (set_r) FD_SET(fd->fd, readset);
+        if (set_w) FD_SET(fd->fd, writeset);
+        if (maxfd < fd->fd) maxfd = fd->fd;
+    }
+    return maxfd;
+}
+
+
+static uint32_t activate_event(vm_t* vm, vm_fd_t* fd, int flag_mask)
+{
+    for (uint32_t e = 0; e < fd->n_events; e++)
+    {
+        vm_io_evt_t* evt = fd->events + e;
+        if (evt->flags != flag_mask) continue;
+
+        uint32_t result = evt->activate(vm, fd, evt);
+
+        if (e != fd->n_events - 1)
+        {
+            fd->events[e] = fd->events[fd->n_events - 1];
+        }
+
+        fd->n_events--;
+        if (fd->n_events &&
+            fd->alloc_events - fd->n_events > IO_EVT_ALLOC)
+        {
+            fd->events = realloc(fd->events,
+                sizeof(io_mem_t) * (fd->alloc_events - IO_EVT_ALLOC));
+            fd->alloc_events -= IO_EVT_ALLOC;
+        }
+        vm->io.n_io_events--;
+
+        return result;
+    }
+
+    return 0;
+}
 
 
 uint32_t fire_io_events(vm_t* vm)
@@ -81,7 +132,7 @@ uint32_t fire_io_events(vm_t* vm)
     fd_set readset, writeset;
     int maxfd = 0;
 
-    if (!vm->io.n_io_bufs)
+    if (!vm->io.n_io_events)
     {
         return 0;
     }
@@ -90,15 +141,9 @@ uint32_t fire_io_events(vm_t* vm)
     {
         vm_fd_t* fd = vm->io.fds + fd_idx;
         if (!fd->used) continue;
-        if (fd->n_read_bufs)
+        if (fd->n_events)
         {
-            FD_SET(fd->fd, &readset);
-            if (maxfd < fd->fd) maxfd = fd->fd;
-        }
-        if (fd->n_write_bufs)
-        {
-            FD_SET(fd->fd, &writeset);
-            if (maxfd < fd->fd) maxfd = fd->fd;
+            maxfd = setup_select_rwsets(maxfd, fd, &readset, &writeset);
         }
     }
 
@@ -114,13 +159,13 @@ uint32_t fire_io_events(vm_t* vm)
     {
         vm_fd_t* fd = vm->io.fds + fd_idx;
         if (!fd->used) continue;
-        if (fd->n_read_bufs && FD_ISSET(fd->fd, &readset))
+        if (FD_ISSET(fd->fd, &readset))
         {
-            events += fire_io_event(vm, fd, 1);
+            events += activate_event(vm, fd, IO_EVT_SELECT_READ);
         }
-        if (fd->n_write_bufs && FD_ISSET(fd->fd, &writeset))
+        if (FD_ISSET(fd->fd, &writeset))
         {
-            events += fire_io_event(vm, fd, 0);
+            events += activate_event(vm, fd, IO_EVT_SELECT_WRITE);
         }
     }
 
@@ -130,100 +175,77 @@ uint32_t fire_io_events(vm_t* vm)
 
 int has_pending_io_events(vm_t* vm)
 {
-    return vm->io.n_io_bufs > 0;
+    return vm->io.n_io_events > 0;
 }
 
 
-static uint32_t fire_io_event(vm_t* vm, vm_fd_t* fd, int is_read)
+static int common_io_evt_handler(vm_t* vm, vm_fd_t* fd,
+    vm_io_evt_t* evt, uint8_t** buf, uint64_t** cb_args)
 {
-    io_mem_t* evt = fd->read_bufs;
-    uint64_t* cb_args = (uint64_t*)deref(evt->args, 4 * 8, vm);
-    if (!cb_args)
+    io_mem_t* io_evt = (io_mem_t*)evt->data;
+    *cb_args = (uint64_t*)deref(io_evt->args, 4 * 8, vm);
+    if (!*cb_args)
     {
         // not much to do...
         vm->error_no = EFAULT;
+        return -1;
+    }
+
+    (*cb_args)[0] = FD_IDX_TO_HANDLE(fd - vm->io.fds);
+    (*cb_args)[1] = 0; // errno
+    (*cb_args)[2] = 0; // bytes read
+
+    *buf = deref(io_evt->ptr, io_evt->len, vm);
+    if (!*buf)
+    {
+        (*cb_args)[1] = EFAULT;
+        return -1;
+    }
+
+    return 0;
+}
+
+static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
+    vm_io_evt_t* evt)
+{
+    uint8_t* buf = NULL;
+    uint64_t* cb_args = NULL;
+    if (common_io_evt_handler(vm, fd, evt, &buf, &cb_args) < 0)
+    {
         return 0;
     }
 
-    cb_args[0] = FD_IDX_TO_HANDLE(fd - vm->io.fds);
-    cb_args[1] = 0; // errno
-    cb_args[2] = 0; // bytes read
+    io_mem_t* io_evt = (io_mem_t*)evt->data;
+    
+    ssize_t len = read(fd->fd, buf, io_evt->len);
+    cb_args[2] = len < 0 ? 0 : len;
+    cb_args[1] = len < 0 ? errno : 0;
 
-    uint8_t* buf = deref(evt->ptr, evt->len, vm);
-    if (!buf)
-    {
-        cb_args[1] = EFAULT;
-        return 0;
-    }
-
-    if (is_read)
-    {
-        fire_read_event(vm, fd, evt, buf, cb_args);
-    }
-    else
-    {
-        fire_write_event(vm, fd, evt, buf, cb_args);
-    }
-
+    make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
+    
     return 1;
 }
 
 
-static void fire_read_event(vm_t* vm, vm_fd_t* fd, io_mem_t* evt,
-    uint8_t* buf, uint64_t* cb_args)
+static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
+    vm_io_evt_t* evt)
 {
-    int fd_idx = fd - vm->io.fds;
+    uint8_t* buf = NULL;
+    uint64_t* cb_args = NULL;
+    if (common_io_evt_handler(vm, fd, evt, &buf, &cb_args) < 0)
+    {
+        return 0;
+    }
 
-    ssize_t len = read(fd->fd, buf, evt->len);
+    io_mem_t* io_evt = (io_mem_t*)evt->data;
+    
+    ssize_t len = write(fd->fd, buf, io_evt->len);
     cb_args[2] = len < 0 ? 0 : len;
     cb_args[1] = len < 0 ? errno : 0;
 
-    make_func_procedure(evt->callback, evt->args, 0, vm);
+    make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
 
-    int rest_bufs = fd->n_read_bufs - fd_idx - 1;
-    if (rest_bufs)
-    {
-        memmove(fd, fd + 1, rest_bufs * sizeof(io_mem_t));
-    }
-
-    fd->n_read_bufs--;
-    if (fd->n_read_bufs &&
-        fd->alloc_read_bufs - fd->n_read_bufs > IO_BUF_ALLOC)
-    {
-        fd->read_bufs = realloc(fd->read_bufs,
-            sizeof(io_mem_t) * (fd->alloc_read_bufs - IO_BUF_ALLOC));
-        fd->alloc_read_bufs -= IO_BUF_ALLOC;
-    }
-    vm->io.n_io_bufs--;
-}
-
-
-static void fire_write_event(vm_t* vm, vm_fd_t* fd, io_mem_t* evt,
-    uint8_t* buf, uint64_t* cb_args)
-{
-    int fd_idx = fd - vm->io.fds;
-
-    ssize_t len = write(fd->fd, buf, evt->len);
-    cb_args[2] = len < 0 ? 0 : len;
-    cb_args[1] = len < 0 ? errno : 0;
-
-    make_func_procedure(evt->callback, evt->args, 0, vm);
-
-    int rest_bufs = fd->n_write_bufs - fd_idx - 1;
-    if (rest_bufs)
-    {
-        memmove(fd, fd + 1, rest_bufs * sizeof(io_mem_t));
-    }
-
-    fd->n_write_bufs--;
-    if (fd->n_write_bufs &&
-        fd->alloc_write_bufs - fd->n_write_bufs > IO_BUF_ALLOC)
-    {
-        fd->write_bufs = realloc(fd->write_bufs,
-            sizeof(io_mem_t) * (fd->alloc_write_bufs - IO_BUF_ALLOC));
-        fd->alloc_write_bufs -= IO_BUF_ALLOC;
-    }
-    vm->io.n_io_bufs--;
+    return 1;
 }
 
 
@@ -321,6 +343,22 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
 }
 
 
+static vm_io_evt_t* alloc_event(vm_t* vm, vm_fd_t* fd)
+{
+    if (fd->n_events + 1 > fd->alloc_events)
+    {
+        fd->events = realloc(fd->events,
+            sizeof(io_mem_t) * (fd->alloc_events + IO_EVT_ALLOC));
+        fd->alloc_events += IO_EVT_ALLOC;
+    }
+
+    vm_io_evt_t* evt = fd->events + fd->n_events;
+    fd->n_events++;
+    vm->io.n_io_events++;
+    return evt;
+}
+
+
 void sys_read(vm_t* vm, uint32_t argv, uint32_t retv)
 {
     uint32_t ptr;
@@ -336,16 +374,13 @@ void sys_read(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    if (fd->n_read_bufs + 1 > fd->alloc_read_bufs)
-    {
-        fd->read_bufs = realloc(fd->read_bufs,
-            sizeof(io_mem_t) * (fd->alloc_read_bufs + IO_BUF_ALLOC));
-        fd->alloc_read_bufs += IO_BUF_ALLOC;
-    }
+    vm_io_evt_t* evt = alloc_event(vm, fd);
 
-    io_mem_t* buf = fd->read_bufs + fd->n_read_bufs;
-    fd->n_read_bufs++;
-    vm->io.n_io_bufs++;
+    evt->activate = read_io_evt_handler;
+    evt->flags = IO_EVT_SELECT_READ;
+    evt->data = malloc(sizeof(io_mem_t));
+
+    io_mem_t* buf = (io_mem_t*)evt->data;
 
     buf->ptr = ptr;
     buf->len = len;
@@ -371,16 +406,13 @@ void sys_write(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    if (fd->n_write_bufs + 1 > fd->alloc_write_bufs)
-    {
-        fd->write_bufs = realloc(fd->write_bufs,
-            sizeof(io_mem_t) * (fd->alloc_write_bufs + IO_BUF_ALLOC));
-        fd->alloc_write_bufs += IO_BUF_ALLOC;
-    }
+    vm_io_evt_t* evt = alloc_event(vm, fd);
+    
+    evt->activate = write_io_evt_handler;
+    evt->flags = IO_EVT_SELECT_WRITE;
+    evt->data = malloc(sizeof(io_mem_t));
 
-    io_mem_t* buf = fd->write_bufs + fd->n_write_bufs;
-    fd->n_write_bufs++;
-    vm->io.n_io_bufs++;
+    io_mem_t* buf = (io_mem_t*)evt->data;
 
     buf->ptr = ptr;
     buf->len = len;

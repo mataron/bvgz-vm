@@ -6,12 +6,7 @@
 #include "syscall.h"
 
 
-#define FD_T_FILE       0x1
-#define FD_T_NET_TCPv4  0x2
-#define FD_T_NET_UDPv4  0x4
-
-#define IO_BUF_ALLOC    4
-
+#define IO_EVT_ALLOC    4
 
 typedef struct _io_mem_t
 {
@@ -23,20 +18,34 @@ typedef struct _io_mem_t
 io_mem_t;
 
 
+struct _vmt_t;
+struct _vm_fd_t;
+struct _vm_io_evt_t;
+typedef uint32_t (*vm_io_evt_handler_t)
+    (struct _vm_t*, struct _vm_fd_t*, struct _vm_io_evt_t*);
+
+
+#define IO_EVT_SELECT_READ    0x1
+#define IO_EVT_SELECT_WRITE   0x2
+    
+
+typedef struct _vm_io_evt_t
+{
+    unsigned flags: 2;
+    vm_io_evt_handler_t activate;
+    void* data;
+}
+vm_io_evt_t;
+
+
 typedef struct _vm_fd_t
 {
-    uint8_t type;
-    uint8_t used;
-    uint64_t pos;
     int fd;
+    unsigned used: 1;
 
-    io_mem_t* read_bufs;
-    uint32_t n_read_bufs;
-    uint32_t alloc_read_bufs;
-
-    io_mem_t* write_bufs;
-    uint32_t n_write_bufs;
-    uint32_t alloc_write_bufs;
+    vm_io_evt_t* events;
+    uint32_t n_events;
+    uint32_t alloc_events;
 }
 vm_fd_t;
 
@@ -47,12 +56,11 @@ typedef struct _vm_io_t
     uint32_t n_fds;
     uint32_t used_fds;
 
-    uint32_t n_io_bufs;
+    uint32_t n_io_events;
 }
 vm_io_t;
 
 
-struct _vm_t;
 void destroy_vm_io(struct _vm_t* vm);
 
 uint64_t alloc_fd(struct _vm_t* vm);
