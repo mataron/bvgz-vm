@@ -83,7 +83,7 @@ int parse_to_bytecode(prs_result_t* parse, uint8_t** memory,
 static uint32_t compute_layout(prs_instn_t* instn, instn_def_t* def,
     uint16_t* OpIR, uint8_t* ISz)
 {
-    uint32_t size = 1;
+    uint32_t size = 2;
     *OpIR = def->opcode << 3;
     for (uint32_t j = 0; j < def->arg_count; j++)
     {
