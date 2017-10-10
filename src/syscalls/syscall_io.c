@@ -222,7 +222,9 @@ static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     cb_args[1] = len < 0 ? errno : 0;
 
     make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
-    
+
+    free(evt->data);
+    evt->data = NULL;
     return 1;
 }
 
@@ -245,6 +247,8 @@ static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
 
     make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
 
+    free(evt->data);
+    evt->data = NULL;
     return 1;
 }
 
