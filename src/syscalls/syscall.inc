@@ -49,7 +49,8 @@
 /* 17 */ SYSCALL(connect)
 // error = listen(handle64)
 /* 19 */ SYSCALL(listen)
-// error = accept(handle64, cb_args_ptr, callback(handle64))
+// error = accept(handle64, cb_args_ptr,
+//                callback(handle64, errno))
 /* 20 */ SYSCALL(accept)
 // error = peer_address(handle64, addr_ptr)
 /* 21 */ SYSCALL(peer_address)
