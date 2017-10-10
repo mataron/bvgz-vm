@@ -60,6 +60,8 @@ uint64_t alloc_fd(vm_t* vm)
 void dealloc_fd(uint64_t fd, vm_t* vm)
 {
     vm->io.fds[fd].used = 0;
+    free(vm->io.fds[fd].read_bufs);
+    free(vm->io.fds[fd].write_bufs);
     vm->io.used_fds--;
 }
 
