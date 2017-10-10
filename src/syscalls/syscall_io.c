@@ -12,6 +12,22 @@
 #define FD_ALLOC_STEP   5
 
 
+void destroy_vm_io(vm_t* vm)
+{
+    if (!vm || !vm->io.fds) return;
+
+    for (uint32_t n = 0; n < vm->io.n_fds; n++)
+    {
+        if (!vm->io.fds[n].used) continue;
+
+        free(vm->io.fds[n].read_bufs);
+        free(vm->io.fds[n].write_bufs);
+
+        close(vm->io.fds[n].fd);
+    }
+}
+
+
 uint64_t alloc_fd(vm_t* vm)
 {
     uint32_t begin_fd = 0;

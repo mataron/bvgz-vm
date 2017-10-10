@@ -53,6 +53,8 @@ vm_io_t;
 
 
 struct _vm_t;
+void destroy_vm_io(struct _vm_t* vm);
+
 uint64_t alloc_fd(struct _vm_t* vm);
 void dealloc_fd(uint64_t fd, struct _vm_t* vm);
 

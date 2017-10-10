@@ -43,6 +43,7 @@ void destroy_vm(vm_t* vm)
         delete_current_procedure(vm);
     }
 
+    destroy_vm_io(vm);
     free(vm->memory);
     free(vm->code);
     free(vm);
