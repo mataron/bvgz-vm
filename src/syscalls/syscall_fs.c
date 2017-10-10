@@ -291,7 +291,7 @@ void sys_fs_readdir(vm_t* vm, uint32_t argv, uint32_t retv)
 
         if (buf_used + len + 5 <= buf_len)
         {
-            end_of_buf -= len - 1;
+            end_of_buf -= len + 1;
             assert(end_of_buf > buf + saved_entries * 4);
 
             memcpy(end_of_buf, dent->d_name, len + 1);
