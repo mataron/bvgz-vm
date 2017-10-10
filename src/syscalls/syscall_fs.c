@@ -58,7 +58,7 @@ void sys_fs_open(vm_t* vm, uint32_t argv, uint32_t retv)
     {
         return;
     }
-    
+
     uint64_t options = *(uint64_t*)(args + 4);
     options &= FS_OPEN_FLAG_MASK;
     options |= O_SYNC;
@@ -252,7 +252,7 @@ void sys_fs_readdir(vm_t* vm, uint32_t argv, uint32_t retv)
         deref(n_total_entries_ref, 4, vm);
     uint64_t* min_buf_sz = (uint64_t*)
         deref(min_buf_sz_ref, 4, vm);
-    
+
     if (!buf && !min_buf_sz)
     {
         vm->error_no = EINVAL;
@@ -289,16 +289,16 @@ void sys_fs_readdir(vm_t* vm, uint32_t argv, uint32_t retv)
         int len = strlen(dent->d_name);
         buf_required += 5 + len;
 
-        if (buf_used + len + 5 >= buf_len)
+        if (buf_used + len + 5 <= buf_len)
         {
             end_of_buf -= len - 1;
             assert(end_of_buf > buf + saved_entries * 4);
 
             memcpy(end_of_buf, dent->d_name, len + 1);
-            
+
             *(uint32_t*)(buf + saved_entries * 4) =
                 buf_ref + (uint32_t)(end_of_buf - buf);
-            
+
             saved_entries++;
             *(uint32_t*)(buf + saved_entries * 4) = 0;
             buf_used += len + 5;

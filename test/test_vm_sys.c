@@ -146,7 +146,7 @@ static void test_dir_mkrm()
     ret = stat("test.dir.123", &stat_s);
     assert(ret == 0);
     assert(S_ISDIR(stat_s.st_mode));
-    
+
     vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
         "rmdir.s");
 
@@ -190,10 +190,11 @@ static void test_readdir()
     assert(vm->procedures == NULL);
     assert(vm->error_no == 0);
     assert(*((uint64_t*)vm->memory) == 0);
-    assert(*((uint64_t*)vm->memory + 8) == 3); // saved
-    assert(*((uint64_t*)vm->memory + 16) == 3); // total
-    assert(*((uint64_t*)vm->memory + 24) == 4 * 8 + 3 * 6); // bytes required
-    
+    // NOTE: the dir contents also contain directories '.' & '..'
+    assert(*((uint64_t*)(vm->memory + 8)) == 5); // saved
+    assert(*((uint64_t*)(vm->memory + 16)) == 5); // total
+    assert(*((uint64_t*)(vm->memory + 24)) == 6 * 4 + 3 * 6 + 2 + 3); // bytes required
+
     destroy_vm(vm);
 
     unlink("test.dir.456/a.txt");
