@@ -3,6 +3,7 @@
 %data @net_ip		0x11223344
 %data @net_port		0x1122
 %data @fd           0x0 /8
+%data @size_read	0x0 /8
 %data @err          0x0 /8
 %data @test         0x0 /8
 %data @ptr			0x0 /8
@@ -18,7 +19,7 @@ _entry:
     syscall 15  &scall_args &fd
     eq          test        fd 0
     jtrue       &on_error   test
-	
+
 	; connect()
 	write64		&scall_args		fd
 	write64		&scall_args	8	&net_ip
@@ -36,7 +37,7 @@ on_connect:
 	read64      arg     ptr     8
     eq          test    arg     0
     jfalse      &on_error       test
-	
+
 	write64		&scall_args		fd
 	write64		&scall_args 8	&rqst
 	write64		&scall_args 16	17
@@ -58,8 +59,31 @@ on_rqst_sent:
     eq          test    arg     17
     jfalse      &on_error       test
 
-	jmp &socket_close
+read_reply:
+	write64     &scall_args 0   fd
+    write64     &scall_args 8   &resp
+    write64     &scall_args 16  10240
+    write64     &scall_args 24  &cb_args
+    write64     &scall_args 32  &on_data_read
+    syscall 6   &scall_args &err
+
+    ne          test        err     0
+    jtrue       &on_error   test
+
 	ret
+
+on_data_read:
+	argv		ptr
+	; test errno
+	read64      arg     ptr     8
+    eq          test    arg     0
+    jfalse      &on_error       test
+	; test size transmitted
+	read64      arg     ptr     16
+    gt          test    arg     16 ; some number...
+	cp64		size_read		arg
+
+	; fall through to socket_close!
 
 socket_close:
 	; close()
