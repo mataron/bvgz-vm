@@ -13,6 +13,7 @@
 
 void net_io_close_handler(vm_t* vm, vm_fd_t* fd)
 {
+    vm->io.n_io_events -= fd->n_events;
     free(fd->data);
 }
 
@@ -60,7 +61,7 @@ void sys_socket(vm_t* vm, uint32_t argv, uint32_t retv)
         *ret = 1;
         return;
     }
-    
+
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
     vm->io.fds[fd].fd = sockfd;
     vm->io.fds[fd].on_close = net_io_close_handler;
@@ -136,7 +137,7 @@ static uint32_t connect_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     cb_args[1] = 0;
 
     make_func_procedure(conn->callback, conn->args, 0, vm);
-    
+
     free(evt->data);
     evt->data = NULL;
     return 1;
@@ -206,16 +207,16 @@ void sys_connect(vm_t* vm, uint32_t argv, uint32_t retv)
     if (errno == EINPROGRESS)
     {
         vm_io_evt_t* evt = alloc_event(vm, fd);
-        
+
         evt->activate = connect_io_evt_handler;
         evt->flags = IO_EVT_SELECT_WRITE;
         evt->data = malloc(sizeof(vm_net_cb_t));
-    
+
         vm_net_cb_t* buf = (vm_net_cb_t*)evt->data;
-    
+
         buf->args = cb_args_ref;
         buf->callback = callback;
-    
+
         *ret = 0;
         return;
     }
@@ -245,17 +246,7 @@ void sys_listen(vm_t* vm, uint32_t argv, uint32_t retv)
     }
 
     int fd = vm->io.fds[fd_idx].fd;
-    int param = 1;
-    int r = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
-        &param, sizeof(param));
-    if (r < 0)
-    {
-        vm->error_no = errno;
-        *ret = 1;
-        return;
-    }
-
-    r = listen(fd, LISTEN_BACKLOG);
+    int r = listen(fd, LISTEN_BACKLOG);
     if (r < 0)
     {
         vm->error_no = errno;
@@ -337,7 +328,7 @@ void sys_accept(vm_t* vm, uint32_t argv, uint32_t retv)
     vm_fd_t* fd = vm->io.fds + fd_idx;
 
     vm_io_evt_t* evt = alloc_event(vm, fd);
-    
+
     evt->activate = accept_io_evt_handler;
     evt->flags = IO_EVT_SELECT_READ;
     evt->data = malloc(sizeof(vm_net_cb_t));

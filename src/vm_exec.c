@@ -111,8 +111,9 @@ static void print_instn(instn_t* instn)
                 case 4:
                     printf(" 0x%08lX", (uint64_t)instn->args[i].u32);
                     break;
+                default:
+                    printf(" 0x%016lX", instn->args[i].u64);
             }
-            printf(" 0x%016lX", instn->args[i].u64);
         }
         else
         {
