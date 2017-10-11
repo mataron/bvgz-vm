@@ -54,3 +54,10 @@
 /* 19 */ SYSCALL(accept)
 // error = peer_address(handle64, addr_ptr)
 /* 20 */ SYSCALL(peer_address)
+
+// error = mexpand(size64)
+/* 21 */ SYSCALL(mexpand)
+// error = mretract(size64)
+/* 22 */ SYSCALL(mretract)
+// size = msize()
+/* 23 */ SYSCALL(msize)
