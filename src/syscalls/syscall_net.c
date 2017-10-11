@@ -14,6 +14,11 @@
 void net_io_close_handler(vm_t* vm, vm_fd_t* fd)
 {
     vm->io.n_io_events -= fd->n_events;
+    for (uint32_t e = 0; e < fd->n_events; e++)
+    {
+        vm_io_evt_t* evt = fd->events + e;
+        free(evt->data);
+    }
     free(fd->data);
 }
 
