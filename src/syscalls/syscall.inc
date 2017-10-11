@@ -61,3 +61,12 @@
 /* 22 */ SYSCALL(mretract)
 // size = msize()
 /* 23 */ SYSCALL(msize)
+
+// pid = exec(argc64, argv32)
+/* 24 */ SYSCALL(exec)
+// pid = run(code32, codesz64, mem32, memsz64, entry64)
+/* 25 */ SYSCALL(run)
+// error = kill(pid64)
+/* 26 */ SYSCALL(kill)
+// error = onexit(pid64, cb_args_ptr, callback(pid64))
+/* 27 */ SYSCALL(onexit)
