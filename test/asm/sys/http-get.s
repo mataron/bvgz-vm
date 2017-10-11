@@ -8,7 +8,9 @@
 %data @ptr			0x0 /8
 %data @arg			0x0 /8
 %data @scall_args	0x0 /64
-%data @c_cb_args	0x0 /16
+%data @cb_args		0x0 /24
+%data @rqst			"GET / HTTP/1.1\n\n"
+%data @resp			0x0 /10240
 
 _entry:
 	; socket()
@@ -20,7 +22,7 @@ _entry:
 	; connect()
 	write64		&scall_args		fd
 	write64		&scall_args	8	&net_ip
-	write64		&scall_args 12	&c_cb_args
+	write64		&scall_args 12	&cb_args
 	write64		&scall_args 16	&on_connect
 	syscall 17	&scall_args	&err
     ne          test        err     0
@@ -35,8 +37,29 @@ on_connect:
     eq          test    arg     0
     jfalse      &on_error       test
 	
-	jmp	&socket_close
-	; ret
+	write64		&scall_args		fd
+	write64		&scall_args 8	&rqst
+	write64		&scall_args 16	17
+	write64		&scall_args 24	&cb_args
+	write64		&scall_args 32	&on_rqst_sent
+	syscall 7	&scall_args	&err
+    ne          test        err     0
+    jtrue       &on_error   test
+	ret
+
+on_rqst_sent:
+	argv		ptr
+	; test errno
+	read64      arg     ptr     8
+    eq          test    arg     0
+    jfalse      &on_error       test
+	; test size transmitted
+	read64      arg     ptr     16
+    eq          test    arg     17
+    jfalse      &on_error       test
+
+	jmp &socket_close
+	ret
 
 socket_close:
 	; close()

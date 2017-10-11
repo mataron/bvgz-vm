@@ -124,6 +124,8 @@ static uint32_t activate_event(vm_t* vm, vm_fd_t* fd, int flag_mask)
                 fd->alloc_events -= IO_EVT_ALLOC;
             }
             vm->io.n_io_events--;
+
+            e--;
         }
 
         return result;
@@ -229,6 +231,10 @@ static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     ssize_t len = read(fd->fd, buf, io_evt->len);
     cb_args[2] = len < 0 ? 0 : len;
     cb_args[1] = len < 0 ? errno : 0;
+    if (len < 0)
+    {
+        vm->error_no = errno;
+    }
 
     make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
 
@@ -255,6 +261,10 @@ static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     ssize_t len = write(fd->fd, buf, io_evt->len);
     cb_args[2] = len < 0 ? 0 : len;
     cb_args[1] = len < 0 ? errno : 0;
+    if (len < 0)
+    {
+        vm->error_no = errno;
+    }
 
     make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
 

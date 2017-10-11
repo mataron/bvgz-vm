@@ -18,7 +18,7 @@ static void test_net_connect()
         "net-connect.s");
     
     *(uint32_t*)(vm->memory + 8) = google_addr.sin_addr.s_addr;
-    *(uint16_t*)(vm->memory + 12) = google_addr.sin_port;
+    *(uint16_t*)(vm->memory + 12) = htons(80);
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -30,6 +30,28 @@ static void test_net_connect()
     assert(*((uint64_t*)vm->memory) == 0);
     assert(*((uint64_t*)(vm->memory + 14)) > 0); // the fd
 
+    destroy_vm(vm);
+}
+
+
+static void test_http_get()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
+        "http-get.s");
+    
+    *(uint32_t*)(vm->memory + 8) = google_addr.sin_addr.s_addr;
+    *(uint16_t*)(vm->memory + 12) = htons(80);
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(vm->error_no == 0);
+    assert(*((uint64_t*)vm->memory) == 0);
+    assert(*((uint64_t*)(vm->memory + 14)) > 0); // the fd
+    assert(vm->io.used_fds == 0);
+    
     destroy_vm(vm);
 }
 
@@ -48,6 +70,7 @@ int main(int argc, char** argv)
     initialize_engine();
 
     test_net_connect();
+    test_http_get();
 
     return 0;
 }
