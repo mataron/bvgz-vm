@@ -43,3 +43,15 @@ target_link_libraries(test_vm_sys -Wl,--start-group
     testing syscalls instns vm bytecode utils
     -Wl,--end-group)
 add_test(test_vm_sys test_vm_sys)
+
+add_executable(test_vm_sys_fs test_vm_sys_fs.c)
+target_link_libraries(test_vm_sys_fs -Wl,--start-group
+    testing syscalls instns vm bytecode utils
+    -Wl,--end-group)
+add_test(test_vm_sys_fs test_vm_sys_fs)
+
+add_executable(test_vm_sys_net test_vm_sys_net.c)
+target_link_libraries(test_vm_sys_net -Wl,--start-group
+    testing syscalls instns vm bytecode utils
+    -Wl,--end-group)
+add_test(test_vm_sys_net test_vm_sys_net)
