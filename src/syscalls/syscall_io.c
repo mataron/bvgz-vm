@@ -114,7 +114,7 @@ static uint32_t activate_event(vm_t* vm, vm_fd_t* fd, int flag_mask)
             {
                 fd->events[e] = fd->events[fd->n_events - 1];
             }
-    
+
             fd->n_events--;
             if (fd->n_events &&
                 fd->alloc_events - fd->n_events > IO_EVT_ALLOC)
@@ -145,6 +145,9 @@ uint32_t fire_io_events(vm_t* vm)
     {
         return 0;
     }
+
+    FD_ZERO(&readset);
+    FD_ZERO(&writeset);
 
     for (uint32_t fd_idx = 0; fd_idx < vm->io.n_fds; fd_idx++)
     {
@@ -227,7 +230,7 @@ static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     }
 
     io_mem_t* io_evt = (io_mem_t*)evt->data;
-    
+
     ssize_t len = read(fd->fd, buf, io_evt->len);
     cb_args[2] = len < 0 ? 0 : len;
     cb_args[1] = len < 0 ? errno : 0;
@@ -248,7 +251,7 @@ static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     vm_io_evt_t* evt, int* remove)
 {
     *remove = 1;
-    
+
     uint8_t* buf = NULL;
     uint64_t* cb_args = NULL;
     if (common_io_evt_handler(vm, fd, evt, &buf, &cb_args) < 0)
@@ -257,7 +260,7 @@ static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     }
 
     io_mem_t* io_evt = (io_mem_t*)evt->data;
-    
+
     ssize_t len = write(fd->fd, buf, io_evt->len);
     cb_args[2] = len < 0 ? 0 : len;
     cb_args[1] = len < 0 ? errno : 0;
@@ -435,7 +438,7 @@ void sys_write(vm_t* vm, uint32_t argv, uint32_t retv)
     }
 
     vm_io_evt_t* evt = alloc_event(vm, fd);
-    
+
     evt->activate = write_io_evt_handler;
     evt->flags = IO_EVT_SELECT_WRITE;
     evt->data = malloc(sizeof(io_mem_t));
