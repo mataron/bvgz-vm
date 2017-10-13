@@ -10,9 +10,18 @@ int collect_stats = 0;
 
 #define STACK_FREE_THRESHOLD    ((uint32_t)(1.5 * FUNC_STACK_ALLOC_SZ))
 
+#define xstr(s) str(s)
+#define str(s) #s
 
-void initialize_engine()
+char* BVGZ_VM_executable = xstr(BVGZ_VM_EXEC);
+
+
+void initialize_engine(char* vm_progname)
 {
+    if (vm_progname)
+    {
+        BVGZ_VM_executable = vm_progname;
+    }
     setup_instn_defs();
     setup_system_call_table();
 }

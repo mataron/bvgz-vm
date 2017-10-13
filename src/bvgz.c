@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     int retval = 0;
     parse_args(argc, argv);
 
-    initialize_engine();
+    initialize_engine(argv[0]);
 
     FILE* imgfp = fopen(imgfile, "rb");
     if (!imgfp)
@@ -60,7 +60,7 @@ done:
 static void print_help(FILE* out, char* program)
 {
     fprintf(out,
-        "Usage %s [-v]+ [-hqs] [-D <dumb-file>]  <file>\n",
+        "Usage %s [-v]+ [-hqs] [-D <dumb-file>] <file>\n",
         program);
 }
 

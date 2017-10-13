@@ -73,7 +73,8 @@ extern int verbose;
 extern int collect_stats;
 
 
-void initialize_engine();
+extern char* BVGZ_VM_executable;
+void initialize_engine(char* vm_progname);
 
 
 vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry);

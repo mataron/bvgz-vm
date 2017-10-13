@@ -191,7 +191,7 @@ static void test_readdir()
 
 int main(int argc, char** argv)
 {
-    initialize_engine();
+    initialize_engine(NULL);
 
     test_file_open_close();
     test_file_unlink();

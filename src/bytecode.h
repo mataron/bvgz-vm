@@ -24,6 +24,8 @@ uint8_t* deref_mem_ptr(uint32_t ref, uint32_t size, struct _vm_t* vm);
 
 int write_bvgz_image(FILE *fp, struct _prs_result_t* parse,
     uint8_t* code, uint32_t codesz, uint32_t entry_label);
+int write_bvgz_image_direct(FILE *fp, uint8_t* code, uint32_t codesz,
+    uint8_t* mem, uint32_t memsz, uint32_t entry_label);
 struct _vm_t* read_bvgz_image(FILE *fp);
 
 #endif

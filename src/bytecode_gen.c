@@ -218,53 +218,6 @@ static struct ref* add_delayed_ref(struct ref* refs, int n_refs,
 int write_bvgz_image(FILE *fp, struct _prs_result_t* parse,
     uint8_t* code, uint32_t codesz, uint32_t entry_label)
 {
-    uint16_t magic = BVGZ_IMG_MAGIC;
-    if (fwrite(&magic, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
-    {
-        fprintf(stderr, "fwrite(magic): %s\n", strerror(errno));
-        return -1;
-    }
-
-    uint16_t flags = BVGZ_IMG_F_EXEC;
-    if (fwrite(&flags, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
-    {
-        fprintf(stderr, "fwrite(flags): %s\n", strerror(errno));
-        return -1;
-    }
-
-    if (fwrite(&entry_label, sizeof(uint32_t), 1, fp) !=
-        sizeof(uint32_t))
-    {
-        fprintf(stderr, "fwrite(entry): %s\n", strerror(errno));
-        return -1;
-    }
-
-    if (fwrite(&codesz, sizeof(uint32_t), 1, fp) != sizeof(uint32_t))
-    {
-        fprintf(stderr, "fwrite(codesz): %s\n", strerror(errno));
-        return -1;
-    }
-
-    if (fwrite(&parse->memsz, sizeof(uint32_t), 1, fp) !=
-        sizeof(uint32_t))
-    {
-        fprintf(stderr, "fwrite(memsz): %s\n", strerror(errno));
-        return -1;
-    }
-
-    if (fwrite(code, codesz, 1, fp) != codesz)
-    {
-        fprintf(stderr, "fwrite(code:%u): %s\n",
-            codesz, strerror(errno));
-        return -1;
-    }
-
-    if (fwrite(parse->memory, parse->memsz, 1, fp) != parse->memsz)
-    {
-        fprintf(stderr, "fwrite(mem:%u): %s\n",
-            parse->memsz, strerror(errno));
-        return -1;
-    }
-
-    return 0;
+    return write_bvgz_image_direct(fp, code, codesz,
+        parse->memory, parse->memsz, entry_label);
 }

@@ -12,6 +12,7 @@ extern int nSyscalls;
 
 void setup_system_call_table();
 
+extern char* BVGZ_image_gen_dir;
 
 uint8_t* deref(uint32_t ref, uint32_t size, struct _vm_t* vm);
 int ensure_nul_term_str(uint8_t* base, struct _vm_t* vm);

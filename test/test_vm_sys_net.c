@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 
     freeaddrinfo(result);
 
-    initialize_engine();
+    initialize_engine(NULL);
 
     test_net_connect();
     test_http_get();

@@ -176,3 +176,57 @@ error:
     destroy_vm(vm);
     return NULL;
 }
+
+
+int write_bvgz_image_direct(FILE *fp, uint8_t* code, uint32_t codesz,
+    uint8_t* mem, uint32_t memsz, uint32_t entry_label)
+{
+    uint16_t magic = BVGZ_IMG_MAGIC;
+    if (fwrite(&magic, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    {
+        fprintf(stderr, "fwrite(magic): %s\n", strerror(errno));
+        return -1;
+    }
+
+    uint16_t flags = BVGZ_IMG_F_EXEC;
+    if (fwrite(&flags, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    {
+        fprintf(stderr, "fwrite(flags): %s\n", strerror(errno));
+        return -1;
+    }
+
+    if (fwrite(&entry_label, sizeof(uint32_t), 1, fp) !=
+        sizeof(uint32_t))
+    {
+        fprintf(stderr, "fwrite(entry): %s\n", strerror(errno));
+        return -1;
+    }
+
+    if (fwrite(&codesz, sizeof(uint32_t), 1, fp) != sizeof(uint32_t))
+    {
+        fprintf(stderr, "fwrite(codesz): %s\n", strerror(errno));
+        return -1;
+    }
+
+    if (fwrite(&memsz, sizeof(uint32_t), 1, fp) !=
+        sizeof(uint32_t))
+    {
+        fprintf(stderr, "fwrite(memsz): %s\n", strerror(errno));
+        return -1;
+    }
+
+    if (fwrite(code, codesz, 1, fp) != codesz)
+    {
+        fprintf(stderr, "fwrite(code:%u): %s\n",
+            codesz, strerror(errno));
+        return -1;
+    }
+
+    if (fwrite(mem, memsz, 1, fp) != memsz)
+    {
+        fprintf(stderr, "fwrite(mem:%u): %s\n", memsz, strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
