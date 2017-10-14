@@ -18,6 +18,10 @@
 
 char* BVGZ_image_gen_dir = xstr(BVGZ_IMG_GEN_DIR);
 
+#ifndef NDEBUG
+#define DEBUG_SLEEP_BEFORE_EXEC 250000
+#endif
+
 
 static void setup_image_gen_dir()
 {
@@ -86,6 +90,8 @@ static void save_child_proc(pid_t pid, vm_t* vm)
         ch->pid = pid;
         ch->exit_cb = NULL;
         ch->n_exit_cb = 0;
+
+        vm->proc.n_proc++;
         return;
     }
 
@@ -138,6 +144,10 @@ void sys_exec(vm_t* vm, uint32_t argv, uint32_t retv)
     pid_t ch_pid = fork();
     if (ch_pid == 0)
     {
+#ifndef NDEBUG
+        usleep(DEBUG_SLEEP_BEFORE_EXEC);
+#endif
+
         execv(argv_cp[0], argv_cp);
         fprintf(stderr, "execv(%s, argc=%lu) failed: %s\n",
             argv_cp[0], argc, strerror(errno));
@@ -235,6 +245,9 @@ void sys_run(vm_t* vm, uint32_t argv, uint32_t retv)
         argv[1] = imgname;
         argv[2] = NULL;
 
+#ifndef NDEBUG
+        usleep(DEBUG_SLEEP_BEFORE_EXEC);
+#endif
         execv(BVGZ_VM_executable, argv);
         fprintf(stderr, "execv(BVGZ VM) failed: %s\n", strerror(errno));
         exit(1);
@@ -307,14 +320,14 @@ void sys_onexit(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    if (!deref(args[2], 7 * 8, vm)) // cb_args
+    if (!deref(args[1], 7 * 8, vm)) // cb_args
     {
         vm->error_no = EFAULT;
         *ret = 1;
         return;
     }
 
-    if (args[1] >= vm->codesz) // callback
+    if (args[2] >= vm->codesz) // callback
     {
         vm->error_no = EINVAL;
         *ret = 1;
@@ -334,6 +347,7 @@ void sys_onexit(vm_t* vm, uint32_t argv, uint32_t retv)
         sizeof(vm_callback_t) * (ch_ptr->n_exit_cb + 1));
     vm_callback_t* cb = ch_ptr->exit_cb + ch_ptr->n_exit_cb;
     ch_ptr->n_exit_cb++;
+    vm->proc.n_exit_callbacks++;
 
     cb->args = args[1];
     cb->callback = args[2];

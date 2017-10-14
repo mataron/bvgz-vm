@@ -17,7 +17,7 @@
 // #define ENABLE_INSTN_PRINT
 
 #ifdef ENABLE_INSTN_PRINT
-static void print_instn(instn_t* instn);
+static void print_instn(instn_t* instn, uint32_t iptr);
 #endif
 
 
@@ -62,11 +62,12 @@ void execute_vm(vm_t* vm)
             break;
         }
 
+#ifdef ENABLE_INSTN_PRINT
+        print_instn(&instn, proc->iptr);
+#endif
+
         proc->iptr += offt;
 
-#ifdef ENABLE_INSTN_PRINT
-        print_instn(&instn);
-#endif
         uint32_t instn_idx = instn.code >> 3;
         if (InstnDefs[instn_idx].handler(&instn, vm) < 0)
         {
@@ -103,11 +104,11 @@ int has_pending_events(vm_t* vm)
 
 
 #ifdef ENABLE_INSTN_PRINT
-static void print_instn(instn_t* instn)
+static void print_instn(instn_t* instn, uint32_t iptr)
 {
     uint32_t instn_idx = instn->code >> 3;
 
-    printf("%s/%d\t", InstnDefs[instn_idx].name,
+    printf("[%5u] %s/%d\t", iptr, InstnDefs[instn_idx].name,
         InstnDefs[instn_idx].arg_count);
     for (int i = 0; i < InstnDefs[instn_idx].arg_count; ++i)
     {
