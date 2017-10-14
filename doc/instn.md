@@ -132,38 +132,10 @@ All logical instructions set their destination operand to either 0 or 1 (the rem
 
 ### copy
 
-`cp8` _dest_ _src_
-> copy one byte from _src_ (either immediate value, or the address of that byte) into the location pointed to by _dest_
-
-`cp16` _dest_ _src_
-> copy 2 bytes from _src_ (either immediate value, or the address of those bytes) into the location pointed to by _dest_
-
-`cp32` _dest_ _src_
-> copy 4 bytes from _src_ (either immediate value, or the address of those bytes) into the location pointed to by _dest_
-
-`cp64` _dest_ _src_
-> copy 8 bytes from _src_ (either immediate value, or the address of those bytes) into the location pointed to by _dest_
-
 `cp` _dest_ _src_ _n_
 > copy _n_ bytes from _src_, the address of those bytes, into the location pointed to by _dest_
 
 ### read
-
-`read8` _dest_ _src_
-> copy 1 byte (into _dest_) from the location pointed to by the address stored in _src_.<br>
-> Equivalent to: _dest_ = *_src_
-
-`read16` _dest_ _src_
-> copy 2 bytes (into _dest_) from the location pointed to by the address stored in _src_.<br>
-> Equivalent to: _dest_ = *_src_
-
-`read32` _dest_ _src_
-> copy 2 bytes (into _dest_) from the location pointed to by the address stored in _src_.<br>
-> Equivalent to: _dest_ = *_src_
-
-`read64` _dest_ _src_
-> copy 2 bytes (into _dest_) from the location pointed to by the address stored in _src_.<br>
-> Equivalent to: _dest_ = *_src_
 
 `read8` _dest_ _src_ _offset_
 > copy 1 byte (into _dest_) from the location pointed to by the address stored in _src_ plus _offset_ bytes.<br>
@@ -182,22 +154,6 @@ All logical instructions set their destination operand to either 0 or 1 (the rem
 > Equivalent to: _dest_ = *(_src_ + _offset_)
 
 ### write
-
-`write8` _dest_ _src_
-> copy 1 byte (from _src_) to the location pointed to by the address stored in _dest_.<br>
-> Equivalent to: *_dest_ = _src_
-
-`write16` _dest_ _src_
-> copy 2 bytes (from _src_) to the location pointed to by the address stored in _dest_.<br>
-> Equivalent to: *_dest_ = _src_
-
-`write32` _dest_ _src_
-> copy 2 bytes (from _src_) to the location pointed to by the address stored in _dest_.<br>
-> Equivalent to: *_dest_ = _src_
-
-`write64` _dest_ _src_
-> copy 2 bytes (from _src_) to the location pointed to by the address stored in _dest_.<br>
-> Equivalent to: *_dest_ = _src_
 
 `write8` _dest_ _src_ _offset_
 > copy 1 byte (from _src_) to the location pointed to by the address stored in _dest_ plus _offset_ bytes.<br>
