@@ -5,6 +5,7 @@
 #include "util/list.h"
 #include "timers.h"
 #include "syscalls/syscall_io.h"
+#include "syscalls/syscall_proc.h"
 
 #define FUNC_STACK_ALLOC_SZ     64
 
@@ -65,6 +66,7 @@ typedef struct _vm_t
     uint32_t n_timers;
 
     vm_io_t io;
+    vm_proc_t proc;
 }
 vm_t;
 

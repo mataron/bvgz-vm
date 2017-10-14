@@ -53,6 +53,7 @@ void destroy_vm(vm_t* vm)
     }
 
     destroy_vm_io(vm);
+    destroy_vm_proc(vm);
     free(vm->memory);
     free(vm->code);
     free(vm);

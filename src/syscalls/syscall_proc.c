@@ -1,4 +1,4 @@
-#include <stdio.h>
+7#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -65,6 +65,34 @@ static char* make_image_file_name()
 }
 
 
+static void save_child_proc(pid_t pid, vm_t* vm)
+{
+    if (vm->proc.n_proc >= vm->proc.alloc_proc)
+    {
+        vm->proc.child_proc = realloc(vm->proc.child_proc,
+            sizeof(vm_child_t) * (vm->proc.alloc_proc + PROC_ALLOC));
+        memset(vm->proc.child_proc + vm->proc.alloc_proc, 0,
+            sizeof(vm_child_t) * PROC_ALLOC);
+        vm->proc.alloc_proc += PROC_ALLOC;
+    }
+
+    for (uint32_t p = 0; p < vm->proc.alloc_proc; p++)
+    {
+        vm_child_t* ch = vm->proc.child_proc + p;
+        if (ch->used) continue;
+
+        ch->used = 1;
+        ch->pid = pid;
+        ch->exit_cb = NULL;
+        ch->n_exit_cb = 0;
+        return;
+    }
+
+    // unreachable!!!
+    abort();
+}
+
+
 void sys_exec(vm_t* vm, uint32_t argv, uint32_t retv)
 {
     uint8_t* args = deref_mem_ptr(argv, 8 + 4, vm);
@@ -124,6 +152,7 @@ void sys_exec(vm_t* vm, uint32_t argv, uint32_t retv)
     else if (ch_pid > 0)
     {
         *ret = ch_pid;
+        save_child_proc(ch_pid, vm);
     }
 
 free_argv_cp:
@@ -221,6 +250,7 @@ void sys_run(vm_t* vm, uint32_t argv, uint32_t retv)
     else if (ch_pid > 0)
     {
         *ret = ch_pid;
+        save_child_proc(ch_pid, vm);
     }
 }
 
@@ -252,4 +282,29 @@ void sys_kill(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_onexit(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+}
+
+
+void destroy_vm_proc(vm_t* vm)
+{
+    for (uint32_t p = 0; p < vm->proc.alloc_proc; p++)
+    {
+        vm_child_t* ch = vm->proc.child_proc + p;
+        if (!ch->used) continue;
+        free(ch->exit_cb);
+    }
+
+    free(vm->proc.child_proc);
+}
+
+
+uint32_t fire_proc_events(vm_t* vm)
+{
+    return 0;
+}
+
+
+int has_pending_proc_events(vm_t* vm)
+{
+    return vm->proc.n_exit_callbacks > 0;
 }

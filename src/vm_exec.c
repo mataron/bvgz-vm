@@ -79,13 +79,17 @@ void execute_vm(vm_t* vm)
 
 uint32_t fire_vm_events(vm_t* vm)
 {
-    return fire_timer_events(vm) + fire_io_events(vm);
+    return fire_timer_events(vm)
+         + fire_io_events(vm)
+         + fire_proc_events(vm);
 }
 
 
 int has_pending_events(vm_t* vm)
 {
-    return has_pending_timer_events(vm) || has_pending_io_events(vm);
+    return has_pending_timer_events(vm)
+        || has_pending_io_events(vm)
+        || has_pending_proc_events(vm);
 }
 
 
