@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
@@ -280,6 +281,21 @@ void sys_kill(vm_t* vm, uint32_t argv, uint32_t retv)
 }
 
 
+static vm_child_t* find_proc(vm_t* vm, pid_t pid)
+{
+    for (uint32_t p = 0; p < vm->proc.alloc_proc; p++)
+    {
+        vm_child_t* child = vm->proc.child_proc + p;
+        if (!child->used) continue;
+        if (child->pid == pid)
+        {
+            return child;
+        }
+    }
+    return NULL;
+}
+
+
 void sys_onexit(vm_t* vm, uint32_t argv, uint32_t retv)
 {
     uint64_t* args = (uint64_t*)deref_mem_ptr(argv, 8, vm);
@@ -291,7 +307,7 @@ void sys_onexit(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    if (!deref(args[2], 8, vm)) // cb_args
+    if (!deref(args[2], 7 * 8, vm)) // cb_args
     {
         vm->error_no = EFAULT;
         *ret = 1;
@@ -305,17 +321,7 @@ void sys_onexit(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    vm_child_t* ch_ptr = NULL;
-    for (uint32_t p = 0; p < vm->proc.alloc_proc; p++)
-    {
-        vm_child_t* child = vm->proc.child_proc + p;
-        if (!child->used) continue;
-        if (child->pid == args[0])
-        {
-            ch_ptr = child;
-            break;
-        }
-    }
+    vm_child_t* ch_ptr = find_proc(vm, args[0]);
 
     if (!ch_ptr)
     {
@@ -349,9 +355,72 @@ void destroy_vm_proc(vm_t* vm)
 }
 
 
+static uint32_t fire_events_of_proc(vm_t* vm, vm_child_t* ch_ptr,
+    pid_t pid, int status)
+{
+    uint32_t n_events = 0;
+    for (uint32_t c = 0; c < ch_ptr->n_exit_cb; c++)
+    {
+        vm_callback_t* cb = ch_ptr->exit_cb + c;
+        uint64_t* cb_args =
+            (uint64_t*)deref_mem_ptr(cb->args, 7 * 8, vm);
+        if (!cb_args)
+        {
+            continue; // there isn't anything we can do...
+        }
+
+        cb_args[0] = pid;
+        cb_args[1] = WIFEXITED(status);
+        cb_args[2] = WEXITSTATUS(status);
+        cb_args[3] = WIFSIGNALED(status);
+        cb_args[4] = WTERMSIG(status);
+        cb_args[5] = WIFSTOPPED(status);
+        cb_args[6] = WIFCONTINUED(status);
+
+        make_func_procedure(cb->callback, cb->args, 0, vm);
+        n_events++;
+    }
+    return n_events;
+}
+
+
 uint32_t fire_proc_events(vm_t* vm)
 {
-    return 0;
+    uint32_t n_events = 0;
+    // the process is repeated until no processes are
+    // left to report for or an error occurs
+    while (vm->proc.n_proc)
+    {
+        int status = 0;
+        pid_t pid = waitpid(-1, &status, WNOHANG);
+        if (pid < 0)
+        {
+            vm->error_no = errno;
+            break;
+        }
+        if (pid == 0) break;
+
+        vm_child_t* ch_ptr = find_proc(vm, pid);
+
+        if (!ch_ptr) break;
+
+        n_events += fire_events_of_proc(vm, ch_ptr, pid, status);
+
+        if (WIFEXITED(status) || WIFSIGNALED(status))
+        {
+            if (ch_ptr->n_exit_cb)
+            {
+                free(ch_ptr->exit_cb);
+                vm->proc.n_exit_callbacks -= ch_ptr->n_exit_cb;
+                ch_ptr->exit_cb = NULL;
+                ch_ptr->n_exit_cb = 0;
+            }
+            ch_ptr->used = 0;
+            vm->proc.n_proc--;
+        }
+    }
+
+    return n_events;
 }
 
 
@@ -363,4 +432,5 @@ int has_pending_proc_events(vm_t* vm)
 
 void cleanup_child_proc(vm_t* vm)
 {
+    fire_proc_events(vm);
 }

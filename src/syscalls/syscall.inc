@@ -68,5 +68,8 @@
 /* 25 */ SYSCALL(run)
 // error = kill(pid64)
 /* 26 */ SYSCALL(kill)
-// error = onexit(pid64, cb_args_ptr, callback(pid64))
+// error = onexit(pid64, cb_args_ptr,
+//                callback(pid64, exited64, exit_status64,
+//                         signaled64, signal64, stopped64,
+//                         continued64))
 /* 27 */ SYSCALL(onexit)
