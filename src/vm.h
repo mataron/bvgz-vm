@@ -67,6 +67,8 @@ typedef struct _vm_t
 
     vm_io_t io;
     vm_proc_t proc;
+
+    uint32_t instns_since_last_cleanup;
 }
 vm_t;
 
@@ -100,5 +102,7 @@ void delete_current_procedure(vm_t* vm);
 
 void make_vm_timer(vm_t* vm, struct timespec* exprires_at,
     uint32_t iptr);
+
+void cleanup_vm(vm_t* vm);
 
 #endif

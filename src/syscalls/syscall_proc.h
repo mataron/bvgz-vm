@@ -36,4 +36,6 @@ void destroy_vm_proc(struct _vm_t* vm);
 uint32_t fire_proc_events(struct _vm_t* vm);
 int has_pending_proc_events(struct _vm_t* vm);
 
+void cleanup_child_proc(struct _vm_t* vm);
+
 #endif

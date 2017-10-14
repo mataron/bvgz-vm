@@ -1,4 +1,4 @@
-7#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -307,4 +307,9 @@ uint32_t fire_proc_events(vm_t* vm)
 int has_pending_proc_events(vm_t* vm)
 {
     return vm->proc.n_exit_callbacks > 0;
+}
+
+
+void cleanup_child_proc(vm_t* vm)
+{
 }

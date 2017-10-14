@@ -7,6 +7,7 @@
 int op_syscall_3(instn_t* instn, vm_t* vm)
 {
     fire_vm_events(vm);
+    cleanup_vm(vm);
 
     uint16_t syscall_id = arg_value(instn, 0);
     uint32_t argv = arg_value(instn, 1);

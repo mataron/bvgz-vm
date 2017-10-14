@@ -6,7 +6,8 @@
 #include "instns/instn.h"
 #include "bytecode.h"
 
-#define IDLE_STEP_DURATION_MS   10
+#define IDLE_STEP_DURATION_MS       10
+#define VM_CLEANUP_PERIOD_INSTNS    20
 
 // TODO: stats collection
 
@@ -73,7 +74,15 @@ void execute_vm(vm_t* vm)
         }
 
         vm->instns++;
+        vm->instns_since_last_cleanup++;
+
+        if (vm->instns_since_last_cleanup % VM_CLEANUP_PERIOD_INSTNS == 0)
+        {
+            cleanup_vm(vm);
+        }
     }
+
+    cleanup_vm(vm);
 }
 
 

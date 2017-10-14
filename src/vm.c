@@ -202,3 +202,10 @@ void print_vm_state(vm_t* vm)
             printf("  Bad syscall\n");
     }
 }
+
+
+void cleanup_vm(vm_t* vm)
+{
+    cleanup_child_proc(vm);
+    vm->instns_since_last_cleanup = 0;
+}
