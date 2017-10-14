@@ -282,6 +282,57 @@ void sys_kill(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_onexit(vm_t* vm, uint32_t argv, uint32_t retv)
 {
+    uint64_t* args = (uint64_t*)deref_mem_ptr(argv, 8, vm);
+    uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
+    if (!args || !ret)
+    {
+        vm->error_no = EFAULT;
+        if (ret) *ret = 1;
+        return;
+    }
+
+    if (!deref(args[2], 8, vm)) // cb_args
+    {
+        vm->error_no = EFAULT;
+        *ret = 1;
+        return;
+    }
+
+    if (args[1] >= vm->codesz) // callback
+    {
+        vm->error_no = EINVAL;
+        *ret = 1;
+        return;
+    }
+
+    vm_child_t* ch_ptr = NULL;
+    for (uint32_t p = 0; p < vm->proc.alloc_proc; p++)
+    {
+        vm_child_t* child = vm->proc.child_proc + p;
+        if (!child->used) continue;
+        if (child->pid == args[0])
+        {
+            ch_ptr = child;
+            break;
+        }
+    }
+
+    if (!ch_ptr)
+    {
+        vm->error_no = ECHILD;
+        *ret = 1;
+        return;
+    }
+
+    ch_ptr->exit_cb = realloc(ch_ptr->exit_cb,
+        sizeof(vm_callback_t) * (ch_ptr->n_exit_cb + 1));
+    vm_callback_t* cb = ch_ptr->exit_cb + ch_ptr->n_exit_cb;
+    ch_ptr->n_exit_cb++;
+
+    cb->args = args[1];
+    cb->callback = args[2];
+
+    *ret = 0;
 }
 
 

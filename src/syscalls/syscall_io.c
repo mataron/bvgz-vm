@@ -362,7 +362,7 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
     }
 
     *f_ptr = args[4];
-    if (*f_ptr > vm->codesz)
+    if (*f_ptr >= vm->codesz)
     {
         vm->error_no = EINVAL;
         *ret = 1;
