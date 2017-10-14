@@ -128,22 +128,32 @@ void sys_exec(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    char** argv_cp = (char**)malloc(sizeof(char*) * (argc + 1));
-    memset(argv_cp, 0, sizeof(char*) * (argc + 1));
-
+    // just ensure correctness here, the real argv array will be
+    // built in the child process.
     for (uint64_t a = 0; a < argc; a++)
     {
         uint8_t* arg_ptr = deref_mem_ptr(argv_r[a], 1, vm);
-        if (ensure_nul_term_str(arg_ptr, vm) < 0)
+        if (!arg_ptr || ensure_nul_term_str(arg_ptr, vm) < 0)
         {
-            goto free_argv_cp;
+            *ret = 0;
+            return;
         }
-        argv_cp[a] = strdup((char*)arg_ptr);
     }
 
     pid_t ch_pid = fork();
     if (ch_pid == 0)
     {
+        char** argv_cp = malloc(sizeof(char*) * (argc + 1));
+        memset(argv_cp, 0, sizeof(char*) * (argc + 1));
+
+        for (uint64_t a = 0; a < argc; a++)
+        {
+            uint8_t* arg_ptr = deref_mem_ptr(argv_r[a], 1, vm);
+            argv_cp[a] = strdup((char*)arg_ptr);
+        }
+
+        destroy_vm(vm);
+
 #ifndef NDEBUG
         usleep(DEBUG_SLEEP_BEFORE_EXEC);
 #endif
@@ -151,6 +161,12 @@ void sys_exec(vm_t* vm, uint32_t argv, uint32_t retv)
         execv(argv_cp[0], argv_cp);
         fprintf(stderr, "execv(%s, argc=%lu) failed: %s\n",
             argv_cp[0], argc, strerror(errno));
+
+        for (uint64_t a = 0; a < argc; a++)
+        {
+            free(argv_cp[a]);
+        }
+        free(argv_cp);
         exit(1);
         return;
     }
@@ -160,18 +176,11 @@ void sys_exec(vm_t* vm, uint32_t argv, uint32_t retv)
         *ret = 0;
         vm->error_no = errno;
     }
-    else if (ch_pid > 0)
+    else
     {
         *ret = ch_pid;
         save_child_proc(ch_pid, vm);
     }
-
-free_argv_cp:
-    for (uint64_t a = 0; a < argc; a++)
-    {
-        free(argv_cp[a]);
-    }
-    free(argv_cp);
 }
 
 
@@ -266,7 +275,7 @@ void sys_run(vm_t* vm, uint32_t argv, uint32_t retv)
         *ret = 0;
         vm->error_no = errno;
     }
-    else if (ch_pid > 0)
+    else
     {
         *ret = ch_pid;
         save_child_proc(ch_pid, vm);
