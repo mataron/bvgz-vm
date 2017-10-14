@@ -16,9 +16,9 @@ _entry:
     syscall 15  &scall_args &fd
     eq          test        fd 0
     jtrue       &on_error   test
-	
+
 	; connect()
-	write64		&scall_args		fd
+	write64		&scall_args	0	fd
 	write64		&scall_args	8	&net_ip
 	write64		&scall_args 12	&c_cb_args
 	write64		&scall_args 16	&on_connect
@@ -34,7 +34,7 @@ on_connect:
 	read64      arg     ptr     8
     eq          test    arg     0
     jfalse      &on_error       test
-	
+
 	jmp	&socket_close
 	; ret
 

@@ -12,7 +12,7 @@ _entry:
     jtrue       &on_error   test
 
     ; expand 40 bytes
-    write64     &args       40
+    write64     &args       0      40
     syscall 21  &args       &err
     ne          test        err     0
     jtrue       &on_error   test
@@ -23,7 +23,7 @@ _entry:
     jtrue       &on_error   test
 
     ; retract 20 bytes
-    write64     &args       20
+    write64     &args       0       20
     syscall 22  &args       &err
     ne          test        err     0
     jtrue       &on_error   test

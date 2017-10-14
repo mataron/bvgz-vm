@@ -11,7 +11,7 @@
 
 _entry:
     cp32    ptr  &data
-    read8   b8   ptr
-    read16  b16  ptr
-    read32  b32  ptr
-    read64  b64  ptr
+    read8   b8   ptr    0
+    read16  b16  ptr    0
+    read32  b32  ptr    0
+    read64  b64  ptr    0

@@ -29,14 +29,14 @@ past_loop2:
 ;; functions:
 dec_f:
     argv ptr
-    read64 tmp ptr
+    read64 tmp ptr 0
     sub tmp 1
     retv tmp
     ret
 
 inc_f:
     argv ptr
-    read64 tmp ptr
+    read64 tmp ptr 0
     add tmp 1
     retv tmp
     ret

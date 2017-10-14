@@ -21,7 +21,7 @@ _entry:
     jtrue       &on_error   test
 
 	; connect()
-	write64		&scall_args		fd
+	write64		&scall_args	0	fd
 	write64		&scall_args	8	&net_ip
 	write64		&scall_args 12	&cb_args
 	write64		&scall_args 16	&on_connect
@@ -38,7 +38,7 @@ on_connect:
     eq          test    arg     0
     jfalse      &on_error       test
 
-	write64		&scall_args		fd
+	write64		&scall_args	0	fd
 	write64		&scall_args 8	&rqst
 	write64		&scall_args 16	17
 	write64		&scall_args 24	&cb_args

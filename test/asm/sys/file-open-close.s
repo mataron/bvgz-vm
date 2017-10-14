@@ -56,7 +56,7 @@ read_callback:
     argv        ptr
 
     ; 1st arg: fd
-    read64      arg     ptr
+    read64      arg     ptr     0
     eq          test    arg     fd
     jfalse      &on_error       test
     ; 2nd arg: errno

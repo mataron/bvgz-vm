@@ -46,62 +46,6 @@ int op_cp_3(instn_t* instn, vm_t* vm)
 }
 
 
-int op_read8_2(instn_t* instn, vm_t* vm)
-{
-    uint32_t ref = lref32(instn->args[1].ptr);
-    uint8_t* mem = deref_mem_ptr(ref, 1, vm);
-    if (!mem)
-    {
-        return -1;
-    }
-
-    lref8(instn->args[0].ptr) = *mem;
-    return 0;
-}
-
-
-int op_read16_2(instn_t* instn, vm_t* vm)
-{
-    uint32_t ref = lref32(instn->args[1].ptr);
-    uint8_t* mem = deref_mem_ptr(ref, 2, vm);
-    if (!mem)
-    {
-        return -1;
-    }
-
-    lref16(instn->args[0].ptr) = *(uint16_t*)mem;
-    return 0;
-}
-
-
-int op_read32_2(instn_t* instn, vm_t* vm)
-{
-    uint32_t ref = lref32(instn->args[1].ptr);
-    uint8_t* mem = deref_mem_ptr(ref, 4, vm);
-    if (!mem)
-    {
-        return -1;
-    }
-
-    lref32(instn->args[0].ptr) = *(uint32_t*)mem;
-    return 0;
-}
-
-
-int op_read64_2(instn_t* instn, vm_t* vm)
-{
-    uint32_t ref = lref32(instn->args[1].ptr);
-    uint8_t* mem = deref_mem_ptr(ref, 8, vm);
-    if (!mem)
-    {
-        return -1;
-    }
-
-    lref64(instn->args[0].ptr) = *(uint64_t*)mem;
-    return 0;
-}
-
-
 int op_read8_3(instn_t* instn, vm_t* vm)
 {
     uint32_t ref = lref32(instn->args[1].ptr);
@@ -158,62 +102,6 @@ int op_read64_3(instn_t* instn, vm_t* vm)
     }
 
     lref64(instn->args[0].ptr) = *(uint64_t*)mem;
-    return 0;
-}
-
-
-int op_write8_2(instn_t* instn, vm_t* vm)
-{
-    uint32_t ref = arg_value(instn, 0);
-    uint8_t* mem = deref_mem_ptr(ref, 1, vm);
-    if (!mem)
-    {
-        return -1;
-    }
-
-    *mem = arg_value(instn, 1);
-    return 0;
-}
-
-
-int op_write16_2(instn_t* instn, vm_t* vm)
-{
-    uint32_t ref = arg_value(instn, 0);
-    uint8_t* mem = deref_mem_ptr(ref, 2, vm);
-    if (!mem)
-    {
-        return -1;
-    }
-
-    *(uint16_t*)mem = arg_value(instn, 1);
-    return 0;
-}
-
-
-int op_write32_2(instn_t* instn, vm_t* vm)
-{
-    uint32_t ref = arg_value(instn, 0);
-    uint8_t* mem = deref_mem_ptr(ref, 4, vm);
-    if (!mem)
-    {
-        return -1;
-    }
-
-    *(uint32_t*)mem = arg_value(instn, 1);
-    return 0;
-}
-
-
-int op_write64_2(instn_t* instn, vm_t* vm)
-{
-    uint32_t ref = arg_value(instn, 0);
-    uint8_t* mem = deref_mem_ptr(ref, 8, vm);
-    if (!mem)
-    {
-        return -1;
-    }
-
-    *(uint64_t*)mem = arg_value(instn, 1);
     return 0;
 }
 

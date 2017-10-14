@@ -21,20 +21,20 @@ _entry:
     jtrue       &on_error   test
 
 	; bind()
-	write64		&scall_args		fd
+	write64		&scall_args	0	fd
 	write64		&scall_args	8	&net_ip
 	syscall 16	&scall_args	&err
     ne          test        err     0
     jtrue       &on_error   test
 
 	; listen()
-	write64		&scall_args		fd
+	write64		&scall_args	0	fd
 	syscall 18	&scall_args	&err
     ne          test        err     0
     jtrue       &on_error   test
 
 	; accept()
-	write64		&scall_args		fd
+	write64		&scall_args	0	fd
 	write64		&scall_args	8	&cb_args
 	write64		&scall_args	12	&on_accept
 	syscall 19	&scall_args	&err
@@ -50,10 +50,10 @@ on_accept:
     eq          test    arg     0
     jfalse      &on_error       test
 
-	read64      clifd     ptr
+	read64      clifd     ptr	0
 
 	; read()
-	write64		&scall_args		clifd
+	write64		&scall_args	0	clifd
 	write64		&scall_args 8	&buf
 	write64		&scall_args 16	1024
 	write64		&scall_args 24	&cb_args
@@ -70,10 +70,10 @@ on_data_read:
     eq          test    arg     0
     jfalse      &on_error       test
 
-	read64      bufsz     ptr
+	read64      bufsz     ptr	0
 
 	; write()
-	write64		&scall_args		clifd
+	write64		&scall_args	0	clifd
 	write64		&scall_args 8	&buf
 	write64		&scall_args 16	bufsz
 	write64		&scall_args 24	&cb_args

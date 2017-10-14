@@ -19,7 +19,7 @@ _entry:
 
 fib:
     argv        r_ptr
-    read64      r_N     r_ptr
+    read64      r_N     r_ptr   0
     le          r_term  r_N     1
     jtrue       &fib_done       r_term
 
@@ -29,22 +29,22 @@ fib:
     ; skip our arg & next func's ret area to set the argument
     add         r_ptr   16
     sub         r_N     1
-    write64     r_ptr   r_N
+    write64     r_ptr   0       r_N
     ; ret & args set, call the thing!
-    call        &fib    r_ptr  r_ret
+    call        &fib    r_ptr   r_ret
 
     ; restore r_ptr:
     argv        r_ptr
-    read64      r_N     r_ptr
+    read64      r_N     r_ptr   0
     ; next func call will put result next to previous ret
     cp32        r_ret   r_ptr
     add         r_ret   16
     ; skip our arg & next func's ret area to set the argument
     add         r_ptr   24
     sub         r_N     2
-    write64     r_ptr   r_N
+    write64     r_ptr   0       r_N
     ; ret & args set, call the thing!
-    call        &fib    r_ptr  r_ret
+    call        &fib    r_ptr   r_ret
 
     ; restore r_ptr:
     argv        r_ptr
