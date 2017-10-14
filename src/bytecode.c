@@ -104,7 +104,7 @@ uint8_t* deref_mem_ptr(uint32_t ref, uint32_t size, vm_t* vm)
 vm_t* read_bvgz_image(FILE *fp)
 {
     uint16_t magic = 0;
-    if (fread(&magic, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    if (fread(&magic, sizeof(uint16_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(magic): %s\n", strerror(errno));
         return NULL;
@@ -117,7 +117,7 @@ vm_t* read_bvgz_image(FILE *fp)
     }
 
     uint16_t flags;
-    if (fread(&flags, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    if (fread(&flags, sizeof(uint16_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(flags): %s\n", strerror(errno));
         return NULL;
@@ -129,15 +129,14 @@ vm_t* read_bvgz_image(FILE *fp)
     }
 
     uint32_t entry_label = 0;
-    if (fread(&entry_label, sizeof(uint32_t), 1, fp) !=
-        sizeof(uint32_t))
+    if (fread(&entry_label, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(entry): %s\n", strerror(errno));
         return NULL;
     }
 
     uint32_t codesz;
-    if (fread(&codesz, sizeof(uint32_t), 1, fp) != sizeof(uint32_t))
+    if (fread(&codesz, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(codesz): %s\n", strerror(errno));
         return NULL;
@@ -149,8 +148,7 @@ vm_t* read_bvgz_image(FILE *fp)
     }
 
     uint32_t memsz;
-    if (fread(&memsz, sizeof(uint32_t), 1, fp) !=
-        sizeof(uint32_t))
+    if (fread(&memsz, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fread(memsz): %s\n", strerror(errno));
         return NULL;
@@ -158,17 +156,20 @@ vm_t* read_bvgz_image(FILE *fp)
 
     vm_t* vm = make_vm(codesz, memsz, entry_label);
 
-    if (fread(vm->code, codesz, 1, fp) != codesz)
+    if (fread(vm->code, codesz, 1, fp) != 1)
     {
         fprintf(stderr, "fread(code:%u): %s\n",
             codesz, strerror(errno));
         goto error;
     }
 
-    if (fread(vm->memory, memsz, 1, fp) != memsz)
+    if (memsz > 0)
     {
-        fprintf(stderr, "fread(mem:%u): %s\n", memsz, strerror(errno));
-        goto error;
+        if (fread(vm->memory, memsz, 1, fp) != 1)
+        {
+            fprintf(stderr, "fread(mem:%u): %s\n", memsz, strerror(errno));
+            goto error;
+        }
     }
 
     return vm;
@@ -182,50 +183,51 @@ int write_bvgz_image_direct(FILE *fp, uint8_t* code, uint32_t codesz,
     uint8_t* mem, uint32_t memsz, uint32_t entry_label)
 {
     uint16_t magic = BVGZ_IMG_MAGIC;
-    if (fwrite(&magic, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    if (fwrite(&magic, sizeof(uint16_t), 1, fp) != 1)
     {
         fprintf(stderr, "fwrite(magic): %s\n", strerror(errno));
         return -1;
     }
 
     uint16_t flags = BVGZ_IMG_F_EXEC;
-    if (fwrite(&flags, sizeof(uint16_t), 1, fp) != sizeof(uint16_t))
+    if (fwrite(&flags, sizeof(uint16_t), 1, fp) != 1)
     {
         fprintf(stderr, "fwrite(flags): %s\n", strerror(errno));
         return -1;
     }
 
-    if (fwrite(&entry_label, sizeof(uint32_t), 1, fp) !=
-        sizeof(uint32_t))
+    if (fwrite(&entry_label, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fwrite(entry): %s\n", strerror(errno));
         return -1;
     }
 
-    if (fwrite(&codesz, sizeof(uint32_t), 1, fp) != sizeof(uint32_t))
+    if (fwrite(&codesz, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fwrite(codesz): %s\n", strerror(errno));
         return -1;
     }
 
-    if (fwrite(&memsz, sizeof(uint32_t), 1, fp) !=
-        sizeof(uint32_t))
+    if (fwrite(&memsz, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fwrite(memsz): %s\n", strerror(errno));
         return -1;
     }
 
-    if (fwrite(code, codesz, 1, fp) != codesz)
+    if (fwrite(code, codesz, 1, fp) != 1)
     {
         fprintf(stderr, "fwrite(code:%u): %s\n",
             codesz, strerror(errno));
         return -1;
     }
 
-    if (fwrite(mem, memsz, 1, fp) != memsz)
+    if (memsz > 0)
     {
-        fprintf(stderr, "fwrite(mem:%u): %s\n", memsz, strerror(errno));
-        return -1;
+        if (fwrite(mem, memsz, 1, fp) != 1)
+        {
+            fprintf(stderr, "fwrite(mem:%u): %s\n", memsz, strerror(errno));
+            return -1;
+        }
     }
 
     return 0;

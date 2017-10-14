@@ -59,7 +59,7 @@ static char* make_image_file_name()
     }
     suffix[IMG_FILE_NAME_SFX_LEN] = 0;
 
-    snprintf(buf, sizeof(buf), "%s/img-%4d%2d%2d-%2d%2d%2d-%s.bvgz",
+    snprintf(buf, sizeof(buf), "%s/img-%04d%02d%02d-%02d%02d%02d-%s.bvgz",
         BVGZ_image_gen_dir,
         1900 + utc_tm.tm_year, 1 + utc_tm.tm_mon, utc_tm.tm_mday,
         utc_tm.tm_hour, utc_tm.tm_min, utc_tm.tm_sec,
