@@ -13,7 +13,6 @@
 %data @mem 0x0 /512
 
 _entry:
-    ; cp64 mem 7 :: THIS IS SET BY THE HOST!!
     call &fib &mem &num
     ret
 
@@ -24,7 +23,7 @@ fib:
     jtrue       &fib_done       r_term
 
     ; next func call will put result next to our arg
-    cp32        r_ret   r_ptr
+    write32     &r_ret  0   r_ptr
     add         r_ret   8
     ; skip our arg & next func's ret area to set the argument
     add         r_ptr   16
@@ -37,7 +36,7 @@ fib:
     argv        r_ptr
     read64      r_N     r_ptr   0
     ; next func call will put result next to previous ret
-    cp32        r_ret   r_ptr
+    write32     &r_ret  0   r_ptr
     add         r_ret   16
     ; skip our arg & next func's ret area to set the argument
     add         r_ptr   24

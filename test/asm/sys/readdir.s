@@ -16,11 +16,11 @@ _entry:
     write32     &rdir_args  20      &n_total
     write32     &rdir_args  24      &n_buf
     syscall 14  &rdir_args  &ok
-    ne          test        ok     0
+    ne          test        ok      0
     jtrue       &on_error   test
 
     ret
 
 on_error:
-    cp64        ok          0x1122
+    write64     &ok         0       0x1122
     ret

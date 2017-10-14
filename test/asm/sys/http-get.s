@@ -15,7 +15,7 @@
 
 _entry:
 	; socket()
-    cp64        scall_args  1
+    write64     &scall_args 0  1
     syscall 15  &scall_args &fd
     eq          test        fd 0
     jtrue       &on_error   test
@@ -81,7 +81,7 @@ on_data_read:
 	; test size transmitted
 	read64      arg     ptr     16
     gt          test    arg     16 ; some number...
-	cp64		size_read		arg
+	write64		&size_read 0	arg
 
 	; fall through to socket_close!
 
@@ -91,5 +91,5 @@ socket_close:
     ret
 
 on_error:
-    cp64        ok          0x1122
+    write64     &ok			0	0x1122
     ret

@@ -16,7 +16,7 @@
 %data @data         0x0 /40960
 
 _entry:
-    cp32        open_args   &path
+    write32     &open_args  0  &path
     write64     &open_args  4  0x0
 
     syscall 8   &open_args  &fd
@@ -38,7 +38,7 @@ file_close:
     ret
 
 file_read:
-    cp64        next_ptr    &data
+    write64     &next_ptr   0       &data
     add         next_ptr    size
 
     write64     &read_args  0       fd
@@ -74,9 +74,9 @@ read_callback:
     jtrue       &on_error   test
     ret
 set_done:
-    cp64        done    1
+    write64     &done       0   1
     ret
 
 on_error:
-    cp64        ok          0x1122
+    write64     &ok         0   0x1122
     ret

@@ -11,11 +11,11 @@
 
 
 _entry:
-    cp8  v_s8  0x11
-    cp16 v_s16 0x1122
-    cp32 v_s32 0x11223344
-    cp64 v_s64 0x1122334455667788
-    cp8  m_s8 v_s8
-    cp16 m_s16 v_s16
-    cp32 m_s32 v_s32
-    cp64 m_s64 v_s64
+    write8  &v_s8 0  0x11
+    write16 &v_s16 0 0x1122
+    write32 &v_s32 0 0x11223344
+    write64 &v_s64 0 0x1122334455667788
+    write8  &m_s8 0 v_s8
+    write16 &m_s16 0 v_s16
+    write32 &m_s32 0 v_s32
+    write64 &m_s64 0 v_s64

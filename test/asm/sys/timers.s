@@ -13,8 +13,8 @@ _entry:
     ne test sysret 0
     jtrue &on_error test
 
-    cp32 timeout_args &callback
-    cp32 ptr &timeout_args
+    write32 &timeout_args 0 &callback
+    write32 &ptr 0 &timeout_args
     write64 ptr 4 250
     syscall 3 &timeout_args &sysret
     ne test sysret 0
@@ -23,7 +23,7 @@ _entry:
     ret
 
 on_error:
-    cp64 ok 0xdeadbeaf
+    write64 &ok 0 0xdeadbeaf
     ret
 
 callback:
@@ -34,7 +34,7 @@ callback:
     ; ensure time delta is <= 1s
     eq ok begin_t tmout_t
     jtrue &done ok
-    cp64 tmp begin_t
+    write64 &tmp 0 begin_t
     add tmp 1
     eq ok tmp tmout_t
     jmp &done

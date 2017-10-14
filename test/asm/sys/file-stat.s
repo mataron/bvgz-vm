@@ -15,5 +15,5 @@ _entry:
     ret
 
 on_error:
-    cp64        ok          0x1122
+    write64     &ok 0          0x1122
     ret

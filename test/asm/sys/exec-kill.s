@@ -60,9 +60,9 @@ on_ls_exit:
 	jfalse		&on_error	test
 
 	; done!
-    cp64        ok         1
+    write64     &ok 0         1
 	ret
 
 on_error:
-    cp64        ok          0x1122
+    write64     &ok 0          0x1122
     ret

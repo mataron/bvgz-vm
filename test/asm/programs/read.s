@@ -10,7 +10,7 @@
 
 
 _entry:
-    cp32    ptr  &data
+    write32 &ptr 0  &data
     read8   b8   ptr    0
     read16  b16  ptr    0
     read32  b32  ptr    0

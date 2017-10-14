@@ -6,7 +6,7 @@
 %data @ptr 0x0 /4
 
 _entry:
-    cp64 num   2
+    write64 &num 0 2
 
 loop1:
     call &dec_f &num &num
@@ -16,7 +16,7 @@ loop1:
     jtrue &loop1 test
 
 past_loop1:
-    cp64 num 0
+    write64 &num 0 0
 
 loop2:
     call &inc_f &num &num

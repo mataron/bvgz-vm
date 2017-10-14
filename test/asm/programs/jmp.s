@@ -4,7 +4,7 @@
 %data @postest 0x0 /8
 
 _entry:
-    cp64 num   2
+    write64 &num 0   2
 
 decrement:
     sub num 1
@@ -20,7 +20,7 @@ loop1:
     l_and test postest
     jtrue &decrement test
 
-    cp64 num 0
+    write64 &num 0 0
 loop2:
     gt test num 2
     jfalse &increment test

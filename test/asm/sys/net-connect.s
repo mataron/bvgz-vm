@@ -12,7 +12,7 @@
 
 _entry:
 	; socket()
-    cp64        scall_args  1
+    write64     &scall_args 0  1
     syscall 15  &scall_args &fd
     eq          test        fd 0
     jtrue       &on_error   test
@@ -44,5 +44,5 @@ socket_close:
     ret
 
 on_error:
-    cp64        ok          0x1122
+    write64     &ok			0	0x1122
     ret
