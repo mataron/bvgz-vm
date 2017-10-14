@@ -127,7 +127,7 @@ static uint32_t connect_io_evt_handler(vm_t* vm, vm_fd_t* fd,
 {
     *remove = 1;
 
-    vm_net_cb_t* io_evt = (vm_net_cb_t*)evt->data;
+    vm_callback_t* io_evt = (vm_callback_t*)evt->data;
     uint64_t* cb_args = (uint64_t*)deref(io_evt->args, 2 * 8, vm);
     if (!cb_args)
     {
@@ -136,12 +136,10 @@ static uint32_t connect_io_evt_handler(vm_t* vm, vm_fd_t* fd,
         return 0;
     }
 
-    vm_net_cb_t* conn = (vm_net_cb_t*)evt->data;
-
     cb_args[0] = FD_IDX_TO_HANDLE(fd - vm->io.fds);
     cb_args[1] = 0;
 
-    make_func_procedure(conn->callback, conn->args, 0, vm);
+    make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
 
     free(evt->data);
     evt->data = NULL;
@@ -215,9 +213,9 @@ void sys_connect(vm_t* vm, uint32_t argv, uint32_t retv)
 
         evt->activate = connect_io_evt_handler;
         evt->flags = IO_EVT_SELECT_WRITE;
-        evt->data = malloc(sizeof(vm_net_cb_t));
+        evt->data = malloc(sizeof(vm_callback_t));
 
-        vm_net_cb_t* buf = (vm_net_cb_t*)evt->data;
+        vm_callback_t* buf = (vm_callback_t*)evt->data;
 
         buf->args = cb_args_ref;
         buf->callback = callback;
@@ -269,7 +267,7 @@ static uint32_t accept_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     // continue on accept()ing clients!
     *remove = 0;
 
-    vm_net_cb_t* io_evt = (vm_net_cb_t*)evt->data;
+    vm_callback_t* io_evt = (vm_callback_t*)evt->data;
     uint64_t* cb_args = (uint64_t*)deref(io_evt->args, 2 * 8, vm);
     if (!cb_args)
     {
@@ -284,7 +282,6 @@ static uint32_t accept_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     int r = accept(fd->fd, (struct sockaddr*)&peer_addr, &len);
     if ((r < 0 && errno != EAGAIN) || r >= 0)
     {
-        vm_net_cb_t* cb = (vm_net_cb_t*)evt->data;
         if (r >= 0)
         {
             uint64_t newfd_idx = alloc_fd(vm);
@@ -302,7 +299,7 @@ static uint32_t accept_io_evt_handler(vm_t* vm, vm_fd_t* fd,
         }
 
         cb_args[1] = r == 0 ? 0 : errno;
-        make_func_procedure(cb->callback, cb->args, 0, vm);
+        make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
 
         return 1;
     }
@@ -336,9 +333,9 @@ void sys_accept(vm_t* vm, uint32_t argv, uint32_t retv)
 
     evt->activate = accept_io_evt_handler;
     evt->flags = IO_EVT_SELECT_READ;
-    evt->data = malloc(sizeof(vm_net_cb_t));
+    evt->data = malloc(sizeof(vm_callback_t));
 
-    vm_net_cb_t* buf = (vm_net_cb_t*)evt->data;
+    vm_callback_t* buf = (vm_callback_t*)evt->data;
 
     buf->args = *(uint32_t*)(args + 8);
     buf->callback = *(uint32_t*)(args + 12);

@@ -3,6 +3,15 @@
 
 #include <stdint.h>
 
+
+typedef struct _vm_callback_t
+{
+    uint32_t callback;
+    uint32_t args;
+}
+vm_callback_t;
+
+
 struct _vm_t;
 typedef
 void (*syscall_f)(struct _vm_t* vm, uint32_t argv, uint32_t retv);

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <signal.h>
@@ -9,7 +8,7 @@
 #include <time.h>
 
 #include "vm.h"
-#include "syscall.h"
+#include "syscall_proc.h"
 #include "bytecode.h"
 
 

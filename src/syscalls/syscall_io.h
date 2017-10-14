@@ -12,8 +12,7 @@ typedef struct _io_mem_t
 {
     uint32_t ptr;
     uint32_t len;
-    uint32_t callback;
-    uint32_t args;
+    vm_callback_t callback;
 }
 io_mem_t;
 
@@ -29,7 +28,7 @@ typedef uint32_t (*vm_io_evt_handler_t)
 
 #define IO_EVT_SELECT_READ    0x1
 #define IO_EVT_SELECT_WRITE   0x2
-    
+
 
 typedef struct _vm_io_evt_t
 {

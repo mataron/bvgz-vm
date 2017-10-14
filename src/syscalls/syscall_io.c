@@ -195,7 +195,7 @@ static int common_io_evt_handler(vm_t* vm, vm_fd_t* fd,
     vm_io_evt_t* evt, uint8_t** buf, uint64_t** cb_args)
 {
     io_mem_t* io_evt = (io_mem_t*)evt->data;
-    *cb_args = (uint64_t*)deref(io_evt->args, 4 * 8, vm);
+    *cb_args = (uint64_t*)deref(io_evt->callback.args, 4 * 8, vm);
     if (!*cb_args)
     {
         // not much to do...
@@ -239,7 +239,8 @@ static uint32_t read_io_evt_handler(vm_t* vm, vm_fd_t* fd,
         vm->error_no = errno;
     }
 
-    make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
+    make_func_procedure(io_evt->callback.callback,
+        io_evt->callback.args, 0, vm);
 
     free(evt->data);
     evt->data = NULL;
@@ -269,7 +270,8 @@ static uint32_t write_io_evt_handler(vm_t* vm, vm_fd_t* fd,
         vm->error_no = errno;
     }
 
-    make_func_procedure(io_evt->callback, io_evt->args, 0, vm);
+    make_func_procedure(io_evt->callback.callback,
+        io_evt->callback.args, 0, vm);
 
     free(evt->data);
     evt->data = NULL;
@@ -415,8 +417,8 @@ void sys_read(vm_t* vm, uint32_t argv, uint32_t retv)
 
     buf->ptr = ptr;
     buf->len = len;
-    buf->callback = f_ptr;
-    buf->args = args_ptr;
+    buf->callback.callback = f_ptr;
+    buf->callback.args = args_ptr;
 
     *ret = 0;
 }
@@ -447,8 +449,8 @@ void sys_write(vm_t* vm, uint32_t argv, uint32_t retv)
 
     buf->ptr = ptr;
     buf->len = len;
-    buf->callback = f_ptr;
-    buf->args = args_ptr;
+    buf->callback.callback = f_ptr;
+    buf->callback.args = args_ptr;
 
     *ret = 0;
 }
