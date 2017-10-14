@@ -240,6 +240,8 @@ void sys_run(vm_t* vm, uint32_t argv, uint32_t retv)
     pid_t ch_pid = fork();
     if (ch_pid == 0)
     {
+        destroy_vm(vm); // make sure all i/o & misc resources are released
+
         char** argv = malloc(sizeof(char*) * 3);
         argv[0] = BVGZ_VM_executable;
         argv[1] = imgname;
@@ -250,6 +252,9 @@ void sys_run(vm_t* vm, uint32_t argv, uint32_t retv)
 #endif
         execv(BVGZ_VM_executable, argv);
         fprintf(stderr, "execv(BVGZ VM) failed: %s\n", strerror(errno));
+
+        free(imgname);
+        free(argv);
         exit(1);
         return;
     }
