@@ -51,12 +51,28 @@ static void test_exec_vm()
 }
 
 
+static void test_exec_kill()
+{
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "exec-kill.s");
+
+    execute_vm(vm);
+    print_vm_state(vm);
+
+    assert(vm->exceptions == 0);
+    assert(vm->procedures == NULL);
+    assert(*((uint64_t*)vm->memory) == 1);
+
+    destroy_vm(vm);
+}
+
+
 int main(int argc, char** argv)
 {
     initialize_engine("./src/bvgz");
 
     test_exec_ls();
     test_exec_vm();
+    test_exec_kill();
 
     return 0;
 }
