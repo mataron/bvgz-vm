@@ -56,3 +56,9 @@ target_link_libraries(test_vm_sys_net -Wl,--start-group
     -Wl,--end-group)
 target_link_libraries(test_vm_sys_net pthread)
 add_test(test_vm_sys_net test_vm_sys_net)
+
+add_executable(test_vm_sys_mem test_vm_sys_mem.c)
+target_link_libraries(test_vm_sys_mem -Wl,--start-group
+    testing syscalls instns vm bytecode utils
+    -Wl,--end-group)
+add_test(test_vm_sys_mem test_vm_sys_mem)

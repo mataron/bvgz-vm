@@ -28,6 +28,8 @@ void sys_mexpand(vm_t* vm, uint32_t argv, uint32_t retv)
 
     vm->memory = mem;
     vm->memsz += sz;
+
+    ret = mem + retv; // in case mem != vm->memory (old)
     *ret = 0;
 }
 
