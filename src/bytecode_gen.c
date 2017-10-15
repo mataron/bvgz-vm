@@ -232,27 +232,23 @@ int write_bvgz_image(FILE *fp, prs_result_t* parse,
 }
 
 
-typedef struct {
+typedef struct
+{
+    uint32_t address;
     uint32_t fileno;
     uint32_t lineno;
-}
-dbg_line_ref_t;
-
-
-typedef struct {
-    uint32_t address;
-    dbg_line_ref_t line_ref;
     int32_t label_ref;
 }
 dbg_line_assoc_t;
 
 
-typedef struct {
-    // files compiled into the image
-    char** files;
+typedef struct
+{
+    // files (offsets into the string table)
+    uint32_t* files;
     uint32_t n_files;
-    // all labels
-    char** labels;
+    // all labels (offsets into the string table)
+    uint32_t* labels;
     uint32_t n_labels;
     // associations of code addresses to line refs
     dbg_line_assoc_t* code_lines;
@@ -260,8 +256,88 @@ typedef struct {
     // associations of mem addresses to line refs
     dbg_line_assoc_t* mem_lines;
     uint32_t n_mem_lines;
+    // string table
+    uint8_t* string_table;
+    uint32_t string_table_sz;
 }
 debug_t;
+
+
+typedef struct
+{
+    debug_t* dbg;
+    char** filenames;
+    uint32_t n_filenames;
+}
+dbg_label_t;
+
+
+static uint32_t filename_index(const char* filename,
+    char*** filenames, uint32_t* n_filenames)
+{
+    uint32_t n_fnames = *n_filenames;
+    for (uint32_t f = 0; f < n_fnames; ++f)
+    {
+        if (filename == (*filenames)[f]) return f;
+    }
+
+    *filenames = realloc(*filenames,
+        sizeof(char*) * (n_fnames + 1));
+
+    (*filenames)[n_fnames] = (char*)filename;
+    return n_fnames;
+}
+
+
+static void mk_label_debug_data(void* _data, char* lbl_name, void* _label)
+{
+    dbg_label_t* data = _data;
+    debug_t* dbg = data->dbg;
+    char** filenames = data->filenames;
+    uint32_t n_filenames = data->n_filenames;
+    label_t* label = _label;
+
+    if (label->is_mem_ref)
+    {
+        dbg->mem_lines = realloc(dbg->mem_lines,
+            sizeof(dbg_line_assoc_t) *
+            (dbg->n_mem_lines + 1));
+
+        dbg_line_assoc_t* ln = dbg->mem_lines +
+            dbg->n_mem_lines;
+        dbg->n_mem_lines++;
+
+        ln->address = label->offset;
+        ln->fileno = filename_index(label->filename,
+            &filenames, &n_filenames);
+        ln->lineno = label->lineno;
+        ln->label_ref = dbg->n_labels;
+    }
+    else
+    {
+        for (uint32_t i = 0; i < dbg->n_code_lines; i++)
+        {
+            if (dbg->code_lines[i].address == label->offset)
+            {
+                dbg->code_lines[i].label_ref = dbg->n_labels;
+                break;
+            }
+        }
+    }
+
+    int len = strlen(lbl_name) + 1; // neeed nul term.
+    dbg->string_table = realloc(dbg->string_table,
+        dbg->string_table_sz + len);
+    dbg->labels = realloc(dbg->labels,
+        sizeof(uint32_t) * (dbg->n_labels + 1));
+
+    memcpy(dbg->string_table + dbg->string_table_sz,
+        lbl_name, len);
+    dbg->labels[dbg->n_labels] = dbg->string_table_sz;
+
+    dbg->string_table_sz += len;
+    dbg->n_labels++;
+}
 
 
 static debug_t* mk_debug_data(prs_result_t* parse)
@@ -269,12 +345,64 @@ static debug_t* mk_debug_data(prs_result_t* parse)
     debug_t* dbg = malloc(sizeof(debug_t));
     memset(dbg, 0, sizeof(debug_t));
 
+    // NOTE: filename lookup uses string ptr equality,
+    // not string equality.
+
+    char** filenames = NULL; // array of pointers (NOT the strings)
+    uint32_t n_filenames = 0;
+
+    for (uint32_t i = 0; i < parse->n_instns; i++)
+    {
+        dbg->code_lines = realloc(dbg->code_lines,
+            sizeof(dbg_line_assoc_t) *
+            (dbg->n_code_lines + 1));
+
+        dbg_line_assoc_t* ln = dbg->code_lines +
+            dbg->n_code_lines;
+        dbg->n_code_lines++;
+
+        prs_instn_t* instn = parse->instns[i];
+
+        ln->address = instn->mem_offset;
+        ln->fileno = filename_index(instn->filename,
+            &filenames, &n_filenames);
+        ln->lineno = instn->lineno;
+        ln->label_ref = -1;
+    }
+
+    for (uint32_t f = 0; f < n_filenames; f++)
+    {
+        int len = strlen(filenames[f]) + 1; // neeed nul term.
+        dbg->string_table = realloc(dbg->string_table,
+            dbg->string_table_sz + len);
+        dbg->files = realloc(dbg->files,
+            sizeof(uint32_t) * (dbg->n_files + 1));
+
+        memcpy(dbg->string_table + dbg->string_table_sz,
+            filenames[f], len);
+        dbg->files[dbg->n_files] = dbg->string_table_sz;
+
+        dbg->string_table_sz += len;
+        dbg->n_files++;
+    }
+
+    dbg_label_t data = { dbg, filenames, n_filenames };
+    hmap_iterate(parse->labels, &data, mk_label_debug_data);
+
+    free(filenames);
+
     return dbg;
 }
 
 
 static void delete_debug_data(debug_t* dbg)
 {
+    if (!dbg) return;
+
+    free(dbg->files);
+    free(dbg->labels);
+    free(dbg->code_lines);
+    free(dbg->mem_lines);
     free(dbg);
 }
 
@@ -283,6 +411,78 @@ int write_bvgz_image_debug(FILE *fp, prs_result_t* parse)
 {
     int ret = 0;
     debug_t* dbg = mk_debug_data(parse);
+
+    if (fwrite(&dbg->n_code_lines, sizeof(uint32_t), 1, fp) != 1)
+    {
+        fprintf(stderr, "fwrite(n_code_lines): %s\n", strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(&dbg->n_mem_lines, sizeof(uint32_t), 1, fp) != 1)
+    {
+        fprintf(stderr, "fwrite(n_mem_lines): %s\n", strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(&dbg->n_labels, sizeof(uint32_t), 1, fp) != 1)
+    {
+        fprintf(stderr, "fwrite(n_labels): %s\n", strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(&dbg->n_files, sizeof(uint32_t), 1, fp) != 1)
+    {
+        fprintf(stderr, "fwrite(n_files): %s\n", strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(dbg->code_lines, sizeof(dbg_line_assoc_t),
+            dbg->n_code_lines, fp) != dbg->n_code_lines)
+    {
+        fprintf(stderr, "fwrite(code lines:%u): %s\n",
+            dbg->n_code_lines, strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(dbg->mem_lines, sizeof(dbg_line_assoc_t),
+            dbg->n_mem_lines, fp) != dbg->n_mem_lines)
+    {
+        fprintf(stderr, "fwrite(mem lines:%u): %s\n",
+            dbg->n_mem_lines, strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(dbg->labels, sizeof(uint32_t), dbg->n_labels, fp) !=
+            dbg->n_labels)
+    {
+        fprintf(stderr, "fwrite(labels:%u): %s\n",
+            dbg->n_labels, strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(dbg->files, sizeof(uint32_t), dbg->n_files, fp) !=
+            dbg->n_files)
+    {
+        fprintf(stderr, "fwrite(files:%u): %s\n",
+            dbg->n_files, strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(dbg->string_table, dbg->string_table_sz, 1, fp) != 1)
+    {
+        fprintf(stderr, "fwrite(strings:%u): %s\n",
+            dbg->string_table_sz, strerror(errno));
+        ret = -1;
+        goto done;
+    }
 
 done:
     delete_debug_data(dbg);
