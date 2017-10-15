@@ -215,9 +215,76 @@ static struct ref* add_delayed_ref(struct ref* refs, int n_refs,
 }
 
 
-int write_bvgz_image(FILE *fp, struct _prs_result_t* parse,
-    uint8_t* code, uint32_t codesz, uint32_t entry_label)
+int write_bvgz_image(FILE *fp, prs_result_t* parse,
+    uint8_t* code, uint32_t codesz, uint32_t entry_label, int debug)
 {
-    return write_bvgz_image_direct(fp, code, codesz,
-        parse->memory, parse->memsz, entry_label);
+    uint16_t flags = BVGZ_IMG_F_EXEC;
+    if (debug) flags |= BVGZ_IMG_F_DEBUG;
+
+    int ret = write_bvgz_image_direct(fp, code, codesz,
+        parse->memory, parse->memsz, entry_label, flags);
+    if (!debug || ret < 0)
+    {
+        return ret;
+    }
+
+    return write_bvgz_image_debug(fp, parse);
+}
+
+
+typedef struct {
+    uint32_t fileno;
+    uint32_t lineno;
+}
+dbg_line_ref_t;
+
+
+typedef struct {
+    uint32_t address;
+    dbg_line_ref_t line_ref;
+    int32_t label_ref;
+}
+dbg_line_assoc_t;
+
+
+typedef struct {
+    // files compiled into the image
+    char** files;
+    uint32_t n_files;
+    // all labels
+    char** labels;
+    uint32_t n_labels;
+    // associations of code addresses to line refs
+    dbg_line_assoc_t* code_lines;
+    uint32_t n_code_lines;
+    // associations of mem addresses to line refs
+    dbg_line_assoc_t* mem_lines;
+    uint32_t n_mem_lines;
+}
+debug_t;
+
+
+static debug_t* mk_debug_data(prs_result_t* parse)
+{
+    debug_t* dbg = malloc(sizeof(debug_t));
+    memset(dbg, 0, sizeof(debug_t));
+
+    return dbg;
+}
+
+
+static void delete_debug_data(debug_t* dbg)
+{
+    free(dbg);
+}
+
+
+int write_bvgz_image_debug(FILE *fp, prs_result_t* parse)
+{
+    int ret = 0;
+    debug_t* dbg = mk_debug_data(parse);
+
+done:
+    delete_debug_data(dbg);
+    return ret;
 }

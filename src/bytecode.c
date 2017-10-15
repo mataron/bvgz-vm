@@ -180,7 +180,7 @@ error:
 
 
 int write_bvgz_image_direct(FILE *fp, uint8_t* code, uint32_t codesz,
-    uint8_t* mem, uint32_t memsz, uint32_t entry_label)
+    uint8_t* mem, uint32_t memsz, uint32_t entry_label, uint16_t flags)
 {
     uint16_t magic = BVGZ_IMG_MAGIC;
     if (fwrite(&magic, sizeof(uint16_t), 1, fp) != 1)
@@ -189,7 +189,6 @@ int write_bvgz_image_direct(FILE *fp, uint8_t* code, uint32_t codesz,
         return -1;
     }
 
-    uint16_t flags = BVGZ_IMG_F_EXEC;
     if (fwrite(&flags, sizeof(uint16_t), 1, fp) != 1)
     {
         fprintf(stderr, "fwrite(flags): %s\n", strerror(errno));

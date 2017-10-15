@@ -27,9 +27,12 @@ prs_arg_t;
 struct _instn_def_t;
 typedef struct _prs_instn_t
 {
+    const char* filename;
+    uint32_t lineno;
+
     struct _instn_def_t* instn;
     prs_arg_t* args;
-    // set by the bytecode generator: offset int memory
+    // set by the bytecode generator: offset in memory
     // where this instruction is found.
     uint32_t mem_offset;
 }
@@ -38,8 +41,11 @@ prs_instn_t;
 
 typedef struct _label_t
 {
+    const char* filename;
+    uint32_t lineno;
+
     uint32_t offset;
-    // when false, ofset refers to an instn.
+    // when false, offset refers to an instn.
     uint8_t is_mem_ref;
 }
 label_t;
@@ -47,6 +53,8 @@ label_t;
 
 typedef struct _prs_result_t
 {
+    uint32_t n_files;
+
     uint32_t errors;
     uint32_t warnings;
 

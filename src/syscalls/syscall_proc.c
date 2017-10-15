@@ -235,7 +235,7 @@ void sys_run(vm_t* vm, uint32_t argv, uint32_t retv)
     }
 
     int wret = write_bvgz_image_direct(imgfp, code_ptr, codesz,
-        mem_ptr, memsz, entry_pt);
+        mem_ptr, memsz, entry_pt, BVGZ_IMG_F_EXEC);
 
     fclose(imgfp);
     if (wret < 0)

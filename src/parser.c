@@ -56,8 +56,9 @@ static void parse_preproc_include(const char* filename, uint32_t lineno,
     char* line, prs_result_t* result, list_t* include_paths,
     hashset_t label_refs);
 
-static void add_label(const char* label_token,
-    prs_result_t* result, uint32_t offset, uint8_t is_mem_ref);
+static void add_label(const char* filename, uint32_t lineno,
+    const char* label_token, prs_result_t* result, uint32_t offset,
+    uint8_t is_mem_ref);
 static void add_instn(const char* filename, uint32_t lineno,
     const char** tokens, int n_tokens, prs_result_t* result,
     hashset_t label_refs);
@@ -198,6 +199,7 @@ static void report(prs_result_t* r, int kind, const char* source,
 static prs_result_t* init_parse_result()
 {
     prs_result_t* res = malloc(sizeof(prs_result_t));
+    res->n_files = 0;
     res->errors = res->warnings = 0;
     res->n_instns = 0;
     res->instns = NULL;
@@ -258,6 +260,8 @@ static void parse_asm_into(const char* filename, list_t* include_paths,
         sz = 0;
     }
 
+    result->n_files++;
+
     free(line);
     fclose(fp);
 }
@@ -303,7 +307,8 @@ static void parse_line(const char* filename, uint32_t lineno, char* line,
         else if (tkn == 0 && *p == ':')
         {
             *p = 0;
-            add_label(tokens[0], result, result->n_instns, 0);
+            add_label(filename, lineno, tokens[0], result,
+                result->n_instns, 0);
             parse_instn = 0;
         }
         else if (!parse_instn)
@@ -451,7 +456,8 @@ static void add_file_to_memory(const char* filename, uint32_t lineno,
     set_memory_size(filename, lineno, original_offset, size, result);
     if (label)
     {
-        add_label(label + 1 /* skip '@' chr */, result, original_offset, 1);
+        add_label(filename, lineno, label + 1 /* skip '@' chr */,
+            result, original_offset, 1);
     }
 }
 
@@ -533,7 +539,8 @@ static void add_str_to_memory(const char* filename, uint32_t lineno,
     set_memory_size(filename, lineno, original_offset, size, result);
     if (label)
     {
-        add_label(label + 1 /* skip '@' chr */, result, original_offset, 1);
+        add_label(filename, lineno, label + 1 /* skip '@' chr */,
+            result, original_offset, 1);
     }
 }
 
@@ -580,7 +587,8 @@ static void add_hex_to_memory(const char* filename, uint32_t lineno,
     set_memory_size(filename, lineno, w_offset, size, result);
     if (label)
     {
-        add_label(label + 1 /* skip '@' chr */, result, w_offset, 1);
+        add_label(filename, lineno, label + 1 /* skip '@' chr */,
+            result, w_offset, 1);
     }
 }
 
@@ -755,10 +763,13 @@ static void parse_preproc_include(const char* filename, uint32_t lineno,
 }
 
 
-static void add_label(const char* label_token,
-    prs_result_t* result, uint32_t offset, uint8_t is_mem_ref)
+static void add_label(const char* filename, uint32_t lineno,
+    const char* label_token, prs_result_t* result, uint32_t offset,
+    uint8_t is_mem_ref)
 {
     label_t* label = malloc(sizeof(label_t));
+    label->filename = filename;
+    label->lineno = lineno;
     label->offset = offset;
     label->is_mem_ref = is_mem_ref;
     hmap_put(result->labels, strdup(label_token), label);
@@ -774,6 +785,9 @@ static void add_instn(const char* filename, uint32_t lineno,
         label_refs);
     if (instn)
     {
+        instn->filename = filename;
+        instn->lineno = lineno;
+
         result->n_instns++;
         result->instns = realloc(result->instns,
             result->n_instns * sizeof(prs_instn_t*));

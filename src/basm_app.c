@@ -11,11 +11,11 @@
 #define DefaultEntryPointLabel  "_entry"
 
 
-list_t* include_paths = NULL;
-char* asmfile = NULL;
-char* outfile = NULL;
-char* entry_pt_label = NULL;
-
+static list_t* include_paths = NULL;
+static char* asmfile = NULL;
+static char* outfile = NULL;
+static char* entry_pt_label = NULL;
+static int debug = 0;
 
 static void print_help(FILE* out, char* program);
 static void parse_args(int argc, char** argv);
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     }
 
     if (write_bvgz_image(outfp, result, code, codesz,
-        entry_offset) < 0)
+        entry_offset, debug) < 0)
     {
         retval = 1;
         goto done;
@@ -76,7 +76,7 @@ done:
 static void print_help(FILE* out, char* program)
 {
     fprintf(out,
-        "Usage %s [-I <include>] [-o <output>] [-e <label>] <file>\n",
+        "Usage %s [-g] [-I <include>] [-o <output>] [-e <label>] <file>\n",
         program);
 }
 
@@ -105,7 +105,7 @@ static void parse_args(int argc, char** argv)
 {
     int opt;
 
-    while ((opt = getopt(argc, argv, "hI:o:e:")) != -1)
+    while ((opt = getopt(argc, argv, "hgI:o:e:")) != -1)
     {
         switch (opt)
         {
@@ -113,6 +113,10 @@ static void parse_args(int argc, char** argv)
                 print_help(stdout, argv[0]);
                 free_args();
                 exit(0);
+                break;
+
+            case 'g':
+                debug = 1;
                 break;
 
             case 'I':
