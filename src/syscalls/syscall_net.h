@@ -9,8 +9,6 @@
 #define SOCK_T_TCP  1
 #define SOCK_T_UDP  2
 
-#define LISTEN_BACKLOG  10
-
 
 typedef struct _vm_net_sock_t
 {

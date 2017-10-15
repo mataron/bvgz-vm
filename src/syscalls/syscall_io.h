@@ -6,8 +6,6 @@
 #include "syscall.h"
 
 
-#define IO_EVT_ALLOC    4
-
 typedef struct _io_mem_t
 {
     uint32_t ptr;

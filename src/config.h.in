@@ -1,0 +1,16 @@
+#ifndef _BVGZ_CONFIG_H
+#define _BVGZ_CONFIG_H
+
+// allocation size of function stack
+#define FUNC_STACK_ALLOC_SZ     64
+
+// child processes structures allocation step
+#define PROC_ALLOC    8
+
+// networking: backlog used with listen()
+#define LISTEN_BACKLOG  10
+
+// i/o event structures allocation step
+#define IO_EVT_ALLOC    4
+
+#endif

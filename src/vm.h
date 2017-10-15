@@ -2,12 +2,12 @@
 #define _BVGZ_VM_H
 
 #include <stdint.h>
+
+#include "config.h"
 #include "util/list.h"
 #include "timers.h"
 #include "syscalls/syscall_io.h"
 #include "syscalls/syscall_proc.h"
-
-#define FUNC_STACK_ALLOC_SZ     64
 
 #define VM_E_Arithmetic         0x1
 #define VM_E_MemFault           0x2

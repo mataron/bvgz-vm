@@ -1,6 +1,9 @@
 include_directories(.)
 include_directories(../src)
 
+# for config.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/../src)
+
 include (CTest)
 enable_testing()
 

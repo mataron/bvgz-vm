@@ -1,5 +1,8 @@
 include_directories(.)
 
+configure_file(config.h.in config.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_subdirectory(util)
 add_subdirectory(instns)
 add_subdirectory(syscalls)

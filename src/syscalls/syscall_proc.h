@@ -7,9 +7,6 @@
 #include "syscall.h"
 
 
-#define PROC_ALLOC    8
-
-
 typedef struct _vm_child_t
 {
     pid_t pid;
