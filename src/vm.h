@@ -73,10 +73,6 @@ typedef struct _vm_t
 vm_t;
 
 
-extern int verbose;
-extern int collect_stats;
-
-
 extern char* BVGZ_VM_executable;
 void initialize_engine(char* vm_progname);
 

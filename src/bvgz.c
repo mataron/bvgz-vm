@@ -8,11 +8,12 @@
 #include "vm.h"
 #include "bytecode.h"
 #include "instns/instn.h"
+#include "syscalls/syscall.h"
 
 
-char* imgfile = NULL;
-char* dump_file = NULL;
-vm_t* vm = NULL;
+static char* imgfile = NULL;
+static int custom_temp_dir = 0;
+static vm_t* vm = NULL;
 
 
 static void print_help(FILE* out, char* program);
@@ -48,6 +49,8 @@ int main(int argc, char** argv)
     execute_vm(vm);
     print_vm_state(vm);
 
+    retval = vm->exceptions << 1;
+
 done:
     if (imgfp) fclose(imgfp);
     cleanup();
@@ -58,7 +61,7 @@ done:
 static void print_help(FILE* out, char* program)
 {
     fprintf(out,
-        "Usage %s [-v]+ [-hqs] [-D <dumb-file>] <file>\n",
+        "Usage %s [-h] [-G <temp-dir>] <file>\n",
         program);
 }
 
@@ -67,7 +70,7 @@ static void parse_args(int argc, char** argv)
 {
     int opt;
 
-    while ((opt = getopt(argc, argv, "hvVqsD:")) != -1)
+    while ((opt = getopt(argc, argv, "hG:")) != -1)
     {
         switch (opt)
         {
@@ -77,20 +80,9 @@ static void parse_args(int argc, char** argv)
                 exit(0);
                 break;
 
-            case 'D':
-                dump_file = strdup(optarg);
-                break;
-
-            case 'v':
-                verbose++;
-                break;
-
-            case 'q':
-                verbose = -1;
-                break;
-
-            case 's':
-                collect_stats = 1;
+            case 'G':
+                BVGZ_image_gen_dir = strdup(optarg);
+                custom_temp_dir = 1;
                 break;
 
             default:
@@ -115,7 +107,10 @@ error:
 
 static void cleanup()
 {
-    free(dump_file);
+    if (custom_temp_dir)
+    {
+        free(BVGZ_image_gen_dir);
+    }
     if (vm)
     {
         destroy_vm(vm);

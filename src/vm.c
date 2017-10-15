@@ -5,9 +5,6 @@
 #include "instns/instn.h"
 #include "syscalls/syscall.h"
 
-int verbose = 0;
-int collect_stats = 0;
-
 #define STACK_FREE_THRESHOLD    ((uint32_t)(1.5 * FUNC_STACK_ALLOC_SZ))
 
 #define xstr(s) str(s)

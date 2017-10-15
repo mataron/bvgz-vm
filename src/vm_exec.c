@@ -9,9 +9,6 @@
 #define IDLE_STEP_DURATION_MS       10
 #define VM_CLEANUP_PERIOD_INSTNS    20
 
-// TODO: stats collection
-
-
 
 #undef ENABLE_INSTN_PRINT
 // #define ENABLE_INSTN_PRINT
