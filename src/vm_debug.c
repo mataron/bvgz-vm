@@ -3,25 +3,18 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "vm.h"
+#include "debug.h"
 #include "instns/instn.h"
-#include "bytecode.h"
 
 
-#define F_RUNNING   0x1
-
-typedef struct _dbg_state_t
-{
-    vm_t* vm;
-    vm_debug_data_t* data;
-    unsigned flags;
-}
-dbg_state_t;
+static int nCommands = 0;
 
 
+static void setup_commands();
 static void print_init_message(dbg_state_t* state);
 static char* read_command();
-static int exec_command(char* cmdline, dbg_state_t* state);
+static char** split_cmdline(char* cmdline, int* argc);
+static int exec_command(int argc, char** argv, dbg_state_t* state);
 
 
 void debug_vm(vm_t* vm, vm_debug_data_t* debug_data)
@@ -30,6 +23,8 @@ void debug_vm(vm_t* vm, vm_debug_data_t* debug_data)
     state.vm = vm;
     state.data = debug_data;
     state.flags = 0;
+
+    setup_commands();
 
     print_init_message(&state);
     while (1)
@@ -40,15 +35,44 @@ void debug_vm(vm_t* vm, vm_debug_data_t* debug_data)
             break;
         }
 
-        if (exec_command(cmd, &state) < 0)
+        int argc = 0;
+        char** argv = split_cmdline(cmd, &argc);
+        if (!argv)
+        {
+            free(cmd);
+            break;
+        }
+
+        if (exec_command(argc, argv, &state) < 0)
         {
             break;
         }
 
         free(cmd);
+        free(argv);
     }
 
     cleanup_vm(vm);
+}
+
+
+static int compare_dbg_commands(const void* a, const void* b)
+{
+    char** _a = (char**)a;
+    char** _b = (char**)b;
+	return strcmp(*_a, *_b);
+}
+
+
+static void setup_commands()
+{
+    for (dbg_command_t* cmd = Commands; cmd->name; cmd++)
+    {
+        nCommands++;
+    }
+
+    qsort(Commands, nCommands, sizeof(dbg_command_t),
+        compare_dbg_commands);
 }
 
 
@@ -94,6 +118,7 @@ static char* read_command()
         for (char* c = buf + len - 1; c > buf; c--)
         {
             if (isspace(*c)) *c = 0;
+            else break;
         }
 
         len = strlen(cmd);
@@ -110,7 +135,50 @@ static char* read_command()
 }
 
 
-static int exec_command(char* cmdline, dbg_state_t* state)
+static char** split_cmdline(char* cmdline, int* argc)
 {
-    return -1;
+    char** argv = malloc(sizeof(char*));
+    argv[0] = cmdline;
+    *argc = 1;
+
+    int reached_arg = 0;
+    char* c = cmdline;
+    while (*c)
+    {
+        if (isspace(*c))
+        {
+            *c = 0;
+            reached_arg = 1;
+            c++;
+            continue;
+        }
+
+        if (reached_arg)
+        {
+            (*argc)++;
+            argv = realloc(argv, sizeof(char*) * *argc);
+            argv[*argc - 1] = c;
+            reached_arg = 0;
+        }
+
+        c++;
+    }
+
+    return argv;
+}
+
+
+static int exec_command(int argc, char** argv, dbg_state_t* state)
+{
+    dbg_command_t* cmd;
+
+    cmd = bsearch(argv, Commands, nCommands,
+        sizeof(dbg_command_t), compare_dbg_commands);
+    if (!cmd)
+    {
+        printf("Unknown command: [%s]\n", argv[0]);
+        return 0;
+    }
+
+    return cmd->handler(argc, argv, state);
 }
