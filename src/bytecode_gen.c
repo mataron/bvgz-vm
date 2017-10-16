@@ -275,6 +275,7 @@ static uint32_t filename_index(const char* filename,
         sizeof(char*) * (n_fnames + 1));
 
     (*filenames)[n_fnames] = (char*)filename;
+    (*n_filenames)++;
     return n_fnames;
 }
 
