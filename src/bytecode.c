@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
@@ -230,4 +231,35 @@ int write_bvgz_image_direct(FILE *fp, uint8_t* code, uint32_t codesz,
     }
 
     return 0;
+}
+
+
+vm_debug_data_t* read_bvgz_debug_data(FILE* fp)
+{
+    vm_debug_data_t* dbg = malloc(sizeof(vm_debug_data_t));
+
+    if (fread(dbg, sizeof(vm_debug_data_t), 1, fp) != 1)
+    {
+        fprintf(stderr, "fread(debug hdr): %s\n", strerror(errno));
+        goto error;
+    }
+
+    uint32_t rest_size =
+        sizeof(dbg_line_assoc_t) * (dbg->n_code_lines + dbg->n_mem_lines) +
+        sizeof(uint32_t) * (dbg->n_labels + dbg->n_files) +
+        dbg->strtab_sz;
+
+    dbg = realloc(dbg, sizeof(vm_debug_data_t) + rest_size);
+
+    if (fread(dbg + sizeof(vm_debug_data_t), rest_size, 1, fp) != 1)
+    {
+        fprintf(stderr, "fread(debug payload:%u): %s\n",
+            rest_size, strerror(errno));
+        goto error;
+    }
+
+    return dbg;
+error:
+    free(dbg);
+    return NULL;
 }

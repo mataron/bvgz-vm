@@ -8,7 +8,7 @@ add_subdirectory(instns)
 add_subdirectory(syscalls)
 
 add_library(vm STATIC
-    vm.c bytecode.c vm_exec.c timers.c
+    vm.c bytecode.c vm_exec.c vm_debug.c timers.c
 )
 
 add_library(bytecode STATIC

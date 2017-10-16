@@ -234,16 +234,6 @@ int write_bvgz_image(FILE *fp, prs_result_t* parse,
 
 typedef struct
 {
-    uint32_t address;
-    uint32_t fileno;
-    uint32_t lineno;
-    int32_t label_ref;
-}
-dbg_line_assoc_t;
-
-
-typedef struct
-{
     // files (offsets into the string table)
     uint32_t* files;
     uint32_t n_files;

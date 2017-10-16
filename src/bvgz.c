@@ -14,6 +14,7 @@
 static char* imgfile = NULL;
 static int custom_temp_dir = 0;
 static vm_t* vm = NULL;
+static int debug = 0;
 
 
 static void print_help(FILE* out, char* program);
@@ -43,11 +44,24 @@ int main(int argc, char** argv)
         goto done;
     }
 
+    vm_debug_data_t* dbg = NULL;
+    if (debug)
+    {
+        dbg = read_bvgz_debug_data(imgfp);
+    }
+
     fclose(imgfp);
     imgfp = NULL;
 
-    execute_vm(vm);
-    print_vm_state(vm);
+    if (debug)
+    {
+        debug_vm(vm, dbg);
+    }
+    else
+    {
+        execute_vm(vm);
+        print_vm_state(vm);
+    }
 
     retval = vm->exceptions << 1;
 
@@ -61,7 +75,7 @@ done:
 static void print_help(FILE* out, char* program)
 {
     fprintf(out,
-        "Usage %s [-h] [-G <temp-dir>] <file>\n",
+        "Usage %s [-hd] [-G <temp-dir>] <file>\n",
         program);
 }
 
@@ -70,7 +84,7 @@ static void parse_args(int argc, char** argv)
 {
     int opt;
 
-    while ((opt = getopt(argc, argv, "hG:")) != -1)
+    while ((opt = getopt(argc, argv, "hdG:")) != -1)
     {
         switch (opt)
         {
@@ -78,6 +92,10 @@ static void parse_args(int argc, char** argv)
                 print_help(stdout, argv[0]);
                 cleanup();
                 exit(0);
+                break;
+
+            case 'd':
+                debug = 1;
                 break;
 
             case 'G':

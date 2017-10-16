@@ -13,4 +13,13 @@
 // i/o event structures allocation step
 #define IO_EVT_ALLOC    4
 
+// sleep duration of idle steps (milliseconds)
+#define IDLE_STEP_DURATION_MS       10
+
+// number of instructions every which a cleanup is done
+#define VM_CLEANUP_PERIOD_INSTNS    20
+
+#undef ENABLE_INSTN_PRINT
+// #define ENABLE_INSTN_PRINT
+
 #endif

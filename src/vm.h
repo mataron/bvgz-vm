@@ -80,7 +80,16 @@ void initialize_engine(char* vm_progname);
 vm_t* make_vm(uint32_t codesz, uint32_t memsz, uint32_t entry);
 void destroy_vm(vm_t* vm);
 
+struct _vm_debug_data_t;
+struct _instn_t;
+
+int vm_fire_events(vm_t* vm);
+proc_t* vm_current_procedure(vm_t* vm);
+int vm_decode_instn(vm_t* vm, proc_t* proc, struct _instn_t* instn);
+int vm_exec_instn(vm_t* vm, struct _instn_t* instn);
+
 void execute_vm(vm_t* vm);
+void debug_vm(vm_t* vm, struct _vm_debug_data_t* debug_data);
 uint32_t fire_vm_events(vm_t* vm);
 int has_pending_events(vm_t* vm);
 
