@@ -251,7 +251,7 @@ vm_debug_data_t* read_bvgz_debug_data(FILE* fp)
 
     dbg = realloc(dbg, sizeof(vm_debug_data_t) + rest_size);
 
-    if (fread(dbg + sizeof(vm_debug_data_t), rest_size, 1, fp) != 1)
+    if (fread(((void*)dbg) + sizeof(vm_debug_data_t), rest_size, 1, fp) != 1)
     {
         fprintf(stderr, "fread(debug payload:%u): %s\n",
             rest_size, strerror(errno));

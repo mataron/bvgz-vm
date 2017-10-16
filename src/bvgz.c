@@ -66,6 +66,7 @@ int main(int argc, char** argv)
     retval = vm->exceptions << 1;
 
 done:
+    free(dbg);
     if (imgfp) fclose(imgfp);
     cleanup();
     return retval;

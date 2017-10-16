@@ -43,13 +43,15 @@ void debug_vm(vm_t* vm, vm_debug_data_t* debug_data)
             break;
         }
 
-        if (exec_command(argc, argv, &state) < 0)
-        {
-            break;
-        }
+        int ret = exec_command(argc, argv, &state);
 
         free(cmd);
         free(argv);
+
+        if (ret < 0)
+        {
+            break;
+        }
     }
 
     cleanup_vm(vm);
@@ -126,6 +128,8 @@ static char* read_command()
         {
             break;
         }
+
+        free(buf);
     }
 
     cmd = strdup(cmd);
