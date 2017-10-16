@@ -7,49 +7,67 @@
 #include "bytecode.h"
 
 
+#define F_RUNNING   0x1
+
+typedef struct _dbg_state_t
+{
+    vm_t* vm;
+    vm_debug_data_t* data;
+    unsigned flags;
+}
+dbg_state_t;
+
+
+static void print_init_message(dbg_state_t* state);
+static char* read_command();
+static int exec_command(char* cmdline, dbg_state_t* state);
+
+
 void debug_vm(vm_t* vm, vm_debug_data_t* debug_data)
 {
-    instn_t instn;
+    dbg_state_t state;
+    state.vm = vm;
+    state.data = debug_data;
+    state.flags = 0;
 
+    print_init_message(&state);
     while (1)
     {
-        if (!vm->procedures)
-        {
-            int n_events = vm_fire_events(vm);
-            if (n_events < 0)
-            {
-                break;
-            }
-            if (n_events == 0)
-            {
-                continue;
-            }
-        }
-
-        proc_t* proc = vm_current_procedure(vm);
-        if (!proc)
-        {
-            continue;
-        }
-
-        if (vm_decode_instn(vm, proc, &instn) < 0)
+        char* cmd = read_command();
+        if (!cmd)
         {
             break;
         }
 
-        if (vm_exec_instn(vm, &instn) < 0)
+        if (exec_command(cmd, &state) < 0)
         {
             break;
-        }
-
-        vm->instns++;
-        vm->instns_since_last_cleanup++;
-
-        if (vm->instns_since_last_cleanup % VM_CLEANUP_PERIOD_INSTNS == 0)
-        {
-            cleanup_vm(vm);
         }
     }
 
     cleanup_vm(vm);
+}
+
+
+static void print_init_message(dbg_state_t* state)
+{
+    printf("BVGZ VM Debugger\n");
+    printf("Code: %u bytes | Mem: %u bytes\n",
+        state->vm->codesz, state->vm->memsz);
+    printf("Code lines: %u\n", state->data->n_code_lines);
+    printf("Mem symbols: %u\n", state->data->n_mem_lines);
+    printf("Labels: %u\n", state->data->n_labels);
+    printf("Files: %u\n", state->data->n_files);
+}
+
+
+static char* read_command()
+{
+    return NULL;
+}
+
+
+static int exec_command(char* cmdline, dbg_state_t* state)
+{
+    return -1;
 }
