@@ -12,6 +12,8 @@ typedef struct _dbg_state_t
     vm_t* vm;
     vm_debug_data_t* data;
     unsigned flags;
+
+    char* help_format_string;
 }
 dbg_state_t;
 

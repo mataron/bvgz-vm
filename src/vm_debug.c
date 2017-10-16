@@ -17,12 +17,27 @@ static char** split_cmdline(char* cmdline, int* argc);
 static int exec_command(int argc, char** argv, dbg_state_t* state);
 
 
+static void setup_state(dbg_state_t* state, vm_t* vm,
+    vm_debug_data_t* debug_data)
+{
+    state->vm = vm;
+    state->data = debug_data;
+    state->flags = 0;
+    state->help_format_string = NULL;
+}
+
+
+static void cleanup_state(dbg_state_t* state)
+{
+    free(state->help_format_string);
+    cleanup_vm(state->vm);
+}
+
+
 void debug_vm(vm_t* vm, vm_debug_data_t* debug_data)
 {
     dbg_state_t state;
-    state.vm = vm;
-    state.data = debug_data;
-    state.flags = 0;
+    setup_state(&state, vm, debug_data);
 
     setup_commands();
 
@@ -54,7 +69,7 @@ void debug_vm(vm_t* vm, vm_debug_data_t* debug_data)
         }
     }
 
-    cleanup_vm(vm);
+    cleanup_state(&state);
 }
 
 
