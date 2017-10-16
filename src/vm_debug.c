@@ -1,6 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <errno.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "vm.h"
 #include "instns/instn.h"
@@ -43,6 +44,8 @@ void debug_vm(vm_t* vm, vm_debug_data_t* debug_data)
         {
             break;
         }
+
+        free(cmd);
     }
 
     cleanup_vm(vm);
@@ -63,7 +66,47 @@ static void print_init_message(dbg_state_t* state)
 
 static char* read_command()
 {
-    return NULL;
+    char* cmd = NULL;
+    char* buf = NULL;
+    size_t length = 0;
+
+    while (1)
+    {
+        buf = NULL;
+        length = 0;
+
+        printf("> ");
+
+        size_t len = getline(&buf, &length, stdin);
+        if (len < 0)
+        {
+            return NULL;
+        }
+
+        // trim:
+
+        for (cmd = buf; *cmd; cmd++)
+        {
+            if (!isspace(*cmd)) break;
+            *cmd = 0;
+        }
+
+        for (char* c = buf + len - 1; c > buf; c--)
+        {
+            if (isspace(*c)) *c = 0;
+        }
+
+        len = strlen(cmd);
+        if (len > 0)
+        {
+            break;
+        }
+    }
+
+    cmd = strdup(cmd);
+    free(buf);
+
+    return cmd;
 }
 
 
