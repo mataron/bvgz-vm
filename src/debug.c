@@ -74,9 +74,39 @@ int dbg_show_symbols(int argc, char** argv, dbg_state_t* state)
 }
 
 
+int dbg_show_vm(int argc, char** argv, dbg_state_t* state)
+{
+    if (!state->flags) printf("VM Stopped\n");
+    else if (state->flags & F_RUNNING) printf("VM Running\n");
+
+    printf("Code sz: %5u | Mem sz: %u\n",
+        state->vm->codesz, state->vm->memsz);
+
+    printf("Instns run: %4lu | Since last cleanup: %u\n",
+        state->vm->instns, state->vm->instns_since_last_cleanup);
+    printf("Events: Tmrs:%3u | I/O fds:%2u | I/O events:%2u"
+        " | Procs:%2u | Procs C/Bs:%2u\n", state->vm->n_timers,
+        state->vm->io.used_fds, state->vm->io.n_io_events,
+        state->vm->proc.n_proc, state->vm->proc.n_exit_callbacks);
+    printf("Last error: %s\n", strerror(state->vm->error_no));
+
+    if (state->vm->exceptions)
+    {
+        printf("Exceptions:\n");
+        print_exception("  ", state->vm->exceptions);
+    }
+
+    printf("Runnable procedures: %u\n", list_size(state->vm->procedures));
+    printf("Next instn: 0x%08x\n", state->vm->iptr);
+
+    return 0;
+}
+
+
 dbg_command_t Commands[] = {
     { "q", "quit the debugger", dbg_quit },
     { "help", "show this message", dbg_help },
     { "sym", "show symbols: sym [c|m]", dbg_show_symbols },
+    { "vm", "show vm state", dbg_show_vm },
     { NULL, NULL, NULL }
 };

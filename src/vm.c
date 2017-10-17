@@ -183,20 +183,7 @@ void print_vm_state(vm_t* vm)
     if (vm->exceptions)
     {
         printf("Exceptions:\n");
-        if (vm->exceptions & VM_E_Arithmetic)
-            printf("  Arithmetic\n");
-        if (vm->exceptions & VM_E_MemFault)
-            printf("  Mem fault\n");
-        if (vm->exceptions & VM_E_OutOfMemory)
-            printf("  Out of memory\n");
-        if (vm->exceptions & VM_E_MemoryUnderflow)
-            printf("  Memory underflow\n");
-        if (vm->exceptions & VM_E_BadInstnPointer)
-            printf("  Bad Instn ptr\n");
-        if (vm->exceptions & VM_E_BadInstnCode)
-            printf("  Bad Instn\n");
-        if (vm->exceptions & VM_E_BadSyscallNo)
-            printf("  Bad syscall\n");
+        print_exception("  ", vm->exceptions);
     }
 }
 
@@ -205,4 +192,23 @@ void cleanup_vm(vm_t* vm)
 {
     cleanup_child_proc(vm);
     vm->instns_since_last_cleanup = 0;
+}
+
+
+void print_exception(char* prefix, unsigned x)
+{
+    if (x & VM_E_Arithmetic)
+        printf("%sArithmetic\n", prefix);
+    if (x & VM_E_MemFault)
+        printf("%sMem fault\n", prefix);
+    if (x & VM_E_OutOfMemory)
+        printf("%sOut of memory\n", prefix);
+    if (x & VM_E_MemoryUnderflow)
+        printf("%sMemory underflow\n", prefix);
+    if (x & VM_E_BadInstnPointer)
+        printf("%sBad Instn ptr\n", prefix);
+    if (x & VM_E_BadInstnCode)
+        printf("%sBad Instn\n", prefix);
+    if (x & VM_E_BadSyscallNo)
+        printf("%sBad syscall\n", prefix);
 }

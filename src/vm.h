@@ -110,4 +110,6 @@ void make_vm_timer(vm_t* vm, struct timespec* exprires_at,
 
 void cleanup_vm(vm_t* vm);
 
+void print_exception(char* prefix, unsigned x);
+
 #endif
