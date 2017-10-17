@@ -303,17 +303,11 @@ static void mk_label_debug_data(void* _data, char* lbl_name, void* _label)
             &filenames, &n_filenames);
         ln->lineno = label->lineno;
         ln->label_ref = dbg->n_labels;
-
-        printf("Mem: %s @ %u | ref=%u\n", lbl_name, ln->address,
-            ln->label_ref);
     }
     else
     {
         dbg_line_assoc_t* code_line = dbg->code_lines + label->offset;
         code_line->label_ref = dbg->n_labels;
-
-        printf("Code: %s @ %u | ref=%u\n", lbl_name,
-            code_line->address, code_line->label_ref);
     }
 
     int len = strlen(lbl_name) + 1; // neeed nul term.
@@ -328,8 +322,6 @@ static void mk_label_debug_data(void* _data, char* lbl_name, void* _label)
 
     dbg->string_table_sz += len;
     dbg->n_labels++;
-
-    printf("--- %s @ %u\n", lbl_name, dbg->n_labels - 1);
 }
 
 
