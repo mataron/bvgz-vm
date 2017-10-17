@@ -65,14 +65,15 @@ dbg_line_assoc_t;
 #define DBG_MEM_LINE(dbg, n)   \
     ( (dbg_line_assoc_t*) ( \
         (((void*)dbg) + sizeof(vm_debug_data_t)) + \
-        sizeof(dbg_line_assoc_t) * (dbg->n_code_lines + n)) \
+        sizeof(dbg_line_assoc_t) * \
+            (dbg->n_code_lines + n)) \
     )
 
 #define DBG_LABEL_OFFSET(dbg, n)   \
     ( *(uint32_t*) ( \
         (((void*)dbg) + sizeof(vm_debug_data_t)) + \
         sizeof(dbg_line_assoc_t) * \
-            (dbg->n_code_lines + dbg->n_labels) + \
+            (dbg->n_code_lines + dbg->n_mem_lines) + \
         sizeof(uint32_t) * n) \
     )
 
@@ -80,7 +81,7 @@ dbg_line_assoc_t;
     ( *(uint32_t*) ( \
         (((void*)dbg) + sizeof(vm_debug_data_t)) + \
         sizeof(dbg_line_assoc_t) * \
-            (dbg->n_code_lines + dbg->n_labels) + \
+            (dbg->n_code_lines + dbg->n_mem_lines) + \
         sizeof(uint32_t) * (dbg->n_labels + n)) \
     )
 
@@ -88,7 +89,7 @@ dbg_line_assoc_t;
     ( (char*) ( \
         (((void*)dbg) + sizeof(vm_debug_data_t)) + \
         sizeof(dbg_line_assoc_t) * \
-            (dbg->n_code_lines + dbg->n_labels) + \
+            (dbg->n_code_lines + dbg->n_mem_lines) + \
         sizeof(uint32_t) * \
             (dbg->n_labels + dbg->n_files) ) \
     )

@@ -303,17 +303,17 @@ static void mk_label_debug_data(void* _data, char* lbl_name, void* _label)
             &filenames, &n_filenames);
         ln->lineno = label->lineno;
         ln->label_ref = dbg->n_labels;
+
+        printf("Mem: %s @ %u | ref=%u\n", lbl_name, ln->address,
+            ln->label_ref);
     }
     else
     {
-        for (uint32_t i = 0; i < dbg->n_code_lines; i++)
-        {
-            if (dbg->code_lines[i].address == label->offset)
-            {
-                dbg->code_lines[i].label_ref = dbg->n_labels;
-                break;
-            }
-        }
+        dbg_line_assoc_t* code_line = dbg->code_lines + label->offset;
+        code_line->label_ref = dbg->n_labels;
+
+        printf("Code: %s @ %u | ref=%u\n", lbl_name,
+            code_line->address, code_line->label_ref);
     }
 
     int len = strlen(lbl_name) + 1; // neeed nul term.
@@ -328,6 +328,8 @@ static void mk_label_debug_data(void* _data, char* lbl_name, void* _label)
 
     dbg->string_table_sz += len;
     dbg->n_labels++;
+
+    printf("--- %s @ %u\n", lbl_name, dbg->n_labels - 1);
 }
 
 
@@ -427,6 +429,13 @@ int write_bvgz_image_debug(FILE *fp, prs_result_t* parse)
     if (fwrite(&dbg->n_files, sizeof(uint32_t), 1, fp) != 1)
     {
         fprintf(stderr, "fwrite(n_files): %s\n", strerror(errno));
+        ret = -1;
+        goto done;
+    }
+
+    if (fwrite(&dbg->string_table_sz, sizeof(uint32_t), 1, fp) != 1)
+    {
+        fprintf(stderr, "fwrite(str-tab-sz): %s\n", strerror(errno));
         ret = -1;
         goto done;
     }
