@@ -325,6 +325,16 @@ static void mk_label_debug_data(void* _data, char* lbl_name, void* _label)
 }
 
 
+static int compare_dbg_lines(const void* _a, const void* _b)
+{
+    dbg_line_assoc_t* a = (dbg_line_assoc_t*)_a;
+    dbg_line_assoc_t* b = (dbg_line_assoc_t*)_b;
+
+    if (a->fileno != b->fileno) return a->fileno - b->fileno;
+    return a->lineno - b->lineno;
+}
+
+
 static debug_t* mk_debug_data(prs_result_t* parse)
 {
     debug_t* dbg = malloc(sizeof(debug_t));
@@ -373,6 +383,11 @@ static debug_t* mk_debug_data(prs_result_t* parse)
 
     dbg_label_t data = { dbg, filenames, n_filenames };
     hmap_iterate(parse->labels, &data, mk_label_debug_data);
+
+    qsort(dbg->code_lines, dbg->n_code_lines,
+        sizeof(dbg_line_assoc_t), compare_dbg_lines);
+    qsort(dbg->mem_lines, dbg->n_mem_lines,
+        sizeof(dbg_line_assoc_t), compare_dbg_lines);
 
     free(filenames);
 
