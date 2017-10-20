@@ -24,11 +24,45 @@ static void setup_state(dbg_state_t* state, vm_t* vm,
     state->data = debug_data;
     state->flags = 0;
     state->help_format_string = NULL;
+
+    state->labels = hmap_create();
+    for (uint32_t m = 0; m < state->data->n_mem_lines; m++)
+    {
+        dbg_line_assoc_t* mem = DBG_MEM_LINE(state->data, m);
+        char* str = DBG_LABEL(state->data, mem->label_ref);
+        dbg_label_t* lbl = malloc(sizeof(dbg_label_t));
+        lbl->label = str;
+        lbl->address = mem->address;
+        lbl->is_mem_ref = 1;
+        hmap_put(state->labels, str, lbl);
+    }
+    for (uint32_t c = 0; c < state->data->n_code_lines; c++)
+    {
+        dbg_line_assoc_t* code = DBG_CODE_LINE(state->data, c);
+        if (code->label_ref >= 0)
+        {
+            char* str = DBG_LABEL(state->data, code->label_ref);
+            dbg_label_t* lbl = malloc(sizeof(dbg_label_t));
+            lbl->label = str;
+            lbl->address = code->address;
+            lbl->is_mem_ref = 0;
+            hmap_put(state->labels, str, lbl);
+        }
+    }
+}
+
+
+static void free_label(void* unused, char* key, void* value)
+{
+    free(value);
 }
 
 
 static void cleanup_state(dbg_state_t* state)
 {
+    hmap_iterate(state->labels, NULL, free_label);
+    hmap_destroy(state->labels);
+
     free(state->help_format_string);
     cleanup_vm(state->vm);
 }
