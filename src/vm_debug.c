@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "debug.h"
+#include "debug/debug.h"
 #include "instns/instn.h"
 
 
