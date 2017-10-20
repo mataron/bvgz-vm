@@ -49,6 +49,9 @@ static void setup_state(dbg_state_t* state, vm_t* vm,
             hmap_put(state->labels, str, lbl);
         }
     }
+
+    state->breakpoints = NULL;
+    state->brk_id_pool = 0;
 }
 
 
@@ -60,6 +63,15 @@ static void free_label(void* unused, char* key, void* value)
 
 static void cleanup_state(dbg_state_t* state)
 {
+    if (state->breakpoints)
+    {
+        for (list_t* b = state->breakpoints; b; b = b->next)
+        {
+            free(b->data);
+        }
+        list_destroy(state->breakpoints);
+    }
+
     hmap_iterate(state->labels, NULL, free_label);
     hmap_destroy(state->labels);
 
