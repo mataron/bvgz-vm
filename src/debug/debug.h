@@ -64,8 +64,6 @@ typedef struct _dbg_state_t
     list_t* breakpoints;
     uint32_t brk_id_pool;
 
-    uint32_t cleanup_period;
-
     char* help_format_string;
 }
 dbg_state_t;

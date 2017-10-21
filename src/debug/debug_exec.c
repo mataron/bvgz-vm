@@ -81,8 +81,8 @@ static int step_program(dbg_state_t* state, instn_t* instn,
         state->vm->instns++;
         state->vm->instns_since_last_cleanup++;
 
-        if (state->cleanup_period && 0 ==
-            state->vm->instns_since_last_cleanup % state->cleanup_period)
+        if (0 ==
+            state->vm->instns_since_last_cleanup % VM_CLEANUP_PERIOD_INSTNS)
         {
             cleanup_vm(state->vm);
         }
@@ -136,5 +136,44 @@ int dbg_step(int argc, char** argv, dbg_state_t* state)
     print_instn(&instn, state);
     printf("\n");
 
+    return 0;
+}
+
+
+int dbg_cleanup(int argc, char** argv, dbg_state_t* state)
+{
+    if (!(state->flags & F_RUNNING))
+    {
+        printf("program is not running!\n");
+        return 0;
+    }
+
+    cleanup_vm(state->vm);
+    return 0;
+}
+
+
+int dbg_fire_events(int argc, char** argv, dbg_state_t* state)
+{
+    if (!(state->flags & F_RUNNING))
+    {
+        printf("program is not running!\n");
+        return 0;
+    }
+
+    if (!has_pending_events(state->vm))
+    {
+        printf("no pending events\n");
+        return 0;
+    }
+
+    int n_events = vm_fire_events(state->vm);
+    if (n_events < 0)
+    {
+        printf("events firing failed\n");
+        return 0;
+    }
+
+    printf("events fired: %d\n", n_events);
     return 0;
 }

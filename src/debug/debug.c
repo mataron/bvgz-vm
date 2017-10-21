@@ -123,6 +123,8 @@ int dbg_break_delete(int argc, char** argv, dbg_state_t* state);
 
 int dbg_run(int argc, char** argv, dbg_state_t* state);
 int dbg_step(int argc, char** argv, dbg_state_t* state);
+int dbg_cleanup(int argc, char** argv, dbg_state_t* state);
+int dbg_fire_events(int argc, char** argv, dbg_state_t* state);
 
 dbg_command_t Commands[] = {
     { "q", "quit the debugger", dbg_quit },
@@ -139,5 +141,7 @@ dbg_command_t Commands[] = {
     { "brkd", "delete breakpoint", dbg_break_delete },
     { "run", "run the program", dbg_run },
     { "n", "execute next instn", dbg_step },
+    { "cleanup", "cleanup the vm state", dbg_cleanup },
+    { "firev", "fire events", dbg_fire_events },
     { NULL, NULL, NULL }
 };

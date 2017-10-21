@@ -25,8 +25,6 @@ static void setup_state(dbg_state_t* state, vm_t* vm,
     state->vm = vm;
     state->data = debug_data;
 
-    state->cleanup_period = 10;
-
     if (state->data)
     {
         state->labels = hmap_create();
