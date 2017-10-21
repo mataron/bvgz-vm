@@ -12,4 +12,7 @@ void print_breakpoint(dbg_break_pt_t* brk);
 struct _instn_t;
 void print_instn(struct _instn_t* instn, dbg_state_t* state);
 
+void print_mem_address(uint32_t address, dbg_state_t* state);
+void print_code_address(uint32_t address, dbg_state_t* state);
+
 #endif

@@ -126,6 +126,11 @@ int dbg_step(int argc, char** argv, dbg_state_t* state);
 int dbg_cleanup(int argc, char** argv, dbg_state_t* state);
 int dbg_fire_events(int argc, char** argv, dbg_state_t* state);
 
+int dbg_procs(int argc, char** argv, dbg_state_t* state);
+int dbg_stack(int argc, char** argv, dbg_state_t* state);
+int dbg_yield(int argc, char** argv, dbg_state_t* state);
+
+
 dbg_command_t Commands[] = {
     { "q", "quit the debugger", dbg_quit },
     { "help", "show this message", dbg_help },
@@ -143,5 +148,8 @@ dbg_command_t Commands[] = {
     { "n", "execute next instn", dbg_step },
     { "cleanup", "cleanup the vm state", dbg_cleanup },
     { "firev", "fire events", dbg_fire_events },
+    { "yield", "yield procedure priority", dbg_yield },
+    { "proc", "show runnable procedures", dbg_procs },
+    { "bt", "show current procedure stack", dbg_stack },
     { NULL, NULL, NULL }
 };

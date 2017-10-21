@@ -102,3 +102,15 @@ void print_instn(instn_t* instn, dbg_state_t* state)
         }
     }
 }
+
+
+void print_mem_address(uint32_t address, dbg_state_t* state)
+{
+    printf("0x%08x", address);
+}
+
+
+void print_code_address(uint32_t address, dbg_state_t* state)
+{
+    printf("0x%08x", address);
+}

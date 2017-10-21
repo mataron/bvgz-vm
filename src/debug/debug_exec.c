@@ -104,7 +104,7 @@ int dbg_run(int argc, char** argv, dbg_state_t* state)
         int ret = step_program(state, &instn, 1);
         if (ret == 0) break;
         if (ret == 2) {
-            printf("0x%08x: ", state->vm->iptr);
+            print_code_address(state->vm->iptr, state);
             print_instn(&instn, state);
             printf("\n");
             return 0;
@@ -132,7 +132,7 @@ int dbg_step(int argc, char** argv, dbg_state_t* state)
         printf("exec instn failed\n");
     }
 
-    printf("0x%08x: ", state->vm->iptr);
+    print_code_address(state->vm->iptr, state);
     print_instn(&instn, state);
     printf("\n");
 
