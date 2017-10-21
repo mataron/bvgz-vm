@@ -48,7 +48,7 @@ int dbg_break(int argc, char** argv, dbg_state_t* state)
         return 0;
     }
 
-    char* colon = strchr(argv[1], ':');
+    char* colon = state->data ? strchr(argv[1], ':') : NULL;
     if (colon)
     {
         *colon = 0;
@@ -76,21 +76,24 @@ int dbg_break(int argc, char** argv, dbg_state_t* state)
         }
     }
 
-    dbg_label_t* label = NULL;
-    int ret = hmap_get(state->labels, argv[1], (void**)&label);
-    if (ret == MAP_OK)
+    if (state->labels)
     {
-        if (label->is_mem_ref)
+        dbg_label_t* label = NULL;
+        int ret = hmap_get(state->labels, argv[1], (void**)&label);
+        if (ret == MAP_OK)
         {
-            printf("label [%s] points into data segment\n", argv[1]);
+            if (label->is_mem_ref)
+            {
+                printf("label [%s] points into data segment\n", argv[1]);
+                return 0;
+            }
+
+            dbg_break_pt_t* bpt =
+                create_and_attach_breakpoint(state, BRK_T_Label);
+            bpt->point.label.name = label->label;
+            bpt->point.label.address = label->address;
             return 0;
         }
-
-        dbg_break_pt_t* bpt =
-            create_and_attach_breakpoint(state, BRK_T_Label);
-        bpt->point.label.name = label->label;
-        bpt->point.label.address = label->address;
-        return 0;
     }
 
     instn_def_t* fmt = bsearch(&argv[1], InstnDefs, nInstnDefs,

@@ -21,16 +21,19 @@ uint32_t parse_uint(char* n, int radix)
 
 uint32_t resolve_mem_address(char* address_or_label, dbg_state_t* state)
 {
-    dbg_label_t* label = NULL;
-    int ret = hmap_get(state->labels, address_or_label, (void**)&label);
-    if (ret == MAP_OK)
+    if (state->labels)
     {
-        if (!label->is_mem_ref)
+        dbg_label_t* label = NULL;
+        int ret = hmap_get(state->labels, address_or_label, (void**)&label);
+        if (ret == MAP_OK)
         {
-            return (uint32_t)-1;
-        }
+            if (!label->is_mem_ref)
+            {
+                return (uint32_t)-1;
+            }
 
-        return label->address;
+            return label->address;
+        }
     }
 
     if (address_or_label[0] == '0' && address_or_label[1] == 'x')

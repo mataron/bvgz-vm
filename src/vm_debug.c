@@ -20,38 +20,38 @@ static int exec_command(int argc, char** argv, dbg_state_t* state);
 static void setup_state(dbg_state_t* state, vm_t* vm,
     vm_debug_data_t* debug_data)
 {
+    memset(state, 0, sizeof(dbg_state_t));
+
     state->vm = vm;
     state->data = debug_data;
-    state->flags = 0;
-    state->help_format_string = NULL;
 
-    state->labels = hmap_create();
-    for (uint32_t m = 0; m < state->data->n_mem_lines; m++)
+    if (state->data)
     {
-        dbg_line_assoc_t* mem = DBG_MEM_LINE(state->data, m);
-        char* str = DBG_LABEL(state->data, mem->label_ref);
-        dbg_label_t* lbl = malloc(sizeof(dbg_label_t));
-        lbl->label = str;
-        lbl->address = mem->address;
-        lbl->is_mem_ref = 1;
-        hmap_put(state->labels, str, lbl);
-    }
-    for (uint32_t c = 0; c < state->data->n_code_lines; c++)
-    {
-        dbg_line_assoc_t* code = DBG_CODE_LINE(state->data, c);
-        if (code->label_ref >= 0)
+        state->labels = hmap_create();
+        for (uint32_t m = 0; m < state->data->n_mem_lines; m++)
         {
-            char* str = DBG_LABEL(state->data, code->label_ref);
+            dbg_line_assoc_t* mem = DBG_MEM_LINE(state->data, m);
+            char* str = DBG_LABEL(state->data, mem->label_ref);
             dbg_label_t* lbl = malloc(sizeof(dbg_label_t));
             lbl->label = str;
-            lbl->address = code->address;
-            lbl->is_mem_ref = 0;
+            lbl->address = mem->address;
+            lbl->is_mem_ref = 1;
             hmap_put(state->labels, str, lbl);
         }
+        for (uint32_t c = 0; c < state->data->n_code_lines; c++)
+        {
+            dbg_line_assoc_t* code = DBG_CODE_LINE(state->data, c);
+            if (code->label_ref >= 0)
+            {
+                char* str = DBG_LABEL(state->data, code->label_ref);
+                dbg_label_t* lbl = malloc(sizeof(dbg_label_t));
+                lbl->label = str;
+                lbl->address = code->address;
+                lbl->is_mem_ref = 0;
+                hmap_put(state->labels, str, lbl);
+            }
+        }
     }
-
-    state->breakpoints = NULL;
-    state->brk_id_pool = 0;
 }
 
 
@@ -72,8 +72,11 @@ static void cleanup_state(dbg_state_t* state)
         list_destroy(state->breakpoints);
     }
 
-    hmap_iterate(state->labels, NULL, free_label);
-    hmap_destroy(state->labels);
+    if (state->labels)
+    {
+        hmap_iterate(state->labels, NULL, free_label);
+        hmap_destroy(state->labels);
+    }
 
     free(state->help_format_string);
     cleanup_vm(state->vm);
@@ -144,10 +147,18 @@ static void print_init_message(dbg_state_t* state)
     printf("BVGZ VM Debugger\n");
     printf("Code: %u bytes | Mem: %u bytes\n",
         state->vm->codesz, state->vm->memsz);
-    printf("Code lines: %u\n", state->data->n_code_lines);
-    printf("Mem symbols: %u\n", state->data->n_mem_lines);
-    printf("Labels: %u\n", state->data->n_labels);
-    printf("Files: %u\n", state->data->n_files);
+    if (state->data)
+    {
+        printf("Code lines: %u\n", state->data->n_code_lines);
+        printf("Mem symbols: %u\n", state->data->n_mem_lines);
+        printf("Labels: %u\n", state->data->n_labels);
+        printf("Files: %u\n", state->data->n_files);
+    }
+    else
+    {
+        printf("No debug symbols available\n");
+    }
+    printf("Type 'help' for a list of available commands\n");
 }
 
 

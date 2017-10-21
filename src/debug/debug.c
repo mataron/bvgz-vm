@@ -40,6 +40,12 @@ int dbg_help(int argc, char** argv, dbg_state_t* state)
 
 int dbg_show_symbols(int argc, char** argv, dbg_state_t* state)
 {
+    if (!state->data)
+    {
+        printf("No symbols available\n");
+        return 0;
+    }
+
     if (argc == 1 || argv[1][0] != 'c')
     {
         printf("Memory symbols (%u):\n", state->data->n_mem_lines);
