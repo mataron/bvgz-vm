@@ -121,6 +121,8 @@ int dbg_break(int argc, char** argv, dbg_state_t* state);
 int dbg_show_breakpts(int argc, char** argv, dbg_state_t* state);
 int dbg_break_delete(int argc, char** argv, dbg_state_t* state);
 
+int dbg_run(int argc, char** argv, dbg_state_t* state);
+int dbg_step(int argc, char** argv, dbg_state_t* state);
 
 dbg_command_t Commands[] = {
     { "q", "quit the debugger", dbg_quit },
@@ -135,5 +137,7 @@ dbg_command_t Commands[] = {
     { "brk", "set breakpoint", dbg_break },
     { "brks", "show breakpoints", dbg_show_breakpts },
     { "brkd", "delete breakpoint", dbg_break_delete },
+    { "run", "run the program", dbg_run },
+    { "n", "execute next instn", dbg_step },
     { NULL, NULL, NULL }
 };

@@ -131,8 +131,6 @@ int dbg_break(int argc, char** argv, dbg_state_t* state)
 }
 
 
-static const char BrkTypes[] = { 'A', 'L', 'F', 'I', '+' };
-
 int dbg_show_breakpts(int argc, char** argv, dbg_state_t* state)
 {
     uint32_t sz = list_size(state->breakpoints);
@@ -140,28 +138,7 @@ int dbg_show_breakpts(int argc, char** argv, dbg_state_t* state)
 
     for (list_t* n = state->breakpoints; n; n = n->next)
     {
-        dbg_break_pt_t* brk = n->data;
-        printf("[%3u] %c: ", brk->brk_id, BrkTypes[brk->type - 1]);
-        switch (brk->type)
-        {
-        case BRK_T_Address:
-            printf("0x%08x", brk->point.address);
-            break;
-        case BRK_T_Label:
-            printf("0x%08x :: %s", brk->point.label.address,
-                brk->point.label.name);
-            break;
-        case BRK_T_Line:
-            printf("0x%08x :: %s:%u", brk->point.line.address,
-                brk->point.line.file, brk->point.line.lineno);
-            break;
-        case BRK_T_InstnName:
-            printf("[%s]", brk->point.instn_name);
-            break;
-        case BRK_T_InstnCount:
-            printf("[%u]", brk->point.instn_count);
-            break;
-        }
+        print_breakpoint(n->data);
         printf("\n");
     }
 
