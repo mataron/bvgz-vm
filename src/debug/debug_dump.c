@@ -1,10 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 
 #include "debug_util.h"
-#include "instns/instn.h"
 
 
 static uint32_t dump_cmd_prefix(int argc, char** argv, dbg_state_t* state,
