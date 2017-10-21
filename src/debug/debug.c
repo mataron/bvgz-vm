@@ -130,6 +130,9 @@ int dbg_procs(int argc, char** argv, dbg_state_t* state);
 int dbg_stack(int argc, char** argv, dbg_state_t* state);
 int dbg_yield(int argc, char** argv, dbg_state_t* state);
 
+int dbg_io(int argc, char** argv, dbg_state_t* state);
+int dbg_children(int argc, char** argv, dbg_state_t* state);
+
 
 dbg_command_t Commands[] = {
     { "q", "quit the debugger", dbg_quit },
@@ -151,5 +154,7 @@ dbg_command_t Commands[] = {
     { "yield", "yield procedure priority", dbg_yield },
     { "proc", "show runnable procedures", dbg_procs },
     { "bt", "show current procedure stack", dbg_stack },
+    { "io", "show i/o descriptors", dbg_io },
+    { "ch", "show children processes", dbg_children },
     { NULL, NULL, NULL }
 };
