@@ -10,6 +10,9 @@
 %data @ls_arg		"-lsha"
 %data @argv			0x0 /8
 %data @cb_args		0x0 /56
+%data @scall_args2	0x0 /8
+%data				&cb_args /8
+%data				&on_ls_exit /8
 
 _entry:
 	; setup argv
@@ -24,10 +27,8 @@ _entry:
 	jtrue		&on_error	test
 
 	; on-exit
-	write64		&scall_args 0	pid
-	write64		&scall_args 8	&cb_args
-	write64		&scall_args 16	&on_ls_exit
-	syscall 27	&scall_args &err
+	write64		&scall_args2 0	pid
+	syscall 27	&scall_args2 &err
     ne          test        err     0
     jtrue       &on_error   test
 

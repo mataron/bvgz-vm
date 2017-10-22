@@ -9,6 +9,7 @@ vm_t* mk_vm_for_asm(char* asmfile)
 {
     prs_result_t* parse = parse_asm(asmfile, NULL);
     assert(parse != NULL);
+    assert(parse->errors == 0);
 
     uint8_t* code = NULL;
     uint32_t codesz = 0;
