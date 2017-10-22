@@ -10,6 +10,9 @@
 
 static int nCommands = 0;
 
+static char** ac_labels = NULL; // used by completion function
+static int n_ac_labels = 0;
+static int ac_prefer_labels = 0;
 
 static void setup_commands();
 static void print_init_message(dbg_state_t* state);
@@ -28,9 +31,30 @@ static char* cmdline_generator(const char* text, int state)
         len = strlen(text);
     }
 
-    while (cmd_index < nCommands && (name = Commands[cmd_index++].name)) {
-        if (strncmp(name, text, len) == 0) {
-            return strdup(name);
+    if (ac_prefer_labels && ac_labels)
+    {
+        while (cmd_index < n_ac_labels)
+        {
+            name = ac_labels[cmd_index];
+            cmd_index++;
+
+            if (strncmp(name, text, len) == 0)
+            {
+                return strdup(name);
+            }
+        }
+    }
+    else
+    {
+        while (cmd_index < nCommands)
+        {
+            name = Commands[cmd_index].name;
+            cmd_index++;
+
+            if (strncmp(name, text, len) == 0)
+            {
+                return strdup(name);
+            }
         }
     }
 
@@ -39,6 +63,7 @@ static char* cmdline_generator(const char* text, int state)
 
 static char** cmdline_completion(const char* text, int start, int end)
 {
+    ac_prefer_labels = start > 0;
     rl_attempted_completion_over = 1;
     return rl_completion_matches(text, cmdline_generator);
 }
@@ -56,6 +81,7 @@ static void setup_state(dbg_state_t* state, vm_t* vm,
 
     if (state->data)
     {
+        n_ac_labels = 0;
         state->labels = hmap_create();
         for (uint32_t m = 0; m < state->data->n_mem_lines; m++)
         {
@@ -66,6 +92,10 @@ static void setup_state(dbg_state_t* state, vm_t* vm,
             lbl->address = mem->address;
             lbl->is_mem_ref = 1;
             hmap_put(state->labels, str, lbl);
+
+            n_ac_labels++;
+            ac_labels = realloc(ac_labels, sizeof(char*) * n_ac_labels);
+            ac_labels[n_ac_labels - 1] = str;
         }
         for (uint32_t c = 0; c < state->data->n_code_lines; c++)
         {
@@ -78,6 +108,10 @@ static void setup_state(dbg_state_t* state, vm_t* vm,
                 lbl->address = code->address;
                 lbl->is_mem_ref = 0;
                 hmap_put(state->labels, str, lbl);
+
+                n_ac_labels++;
+                ac_labels = realloc(ac_labels, sizeof(char*) * n_ac_labels);
+                ac_labels[n_ac_labels - 1] = str;
             }
         }
     }
@@ -109,6 +143,8 @@ static void cleanup_state(dbg_state_t* state)
 
     free(state->help_format_string);
     cleanup_vm(state->vm);
+
+    free(ac_labels);
 }
 
 
