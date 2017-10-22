@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <readline/readline.h>
 
 #include "debug/debug.h"
 #include "instns/instn.h"
@@ -166,20 +167,16 @@ static char* read_command()
 {
     char* cmd = NULL;
     char* buf = NULL;
-    size_t length = 0;
 
     while (1)
     {
-        buf = NULL;
-        length = 0;
-
-        printf("> ");
-
-        size_t len = getline(&buf, &length, stdin);
-        if (len < 0)
+        buf = readline("> ");
+        if (!buf)
         {
             return NULL;
         }
+
+        int len = strlen(buf);
 
         // trim:
 

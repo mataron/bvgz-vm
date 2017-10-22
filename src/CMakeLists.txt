@@ -22,6 +22,7 @@ add_executable(bvgz bvgz.c)
 target_link_libraries(bvgz -Wl,--start-group
     syscalls instns vm_debug vm utils
     -Wl,--end-group)
+target_link_libraries(bvgz readline)
 
 add_executable(basm basm_app.c)
 
