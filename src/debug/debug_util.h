@@ -14,6 +14,6 @@ struct _instn_t;
 void print_instn(struct _instn_t* instn, dbg_state_t* state);
 
 int print_mem_address(uint32_t address, dbg_state_t* state);
-int print_code_address(uint32_t address, dbg_state_t* state);
+int print_code_address(uint32_t address, dbg_state_t* state, int skip_label);
 
 #endif

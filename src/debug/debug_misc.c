@@ -100,10 +100,11 @@ int dbg_disasm(int argc, char** argv, dbg_state_t* state)
             return 0;
         }
 
-        int r = print_code_address(addr, state);
+        int r = print_code_address(addr, state, 0);
         if (r)
         {
-            printf(":\n0x%08x", addr);
+            printf(":\n");
+            print_code_address(addr, state, 1);
         }
         printf(":  ");
         print_instn(&instn, state);

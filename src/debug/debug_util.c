@@ -64,7 +64,7 @@ void print_breakpoint(dbg_break_pt_t* brk, dbg_state_t* state)
     switch (brk->type)
     {
     case BRK_T_Address:
-        print_code_address(brk->point.address, state);
+        print_code_address(brk->point.address, state, 0);
         break;
     case BRK_T_Label:
         printf("0x%08x :: %s", brk->point.label.address,
@@ -131,13 +131,36 @@ int print_mem_address(uint32_t address, dbg_state_t* state)
 }
 
 
-int print_code_address(uint32_t address, dbg_state_t* state)
+int print_code_address(uint32_t address, dbg_state_t* state, int skip_label)
 {
-    char* label = address_label(address, state, 0);
-    if (label)
+    if (!skip_label)
     {
-        printf(label);
-        return 1;
+        char* label = address_label(address, state, 0);
+        if (label)
+        {
+            printf(label);
+            return 1;
+        }
+    }
+
+    int32_t lineno = -1;
+    if (state->data)
+    {
+        for (uint32_t i = 0; i < state->data->n_code_lines; i++)
+        {
+            dbg_line_assoc_t* code = DBG_CODE_LINE(state->data, i);
+            if (code->address == address)
+            {
+                lineno = code->lineno;
+                break;
+            }
+        }
+    }
+
+    if (lineno >= 0)
+    {
+        printf("0x%08x [%4d]", address, lineno);
+        return 0;
     }
 
     printf("0x%08x", address);

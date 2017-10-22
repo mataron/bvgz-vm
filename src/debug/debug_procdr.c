@@ -17,7 +17,7 @@ int dbg_procs(int argc, char** argv, dbg_state_t* state)
         proc_t* proc = p->data;
         printf(" proc[%u]\n", index);
         printf("   i-ptr: ");
-        print_code_address(proc->iptr, state);
+        print_code_address(proc->iptr, state, 0);
         printf("\n   stack size: %u\n", proc->cstack_sz);
     }
 
@@ -50,7 +50,7 @@ int dbg_stack(int argc, char** argv, dbg_state_t* state)
     {
         fcall_t* f = proc->cstack + s;
         printf("[%2u]: ret=", s);
-        print_code_address(f->ret_address, state);
+        print_code_address(f->ret_address, state, 0);
         printf("\targv=");
         print_mem_address(f->args, state);
         printf("\tretv=");
