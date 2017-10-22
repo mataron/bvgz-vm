@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
     uint8_t* code = NULL;
     uint32_t codesz = 0;
-    if (parse_to_bytecode(result, &code, &codesz) < 0)
+    if (parse_to_bytecode(result, &code, &codesz, debug) < 0)
     {
         retval = 1;
         goto done;

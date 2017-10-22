@@ -33,7 +33,7 @@ static struct ref* add_delayed_ref(struct ref* refs, int n_refs,
 
 
 int parse_to_bytecode(prs_result_t* parse, uint8_t** memory,
-    uint32_t* size)
+    uint32_t* size, int debug_mode)
 {
     assert(parse->consistent == 0);
     uint8_t* buffer = NULL;
@@ -47,6 +47,11 @@ int parse_to_bytecode(prs_result_t* parse, uint8_t** memory,
         prs_instn_t* instn = parse->instns[i];
         instn_def_t* def = instn->instn;
 
+        if ((def->flags & F_Debug_Only_Instn) && !debug_mode)
+        {
+            continue;
+        }
+
         uint16_t OpIR = 0;
         uint8_t ISz = 0;
         uint32_t size = compute_layout(instn, def, &OpIR, &ISz);
@@ -58,6 +63,20 @@ int parse_to_bytecode(prs_result_t* parse, uint8_t** memory,
         }
 
         instn->mem_offset = offset;
+        // ensure previous debug mode commands have proper offsets
+        // so that labels to those point to this instn instead
+        for (uint32_t j = i - 1; j < i; j--)
+        {
+            prs_instn_t* i2 = parse->instns[j];
+            if (i2->mem_offset == (uint32_t)-1)
+            {
+                i2->mem_offset = offset;
+            }
+            else
+            {
+                break;
+            }
+        }
 
         *(uint16_t*)(buffer + offset) = OpIR;
         offset += 2;

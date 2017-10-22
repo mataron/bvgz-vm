@@ -12,7 +12,7 @@ vm_t* mk_vm_for_asm(char* asmfile)
 
     uint8_t* code = NULL;
     uint32_t codesz = 0;
-    int ret = parse_to_bytecode(parse, &code, &codesz);
+    int ret = parse_to_bytecode(parse, &code, &codesz, 1);
     assert(ret == 0);
     assert(codesz > 0);
 

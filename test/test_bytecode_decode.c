@@ -15,7 +15,7 @@ static void test_decode()
 
     uint8_t* memory = NULL;
     uint32_t size = 0;
-    parse_to_bytecode(result, &memory, &size);
+    parse_to_bytecode(result, &memory, &size, 1);
 
     destroy_parse_result(result);
 

@@ -11,6 +11,18 @@ int op_nop_0(instn_t* instn, vm_t* vm)
 }
 
 
+int op_assert_2(instn_t* instn, vm_t* vm)
+{
+    if (arg_value(instn, 1))
+    {
+        vm->assert_id = arg_value(instn, 0);
+        vm->exceptions |= VM_E_AssertFailed;
+        return -1;
+    }
+    return 0;
+}
+
+
 int op_cp_3(instn_t* instn, vm_t* vm)
 {
     memcpy(instn->args[0].ptr, instn->args[1].ptr, arg_value(instn, 2));

@@ -102,6 +102,10 @@ int dbg_show_vm(int argc, char** argv, dbg_state_t* state)
     {
         printf("Exceptions:\n");
         print_exception("  ", state->vm->exceptions);
+        if (state->vm->exceptions & VM_E_AssertFailed)
+        {
+            printf("    Failed assertion ID = %lu\n", state->vm->assert_id);
+        }
     }
 
     printf("Runnable procedures: %u\n", list_size(state->vm->procedures));

@@ -16,6 +16,7 @@
 #define VM_E_BadInstnPointer    0x10
 #define VM_E_BadInstnCode       0x20
 #define VM_E_BadSyscallNo       0x40
+#define VM_E_AssertFailed       0x80
 
 
 typedef struct _fcall_t
@@ -61,6 +62,8 @@ typedef struct _vm_t
 
     // error number (set by system calls)
     int error_no;
+    // id of failed assertion
+    uint64_t assert_id;
 
     vm_timer_t* timers;
     uint32_t n_timers;

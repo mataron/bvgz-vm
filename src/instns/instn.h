@@ -5,6 +5,7 @@
 
 #define F_ALLOW_IMM_1st_Arg     0x1
 #define F_1st_Arg_Code_Ref      0x2
+#define F_Debug_Only_Instn      0x4
 
 
 typedef struct _instn_t

@@ -184,6 +184,10 @@ void print_vm_state(vm_t* vm)
     {
         printf("Exceptions:\n");
         print_exception("  ", vm->exceptions);
+        if (vm->exceptions & VM_E_AssertFailed)
+        {
+            printf("    Failed assertion ID = %lu\n", vm->assert_id);
+        }
     }
 }
 
@@ -211,4 +215,6 @@ void print_exception(char* prefix, unsigned x)
         printf("%sBad Instn\n", prefix);
     if (x & VM_E_BadSyscallNo)
         printf("%sBad syscall\n", prefix);
+    if (x & VM_E_AssertFailed)
+        printf("%sAssert Failed\n", prefix);
 }

@@ -11,7 +11,7 @@ static void test_empty()
 
     uint8_t* memory = NULL;
     uint32_t size = 0;
-    parse_to_bytecode(result, &memory, &size);
+    parse_to_bytecode(result, &memory, &size, 1);
 
     assert(memory == NULL);
     assert(size == 0);
@@ -27,7 +27,7 @@ static void test_gen()
 
     uint8_t* memory = NULL;
     uint32_t size = 0;
-    parse_to_bytecode(result, &memory, &size);
+    parse_to_bytecode(result, &memory, &size, 1);
 
     assert(size == 3 + 4 + 1 + 2);
     assert(memory != NULL);
