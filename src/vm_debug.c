@@ -18,10 +18,38 @@ static char** split_cmdline(char* cmdline, int* argc);
 static int exec_command(int argc, char** argv, dbg_state_t* state);
 
 
+static char* cmdline_generator(const char* text, int state)
+{
+    static int cmd_index, len;
+    const char *name;
+
+    if (!state) {
+        cmd_index = 0;
+        len = strlen(text);
+    }
+
+    while (cmd_index < nCommands && (name = Commands[cmd_index++].name)) {
+        if (strncmp(name, text, len) == 0) {
+            return strdup(name);
+        }
+    }
+
+    return NULL;
+}
+
+static char** cmdline_completion(const char* text, int start, int end)
+{
+    rl_attempted_completion_over = 1;
+    return rl_completion_matches(text, cmdline_generator);
+}
+
+
 static void setup_state(dbg_state_t* state, vm_t* vm,
     vm_debug_data_t* debug_data)
 {
     memset(state, 0, sizeof(dbg_state_t));
+
+    rl_attempted_completion_function = cmdline_completion;
 
     state->vm = vm;
     state->data = debug_data;
