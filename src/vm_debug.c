@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 
 #include "debug/debug.h"
 #include "instns/instn.h"
@@ -79,9 +80,11 @@ static void setup_state(dbg_state_t* state, vm_t* vm,
     state->vm = vm;
     state->data = debug_data;
 
+    ac_labels = NULL;
+    n_ac_labels = 0;
+
     if (state->data)
     {
-        n_ac_labels = 0;
         state->labels = hmap_create();
         for (uint32_t m = 0; m < state->data->n_mem_lines; m++)
         {
@@ -256,6 +259,7 @@ static char* read_command()
             else break;
         }
 
+        add_history(cmd);
         len = strlen(cmd);
         if (len > 0)
         {
