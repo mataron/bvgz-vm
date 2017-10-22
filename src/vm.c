@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "config.h"
 #include "vm.h"
 #include "instns/instn.h"
 #include "syscalls/syscall.h"

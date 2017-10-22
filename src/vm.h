@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#include "config.h"
 #include "util/list.h"
 #include "timers.h"
 #include "syscalls/syscall_io.h"

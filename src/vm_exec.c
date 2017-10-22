@@ -2,6 +2,7 @@
 #include <time.h>
 #include <errno.h>
 
+#include "config.h"
 #include "vm.h"
 #include "instns/instn.h"
 #include "bytecode.h"

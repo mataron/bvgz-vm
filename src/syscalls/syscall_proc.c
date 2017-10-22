@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <time.h>
 
+#include "config.h"
 #include "vm.h"
 #include "syscall_proc.h"
 #include "bytecode.h"

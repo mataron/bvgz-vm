@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "config.h"
 #include "vm.h"
 #include "syscall_net.h"
 
