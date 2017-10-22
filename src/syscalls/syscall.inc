@@ -73,3 +73,8 @@
 //                         signaled64, signal64, stopped64,
 //                         continued64))
 /* 27 */ SYSCALL(onexit)
+
+// size64 = codesz()
+/* 28 */ SYSCALL(codesz)
+// error = codecp(begin64, size64, ptr64)
+/* 29 */ SYSCALL(codecp)

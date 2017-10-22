@@ -1,3 +1,4 @@
+#include <string.h>
 #include <time.h>
 #include <errno.h>
 
@@ -108,4 +109,47 @@ void sys_yield(vm_t* vm, uint32_t argv, uint32_t retv)
 
     list_t* tail = list_tail(vm->procedures);
     list_append(tail, self);
+}
+
+
+void sys_codesz(vm_t* vm, uint32_t argv, uint32_t retv)
+{
+    uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
+    if (!ret)
+    {
+        vm->error_no = EFAULT;
+        return;
+    }
+
+    *ret = vm->codesz;
+}
+
+
+void sys_codecp(vm_t* vm, uint32_t argv, uint32_t retv)
+{
+    uint64_t* args =  (uint64_t*)deref_mem_ptr(argv, 8, vm);
+    uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
+    if (!args || !ret)
+    {
+        vm->error_no = EFAULT;
+        if (ret) *ret = 1;
+        return;
+    }
+
+    if (args[0] + args[1] > vm->codesz)
+    {
+        vm->error_no = EINVAL;
+        return;
+    }
+
+    uint8_t* ptr = deref_mem_ptr(args[2], args[1], vm);
+    if (!ptr)
+    {
+        vm->error_no = EFAULT;
+        *ret = 1;
+        return;
+    }
+
+    memcpy(ptr, vm->code + args[0], args[1]);
+    *ret = 0;
 }
