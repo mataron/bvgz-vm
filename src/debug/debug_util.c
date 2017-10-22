@@ -84,39 +84,6 @@ void print_breakpoint(dbg_break_pt_t* brk, dbg_state_t* state)
 }
 
 
-void print_instn(instn_t* instn, dbg_state_t* state)
-{
-    uint32_t instn_idx = instn->code >> 3;
-
-    printf("%8s/%d\t", InstnDefs[instn_idx].name,
-        InstnDefs[instn_idx].arg_count);
-    for (int i = 0; i < InstnDefs[instn_idx].arg_count; ++i)
-    {
-        if (instn->code & 1 << i)
-        {
-            switch(1 << ((instn->arg_sizes >> (2 * i)) & 3))
-            {
-                case 1:
-                    printf(" 0x%02lX", (uint64_t)instn->args[i].u8);
-                    break;
-                case 2:
-                    printf(" 0x%04lX", (uint64_t)instn->args[i].u16);
-                    break;
-                case 4:
-                    printf(" 0x%08lX", (uint64_t)instn->args[i].u32);
-                    break;
-                default:
-                    printf(" 0x%016lX", instn->args[i].u64);
-            }
-        }
-        else
-        {
-            printf(" *0x%016lX", (uint64_t)instn->args[i].ptr);
-        }
-    }
-}
-
-
 struct label_descr
 {
     uint32_t address;
@@ -136,17 +103,27 @@ static void find_label(void* _descr, char* key, void* value)
 }
 
 
-int print_mem_address(uint32_t address, dbg_state_t* state)
+static char* address_label(uint32_t address, dbg_state_t* state,
+    int is_mem_ref)
 {
     if (state->labels)
     {
-        struct label_descr descr = { address, 1, NULL };
+        struct label_descr descr = { address, is_mem_ref, NULL };
         hmap_iterate(state->labels, &descr, find_label);
-        if (descr.label)
-        {
-            printf(descr.label);
-            return 1;
-        }
+        return descr.label;
+    }
+
+    return NULL;
+}
+
+
+int print_mem_address(uint32_t address, dbg_state_t* state)
+{
+    char* label = address_label(address, state, 1);
+    if (label)
+    {
+        printf(label);
+        return 1;
     }
 
     printf("0x%08x", address);
@@ -156,17 +133,85 @@ int print_mem_address(uint32_t address, dbg_state_t* state)
 
 int print_code_address(uint32_t address, dbg_state_t* state)
 {
-    if (state->labels)
+    char* label = address_label(address, state, 0);
+    if (label)
     {
-        struct label_descr descr = { address, 0, NULL };
-        hmap_iterate(state->labels, &descr, find_label);
-        if (descr.label)
-        {
-            printf(descr.label);
-            return 1;
-        }
+        printf(label);
+        return 1;
     }
 
     printf("0x%08x", address);
     return 0;
 }
+
+
+void print_instn(instn_t* instn, dbg_state_t* state)
+{
+    uint32_t instn_idx = instn->code >> 3;
+
+    printf("%8s/%d\t", InstnDefs[instn_idx].name,
+        InstnDefs[instn_idx].arg_count);
+    for (int i = 0; i < InstnDefs[instn_idx].arg_count; ++i)
+    {
+        printf("  ");
+        if (instn->code & 1 << i)
+        {
+            int is_mem_ref =
+                i == 0 && (InstnDefs[instn_idx].flags & F_1st_Arg_Code_Ref)
+                    ? 0 : 1;
+
+            switch(1 << ((instn->arg_sizes >> (2 * i)) & 3))
+            {
+                case 1:
+                    printf("0x%02lX", (uint64_t)instn->args[i].u8);
+                    break;
+                case 2:
+                    printf("0x%04lX", (uint64_t)instn->args[i].u16);
+                    break;
+                case 4:
+                {
+                    char *label =
+                        address_label(instn->args[i].u32, state, is_mem_ref);
+                    if (label)
+                    {
+                        printf("&%s", label);
+                    }
+                    else
+                    {
+                        printf("0x%08lX", (uint64_t)instn->args[i].u32);
+                    }
+                    break;
+                }
+                default:
+                {
+                    if (FITS_IN_32Bit(instn->args[i].u64))
+                    {
+                        char *label =
+                            address_label(instn->args[i].u32, state,
+                                is_mem_ref);
+                        if (label)
+                        {
+                            printf("&%s", label);
+                            break;
+                        }
+                    }
+                    printf("0x%016lX", instn->args[i].u64);
+                }
+            }
+        }
+        else
+        {
+            uint32_t addr = instn->args[i].ptr - state->vm->memory;
+            char *label = address_label(addr, state, 1);
+            if (label)
+            {
+                printf(label);
+            }
+            else
+            {
+                printf("*0x%08X", addr);
+            }
+        }
+    }
+}
+

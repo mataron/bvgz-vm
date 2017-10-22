@@ -4,6 +4,8 @@
 #include <stdint.h>
 
 #define F_ALLOW_IMM_1st_Arg     0x1
+#define F_1st_Arg_Code_Ref      0x2
+
 
 typedef struct _instn_t
 {
