@@ -29,3 +29,8 @@ add_executable(basm basm_app.c)
 target_link_libraries(basm -Wl,--start-group
     syscalls instns bytecode vm utils
     -Wl,--end-group)
+
+add_library(bvgzvm SHARED vmlib.c)
+target_link_libraries(bvgzvm -Wl,--start-group
+    syscalls instns bytecode vm utils
+    -Wl,--end-group)
