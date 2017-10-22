@@ -19,7 +19,4 @@
 // number of instructions every which a cleanup is done
 #define VM_CLEANUP_PERIOD_INSTNS    20
 
-#undef ENABLE_INSTN_PRINT
-// #define ENABLE_INSTN_PRINT
-
 #endif
