@@ -138,7 +138,7 @@ int dbg_show_breakpts(int argc, char** argv, dbg_state_t* state)
 
     for (list_t* n = state->breakpoints; n; n = n->next)
     {
-        print_breakpoint(n->data);
+        print_breakpoint(n->data, state);
         printf("\n");
     }
 

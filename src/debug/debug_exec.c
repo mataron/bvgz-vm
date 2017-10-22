@@ -67,7 +67,7 @@ static int step_program(dbg_state_t* state, instn_t* instn,
             if (brk)
             {
                 printf("Reached breakpoint ");
-                print_breakpoint(brk);
+                print_breakpoint(brk, state);
                 printf("\n");
                 return 2;
             }

@@ -58,13 +58,13 @@ uint32_t resolve_code_address(char* address_or_label, dbg_state_t* state)
 
 static const char BrkTypes[] = { 'A', 'L', 'F', 'I', '+' };
 
-void print_breakpoint(dbg_break_pt_t* brk)
+void print_breakpoint(dbg_break_pt_t* brk, dbg_state_t* state)
 {
     printf("[%3u] %c: ", brk->brk_id, BrkTypes[brk->type - 1]);
     switch (brk->type)
     {
     case BRK_T_Address:
-        printf("0x%08x", brk->point.address);
+        print_code_address(brk->point.address, state);
         break;
     case BRK_T_Label:
         printf("0x%08x :: %s", brk->point.label.address,
@@ -88,7 +88,7 @@ void print_instn(instn_t* instn, dbg_state_t* state)
 {
     uint32_t instn_idx = instn->code >> 3;
 
-    printf("%5s/%d\t", InstnDefs[instn_idx].name,
+    printf("%8s/%d\t", InstnDefs[instn_idx].name,
         InstnDefs[instn_idx].arg_count);
     for (int i = 0; i < InstnDefs[instn_idx].arg_count; ++i)
     {
@@ -117,13 +117,56 @@ void print_instn(instn_t* instn, dbg_state_t* state)
 }
 
 
-void print_mem_address(uint32_t address, dbg_state_t* state)
+struct label_descr
 {
-    printf("0x%08x", address);
+    uint32_t address;
+    int is_mem_ref;
+    char* label;
+};
+
+static void find_label(void* _descr, char* key, void* value)
+{
+    struct label_descr* descr = _descr;
+    dbg_label_t* label = value;
+    if (label->is_mem_ref == descr->is_mem_ref &&
+        label->address == descr->address)
+    {
+        descr->label = key;
+    }
 }
 
 
-void print_code_address(uint32_t address, dbg_state_t* state)
+int print_mem_address(uint32_t address, dbg_state_t* state)
 {
+    if (state->labels)
+    {
+        struct label_descr descr = { address, 1, NULL };
+        hmap_iterate(state->labels, &descr, find_label);
+        if (descr.label)
+        {
+            printf(descr.label);
+            return 1;
+        }
+    }
+
     printf("0x%08x", address);
+    return 0;
+}
+
+
+int print_code_address(uint32_t address, dbg_state_t* state)
+{
+    if (state->labels)
+    {
+        struct label_descr descr = { address, 0, NULL };
+        hmap_iterate(state->labels, &descr, find_label);
+        if (descr.label)
+        {
+            printf(descr.label);
+            return 1;
+        }
+    }
+
+    printf("0x%08x", address);
+    return 0;
 }

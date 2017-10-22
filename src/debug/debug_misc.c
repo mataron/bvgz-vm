@@ -86,7 +86,7 @@ int dbg_disasm(int argc, char** argv, dbg_state_t* state)
         end = begin + offset;
     }
 
-    for (uint32_t addr = begin; addr <= end; )
+    for (uint32_t addr = begin; addr < end; )
     {
         unsigned exceptions = state->vm->exceptions;
         int32_t offt = decode_instn(state->vm->code + addr,
@@ -100,7 +100,11 @@ int dbg_disasm(int argc, char** argv, dbg_state_t* state)
             return 0;
         }
 
-        print_code_address(addr, state);
+        int r = print_code_address(addr, state);
+        if (r)
+        {
+            printf(":\n0x%08x", addr);
+        }
         printf(":  ");
         print_instn(&instn, state);
         printf("\n");
