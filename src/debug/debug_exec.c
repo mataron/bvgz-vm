@@ -105,6 +105,7 @@ int dbg_run(int argc, char** argv, dbg_state_t* state)
         if (ret == 0) break;
         if (ret == 2) {
             print_code_address(state->vm->iptr, state);
+            printf(":  ");
             print_instn(&instn, state);
             printf("\n");
             return 0;
@@ -133,6 +134,7 @@ int dbg_step(int argc, char** argv, dbg_state_t* state)
     }
 
     print_code_address(state->vm->iptr, state);
+    printf(":  ");
     print_instn(&instn, state);
     printf("\n");
 

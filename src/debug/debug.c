@@ -133,6 +133,8 @@ int dbg_yield(int argc, char** argv, dbg_state_t* state);
 int dbg_io(int argc, char** argv, dbg_state_t* state);
 int dbg_children(int argc, char** argv, dbg_state_t* state);
 
+int dbg_disasm(int argc, char** argv, dbg_state_t* state);
+
 
 dbg_command_t Commands[] = {
     { "q", "quit the debugger", dbg_quit },
@@ -156,5 +158,6 @@ dbg_command_t Commands[] = {
     { "bt", "show current procedure stack", dbg_stack },
     { "io", "show i/o descriptors", dbg_io },
     { "ch", "show children processes", dbg_children },
+    { "disasm", "disassamble a code region", dbg_disasm },
     { NULL, NULL, NULL }
 };

@@ -17,7 +17,8 @@ uint32_t parse_uint(char* n, int radix)
 }
 
 
-uint32_t resolve_mem_address(char* address_or_label, dbg_state_t* state)
+static uint32_t resolve_address(char* address_or_label, dbg_state_t* state,
+    int is_mem_ref)
 {
     if (state->labels)
     {
@@ -25,7 +26,7 @@ uint32_t resolve_mem_address(char* address_or_label, dbg_state_t* state)
         int ret = hmap_get(state->labels, address_or_label, (void**)&label);
         if (ret == MAP_OK)
         {
-            if (!label->is_mem_ref)
+            if (label->is_mem_ref != is_mem_ref)
             {
                 return (uint32_t)-1;
             }
@@ -40,6 +41,18 @@ uint32_t resolve_mem_address(char* address_or_label, dbg_state_t* state)
     }
 
     return parse_uint(address_or_label, 10);
+}
+
+
+uint32_t resolve_mem_address(char* address_or_label, dbg_state_t* state)
+{
+    return resolve_address(address_or_label, state, 1);
+}
+
+
+uint32_t resolve_code_address(char* address_or_label, dbg_state_t* state)
+{
+    return resolve_address(address_or_label, state, 0);
 }
 
 

@@ -1,4 +1,6 @@
 #include "debug_util.h"
+#include "instns/instn.h"
+#include "bytecode.h"
 
 
 int dbg_io(int argc, char** argv, dbg_state_t* state)
@@ -46,5 +48,65 @@ int dbg_children(int argc, char** argv, dbg_state_t* state)
             index++;
         }
     }
+    return 0;
+}
+
+
+int dbg_disasm(int argc, char** argv, dbg_state_t* state)
+{
+    instn_t instn;
+    uint32_t begin = 0;
+    uint32_t end = state->vm->codesz;
+
+    if (argc > 3)
+    {
+        printf("Usage: %s ([label|address]) (offset)\n", argv[0]);
+        return 0;
+    }
+
+    if (argc > 1)
+    {
+        begin = resolve_code_address(argv[1], state);
+        if (begin == (uint32_t)-1)
+        {
+            printf("bad code address: %s\n", argv[1]);
+            return 0;
+        }
+    }
+
+    if (argc > 2)
+    {
+        uint32_t offset = parse_uint(argv[2], 10);
+        if (offset == (uint32_t)-1)
+        {
+            printf("bad offset: %s\n", argv[2]);
+            return 0;
+        }
+
+        end = begin + offset;
+    }
+
+    for (uint32_t addr = begin; addr <= end; )
+    {
+        unsigned exceptions = state->vm->exceptions;
+        int32_t offt = decode_instn(state->vm->code + addr,
+            state->vm, &instn);
+        if (offt < 0)
+        {
+            printf("decode failed at: 0x%08x\n", addr);
+            unsigned x = state->vm->exceptions & ~exceptions;
+            print_exception("  ", x);
+            state->vm->exceptions = x;
+            return 0;
+        }
+
+        print_code_address(addr, state);
+        printf(":  ");
+        print_instn(&instn, state);
+        printf("\n");
+
+        addr += offt;
+    }
+
     return 0;
 }
