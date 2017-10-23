@@ -201,5 +201,8 @@ All logical instructions set their destination operand to either 0 or 1 (the rem
 `nop`
 > :)
 
-`syscall` ...
-> To be documented
+`assert` _id_ _condition_
+> do nothing if the _condition_ is _true_. Otherwise it will exit the program and set a VM exception and its _id_ to the failed assertion indicator.
+
+`syscall` _id_ _argv_ _retv_
+> invoke the system call indentified by the given _id_. The system call will receive its arguments from _argv_ and write its result to _retv_. Both _argv_ and _retv_ are not dereferenced when they system call invoked doesn't need them (so they can be anything). The system call list can be found [here](syscalls.md)

@@ -9,3 +9,5 @@ A simplistic VM implementation (made for educational purposes).
 [ASM syntax](doc/asm.md)
 
 [Instructions](doc/instn.md)
+
+[System Calls](doc/syscalls.md)
