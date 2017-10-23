@@ -81,7 +81,6 @@ static void label_refs_visitor(void* parse, char* label, void* unused)
     {
         report(result, P_ERROR, "<top-level>", 0,
             "referenced label [%s] is missing", label);
-        result->consistent = -1;
     }
 }
 
@@ -888,10 +887,6 @@ static void add_instn(const char* filename, uint32_t lineno,
             result->n_instns * sizeof(prs_instn_t*));
 
         result->instns[result->n_instns - 1] = instn;
-    }
-    else
-    {
-        result->consistent = -1;
     }
 }
 

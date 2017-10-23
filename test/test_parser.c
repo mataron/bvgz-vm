@@ -26,8 +26,6 @@ static void test_labels()
     assert(value->offset == 0);
     assert(value->is_mem_ref == 0);
 
-    assert(result->consistent == 0);
-
     destroy_parse_result(result);
 }
 
@@ -72,8 +70,6 @@ static void test_instns()
     assert(instn->args[2].data.value == 0x2345);
     assert(instn->args[2].n_bytes == 2);
 
-    assert(result->consistent == -1);
-
     destroy_parse_result(result);
 }
 
@@ -101,7 +97,6 @@ static void test_instns_w_labels()
     assert(result->warnings == 0);
     assert(result->n_instns == 3);
     assert(hmap_size(result->labels) == 3);
-    assert(result->consistent == 0);
 
     destroy_parse_result(result);
 }
@@ -115,7 +110,6 @@ static void test_data_loads()
     assert(result->warnings == 1);
     assert(result->n_instns == 2);
     assert(hmap_size(result->labels) == 5);
-    assert(result->consistent == 0);
 
     printf("memsz = %u\n", result->memsz);
     // true total is 287, but 12 bytes are removed due to specific size

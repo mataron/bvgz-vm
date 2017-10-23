@@ -80,8 +80,6 @@ typedef struct _prs_result_t
     // stores label references in the data section
     // these are set after parse.
     list_t* label_refs;
-    // when zero everything is fine!
-    int consistent;
 }
 prs_result_t;
 

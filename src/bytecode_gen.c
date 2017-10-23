@@ -35,7 +35,7 @@ static struct ref* add_delayed_ref(struct ref* refs, int n_refs,
 int parse_to_bytecode(prs_result_t* parse, uint8_t** memory,
     uint32_t* size, int debug_mode)
 {
-    assert(parse->consistent == 0);
+    assert(parse->errors == 0);
     uint8_t* buffer = NULL;
     uint32_t n_blocks = 0;
     uint32_t offset = 0;
