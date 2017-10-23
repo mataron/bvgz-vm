@@ -11,7 +11,11 @@ static void test_empty()
 
     uint8_t* memory = NULL;
     uint32_t size = 0;
-    parse_to_bytecode(result, &memory, &size, 1);
+    int r = parse_to_bytecode(result, &memory, &size, 1);
+    assert(r == 0);
+
+    r = resolve_data_label_refs(result);
+    assert(r == 0);
 
     assert(memory == NULL);
     assert(size == 0);
@@ -27,7 +31,11 @@ static void test_gen()
 
     uint8_t* memory = NULL;
     uint32_t size = 0;
-    parse_to_bytecode(result, &memory, &size, 1);
+    int r = parse_to_bytecode(result, &memory, &size, 1);
+    assert(r == 0);
+
+    r = resolve_data_label_refs(result);
+    assert(r == 0);
 
     assert(size == 3 + 4 + 1 + 2);
     assert(memory != NULL);

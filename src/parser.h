@@ -51,6 +51,18 @@ typedef struct _label_t
 label_t;
 
 
+typedef struct _label_ref_t
+{
+    const char* filename;
+    uint32_t lineno;
+
+    const char* label;
+    uint32_t size;
+    uint32_t write_offset;
+}
+label_ref_t;
+
+
 typedef struct _prs_result_t
 {
     uint32_t n_files;
@@ -65,6 +77,9 @@ typedef struct _prs_result_t
     uint32_t memsz; // bytes in 'memory' that are used
     uint32_t mem_alloc; // allocation size of 'memory'
     hashmap_t labels;
+    // stores label references in the data section
+    // these are set after parse.
+    list_t* label_refs;
     // when zero everything is fine!
     int consistent;
 }
@@ -72,6 +87,8 @@ prs_result_t;
 
 
 prs_result_t* parse_asm(char* filename, list_t* include_paths);
+
+int resolve_data_label_refs(prs_result_t* result);
 
 uint32_t resolve_entry_point(char* entry_label, prs_result_t* result);
 

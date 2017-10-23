@@ -17,6 +17,9 @@ vm_t* mk_vm_for_asm(char* asmfile)
     assert(ret == 0);
     assert(codesz > 0);
 
+    ret = resolve_data_label_refs(parse);
+    assert(ret == 0);
+
     uint32_t entry_offset = resolve_entry_point("_entry", parse);
     assert(entry_offset != (uint32_t)-1);
 

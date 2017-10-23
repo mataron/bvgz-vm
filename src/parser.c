@@ -130,6 +130,51 @@ prs_result_t* parse_asm(char* filename, list_t* include_paths)
 }
 
 
+int resolve_data_label_refs(prs_result_t* result)
+{
+    for (list_t* n = result->label_refs; n; n = n->next)
+    {
+        label_ref_t* ref = n->data;
+        label_t* label = NULL;
+        int ret = hmap_get(result->labels, (char*)ref->label, (void**)&label);
+        if (ret != MAP_OK)
+        {
+            report(result, P_ERROR, ref->filename, ref->lineno,
+                "label not found: %s", ref->label);
+            return -1;
+        }
+
+        uint64_t value = 0;
+        if (label->is_mem_ref)
+        {
+            value = label->offset;
+        }
+        else
+        {
+            uint32_t v = result->instns[label->offset]->mem_offset;
+            if (v == (uint32_t)-1)
+            {
+                report(result, P_ERROR, ref->filename, ref->lineno,
+                    "label not yet resolved: %s", ref->label);
+                return -1;
+            }
+            value = v;
+        }
+
+        if (ref->size == 4)
+        {
+            *(uint32_t*)(result->memory + ref->write_offset) = value;
+        }
+        else
+        {
+            *(uint64_t*)(result->memory + ref->write_offset) = value;
+        }
+    }
+
+    return 0;
+}
+
+
 uint32_t resolve_entry_point(char* entry_label, prs_result_t* result)
 {
     label_t* elbl = NULL;
@@ -169,6 +214,15 @@ void destroy_parse_result(prs_result_t* parse_result)
     hmap_iterate(parse_result->labels, NULL, free_label);
     hmap_destroy(parse_result->labels);
 
+    for (list_t* n = parse_result->label_refs; n; n = n->next)
+    {
+        label_ref_t* ref = n->data;
+        free((void*)ref->label);
+        free(ref);
+        n->data = NULL;
+    }
+    list_destroy(parse_result->label_refs);
+
     free(parse_result->memory);
 
     free(parse_result);
@@ -199,15 +253,8 @@ static void report(prs_result_t* r, int kind, const char* source,
 static prs_result_t* init_parse_result()
 {
     prs_result_t* res = malloc(sizeof(prs_result_t));
-    res->n_files = 0;
-    res->errors = res->warnings = 0;
-    res->n_instns = 0;
-    res->instns = NULL;
-    res->memory = NULL;
-    res->memsz = 0;
-    res->mem_alloc = 0;
+    memset(res, 0, sizeof(prs_result_t));
     res->labels = hmap_create();
-    res->consistent = 0;
     return res;
 }
 
@@ -593,6 +640,48 @@ static void add_hex_to_memory(const char* filename, uint32_t lineno,
 }
 
 
+static void add_label_to_memory(const char* filename, uint32_t lineno,
+    char* label, char* label_value, uint32_t size, uint32_t offset,
+    prs_result_t* result)
+{
+    if (size == (uint32_t)-1)
+    {
+        size = 4;
+    }
+
+    if (size != 4 && size != 8)
+    {
+        report(result, P_ERROR, filename, lineno,
+            "bad data directive: size must be either 4 (default) or 8");
+        return;
+    }
+
+    ensure_memory_at_offset(size, offset, result);
+
+    uint32_t w_offset = offset != (uint32_t)-1 ? offset : result->memsz;
+
+    label_ref_t* ref = malloc(sizeof(label_ref_t));
+    ref->size = size;
+    ref->write_offset = w_offset;
+    ref->label = strdup(label_value);
+    ref->filename = filename;
+    ref->lineno = lineno;
+
+    list_t* nd = list_make_node(ref);
+    result->label_refs = list_prepend(result->label_refs, nd);
+
+    uint64_t zero = 0;
+    write_to_memory((uint8_t*)&zero, size, w_offset, result);
+
+    set_memory_size(filename, lineno, w_offset, size, result);
+    if (label)
+    {
+        add_label(filename, lineno, label + 1 /* skip '@' chr */,
+            result, w_offset, 1);
+    }
+}
+
+
 static void parse_string_literal(char* token, char** p)
 {
     char* c = token + 1;
@@ -721,6 +810,12 @@ static void parse_preproc_data(const char* filename, uint32_t lineno,
     {
         add_hex_to_memory(filename, lineno, label, data, size,
             offset, result);
+    }
+    else if (*data == '&')
+    {
+        add_label_to_memory(filename, lineno, label, data + 1, size,
+            offset, result);
+        return;
     }
     else
     {

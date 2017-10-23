@@ -12,10 +12,15 @@ static void test_decode()
 
     prs_result_t* result = parse_asm(
         xstr(PROJECT_ROOT) "/test/asm/bytecode-gen-test.s", NULL);
+    assert(result);
 
     uint8_t* memory = NULL;
     uint32_t size = 0;
-    parse_to_bytecode(result, &memory, &size, 1);
+    int r = parse_to_bytecode(result, &memory, &size, 1);
+    assert(r == 0);
+
+    r = resolve_data_label_refs(result);
+    assert(r == 0);
 
     destroy_parse_result(result);
 

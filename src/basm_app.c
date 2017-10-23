@@ -42,6 +42,12 @@ int main(int argc, char** argv)
         goto done;
     }
 
+    if (resolve_data_label_refs(result) < 0)
+    {
+        retval = 1;
+        goto done;
+    }
+
     entry_offset = resolve_entry_point(entry_pt_label, result);
     if (entry_offset == (uint32_t)-1)
     {
