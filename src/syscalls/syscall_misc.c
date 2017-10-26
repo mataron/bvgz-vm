@@ -93,6 +93,8 @@ void sys_timeout(vm_t* vm, uint32_t argv, uint32_t retv)
     tp.tv_nsec += MILLISECONDS_TO_NANOSECONDS(timeout_millis);
 
     make_vm_timer(vm, &tp, f_ptr);
+
+    *ret = 0;
 }
 
 
