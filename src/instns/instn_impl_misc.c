@@ -23,6 +23,13 @@ int op_assert_2(instn_t* instn, vm_t* vm)
 }
 
 
+int op_abrt_1(instn_t* instn, vm_t* vm)
+{
+    vm->exceptions |= arg_value(instn, 0);
+    return -1;
+}
+
+
 int op_cp_3(instn_t* instn, vm_t* vm)
 {
     memcpy(instn->args[0].ptr, instn->args[1].ptr, arg_value(instn, 2));
