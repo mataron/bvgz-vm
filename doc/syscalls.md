@@ -98,6 +98,26 @@ Upon completion of this call, assuming no errors occured, the buffer will contai
 
 ## Network I/O
 
+A few of the following system calls use network addresses specifications. These are 48bit long memory areas, where the first 32bits represent an IP address and the following 16bits specify a port. The addresses are taken to already be in network byte order, so that the system calls need not make any conversion prior to using their values.
+
+### ID=15 `socket(kind64)`
+
+Creates a socket and returns the respective i/o handle. The second argument specifies the protocol. Supported kinds are:
+> 1: TCP/IP socket<br>
+> 2: UDP/IP socket<br>
+
+### ID=16 `bind(handle64, addr_ptr32)`
+
+Binds the network address pointed to by the second argument to the socket identified by the handle given.
+
+### ID=17 `connect(handle64, addr_ptr32, cb_args_ptr32, callback_ptr32)`
+
+Connect the socket specified by the handle provided to the network address pointed to by the second argument. The system call will register an event handler with the callback given, so that it will be called when the connection has been made. The callback is called in its own procedure. 
+
+The callback prototype is: `callback(handle64, errno64)`
+
+The first argument is the handle given to `connect()` and the second is the error that occured during the connection attempt. In case the connection operation was completed successfully, then the second argument to the callback will be set to zero.
+
 > TBD
 
 ## Memory management
