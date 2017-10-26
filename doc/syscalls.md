@@ -102,7 +102,17 @@ Upon completion of this call, assuming no errors occured, the buffer will contai
 
 ## Memory management
 
-> TBD
+### ID=21 `mexpand(size64)`
+
+Expand the available memory by the specified number of bytes.
+
+### ID=22 `mretract(size64)`
+
+Shrink the available memory by the specified number of bytes.
+
+### ID=23 `msize()`
+
+Returns the size of the available memory.
 
 ## Process management
 
@@ -110,4 +120,10 @@ Upon completion of this call, assuming no errors occured, the buffer will contai
 
 ## Code management
 
-> TBD
+### ID=28 `codesz()`
+
+Returns the size of the code segment.
+
+### ID=29 `codecp(begin64, size64, ptr64)`
+
+Copy the contents of the code segment, offset by the first argument into the the buffer pointed to by the third argument. THe second argument specifies the number of bytes to copy.
