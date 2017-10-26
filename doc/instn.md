@@ -201,6 +201,9 @@ All logical instructions set their destination operand to either 0 or 1 (the rem
 `nop`
 > :)
 
+`abrt` _exception_
+> set the specified _exception_ and exit the VM.
+
 `assert` _id_ _condition_
 > do nothing if the _condition_ is _true_. Otherwise it will exit the program and set a VM exception and its _id_ to the failed assertion indicator.
 
