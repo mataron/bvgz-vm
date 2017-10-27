@@ -17,7 +17,7 @@ struct sockaddr_in google_addr;
 static void test_net_connect()
 {
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "net-connect.s");
+        "net-connect.bvgzs");
 
     *(uint32_t*)(vm->memory + 8) = google_addr.sin_addr.s_addr;
     *(uint16_t*)(vm->memory + 12) = htons(80);
@@ -39,7 +39,7 @@ static void test_net_connect()
 static void test_http_get()
 {
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "http-get.s");
+        "http-get.bvgzs");
 
     *(uint32_t*)(vm->memory + 8) = google_addr.sin_addr.s_addr;
     *(uint16_t*)(vm->memory + 12) = htons(80);
@@ -64,7 +64,7 @@ static void test_http_get()
 static void* echo_srv_thread()
 {
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "echo-srv.s");
+        "echo-srv.bvgzs");
 
     *(uint32_t*)(vm->memory + 8) = inet_addr("127.0.0.1");
     *(uint16_t*)(vm->memory + 12) = htons(22280);

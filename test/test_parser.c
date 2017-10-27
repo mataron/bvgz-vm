@@ -6,7 +6,7 @@
 static void test_labels()
 {
     prs_result_t* result = parse_asm(
-        xstr(PROJECT_ROOT) "/test/asm/labels-only.s", NULL);
+        xstr(PROJECT_ROOT) "/test/asm/labels-only.bvgzs", NULL);
     assert(result->errors == 0);
     assert(result->warnings == 0);
     assert(result->n_instns == 0);
@@ -35,7 +35,7 @@ static void test_instns()
     prs_instn_t* instn;
 
     prs_result_t* result = parse_asm(
-        xstr(PROJECT_ROOT) "/test/asm/instn-only.s", NULL);
+        xstr(PROJECT_ROOT) "/test/asm/instn-only.bvgzs", NULL);
     assert(result->errors == 3);
     assert(result->warnings == 0);
     assert(result->n_instns == 3);
@@ -79,7 +79,7 @@ static void test_include()
     list_t* include_paths = list_make_node(
         xstr(PROJECT_ROOT) "/test/asm/foo");
     prs_result_t* result = parse_asm(
-        xstr(PROJECT_ROOT) "/test/asm/include.s", include_paths);
+        xstr(PROJECT_ROOT) "/test/asm/include.bvgzs", include_paths);
 
     assert(result->errors == 0); // ensures inclusions are OK
     assert(result->warnings == 0);
@@ -92,7 +92,7 @@ static void test_include()
 static void test_instns_w_labels()
 {
     prs_result_t* result = parse_asm(
-        xstr(PROJECT_ROOT) "/test/asm/instn-w-labels.s", NULL);
+        xstr(PROJECT_ROOT) "/test/asm/instn-w-labels.bvgzs", NULL);
     assert(result->errors == 0);
     assert(result->warnings == 0);
     assert(result->n_instns == 3);
@@ -105,7 +105,7 @@ static void test_instns_w_labels()
 static void test_data_loads()
 {
     prs_result_t* result = parse_asm(
-        xstr(PROJECT_ROOT) "/test/asm/data.s", NULL);
+        xstr(PROJECT_ROOT) "/test/asm/data.bvgzs", NULL);
     assert(result->errors == 0);
     assert(result->warnings == 1);
     assert(result->n_instns == 2);

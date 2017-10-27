@@ -7,7 +7,7 @@
 
 static void test_mem_mng()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "mem-mng.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "mem-mng.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);

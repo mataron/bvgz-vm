@@ -7,7 +7,7 @@
 
 static void test_exec_ls()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "exec-ls.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "exec-ls.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -23,9 +23,9 @@ static void test_exec_ls()
 static void test_exec_vm()
 {
     vm_t* test_vm = mk_vm_for_asm(
-        xstr(PROJECT_ROOT) "/test/asm/programs/nop3.s");
+        xstr(PROJECT_ROOT) "/test/asm/programs/nop3.bvgzs");
 
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "exec-vm.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "exec-vm.bvgzs");
 
     *(uint64_t*)(vm->memory + 136) = test_vm->codesz;
     *(uint64_t*)(vm->memory + 144) = test_vm->memsz;
@@ -53,7 +53,7 @@ static void test_exec_vm()
 
 static void test_exec_kill()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "exec-kill.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "exec-kill.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);

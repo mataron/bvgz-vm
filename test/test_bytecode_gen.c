@@ -7,7 +7,7 @@
 static void test_empty()
 {
     prs_result_t* result = parse_asm(
-        xstr(PROJECT_ROOT) "/test/asm/empty.s", NULL);
+        xstr(PROJECT_ROOT) "/test/asm/empty.bvgzs", NULL);
 
     uint8_t* memory = NULL;
     uint32_t size = 0;
@@ -27,7 +27,7 @@ static void test_empty()
 static void test_gen()
 {
     prs_result_t* result = parse_asm(
-        xstr(PROJECT_ROOT) "/test/asm/bytecode-gen-test.s", NULL);
+        xstr(PROJECT_ROOT) "/test/asm/bytecode-gen-test.bvgzs", NULL);
 
     uint8_t* memory = NULL;
     uint32_t size = 0;

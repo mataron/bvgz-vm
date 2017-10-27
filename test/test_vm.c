@@ -9,7 +9,7 @@
 
 static void test_nop3()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "nop3.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "nop3.bvgzs");
 
     assert(vm->codesz == sizeof(uint16_t) * 3);
     assert(vm->memsz == 0);
@@ -28,7 +28,7 @@ static void test_nop3()
 
 static void test_arithm()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "arithm.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "arithm.bvgzs");
 
     assert(vm->memsz == sizeof(uint64_t) * 5);
 
@@ -50,7 +50,7 @@ static void test_arithm()
 
 static void test_logical()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "logical.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "logical.bvgzs");
 
     assert(vm->memsz == sizeof(uint64_t) * 8);
 
@@ -75,7 +75,7 @@ static void test_logical()
 
 static void test_bitwise()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "bitwise.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "bitwise.bvgzs");
 
     assert(vm->memsz == sizeof(uint64_t) * 6);
 
@@ -98,7 +98,7 @@ static void test_bitwise()
 
 static void test_rel()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "rel.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "rel.bvgzs");
 
     assert(vm->memsz == sizeof(uint64_t) * 6);
 
@@ -121,7 +121,7 @@ static void test_rel()
 
 static void test_cpn()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "cpn.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "cpn.bvgzs");
 
     assert(vm->memsz == 30);
 
@@ -146,7 +146,7 @@ static void test_cpn()
 
 static void test_read()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "read.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "read.bvgzs");
 
     printf("read-mem-sz: %u\n", vm->memsz);
     assert(vm->memsz == 91);
@@ -168,7 +168,7 @@ static void test_read()
 
 static void test_cp()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "cp.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "cp.bvgzs");
 
     assert(vm->memsz == 126);
 
@@ -186,7 +186,7 @@ static void test_cp()
 
 static void test_jmp()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "jmp.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "jmp.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -201,7 +201,7 @@ static void test_jmp()
 
 static void test_ret()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "ret.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "ret.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -216,7 +216,7 @@ static void test_ret()
 
 static void test_func()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "func.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "func.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -231,7 +231,7 @@ static void test_func()
 
 static void test_fib_n(uint64_t n, uint64_t expect)
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "fib.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "fib.bvgzs");
 
     *(uint64_t*)(vm->memory + 48) = n;
 

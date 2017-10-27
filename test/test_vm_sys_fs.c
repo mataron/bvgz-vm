@@ -13,7 +13,7 @@
 static void test_file_open_close()
 {
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "file-open-close.s");
+        "file-open-close.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -44,7 +44,7 @@ static void test_file_unlink()
     fclose(fp);
 
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "file-unlink.s");
+        "file-unlink.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -69,7 +69,7 @@ static void test_file_stat()
     assert(ret == 0);
 
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "file-stat.s");
+        "file-stat.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -89,7 +89,7 @@ static void test_file_stat()
 static void test_file_seek()
 {
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "file-read-tail.s");
+        "file-read-tail.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -116,7 +116,7 @@ static void test_dir_mkrm()
     }
 
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "mkdir.s");
+        "mkdir.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -133,7 +133,7 @@ static void test_dir_mkrm()
     assert(S_ISDIR(stat_s.st_mode));
 
     vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "rmdir.s");
+        "rmdir.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
@@ -166,7 +166,7 @@ static void test_readdir()
     }
 
     vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH
-        "readdir.s");
+        "readdir.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);

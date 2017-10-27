@@ -11,7 +11,7 @@ static void test_decode()
     vm.memsz = 0x1234 + 8;
 
     prs_result_t* result = parse_asm(
-        xstr(PROJECT_ROOT) "/test/asm/bytecode-gen-test.s", NULL);
+        xstr(PROJECT_ROOT) "/test/asm/bytecode-gen-test.bvgzs", NULL);
     assert(result);
 
     uint8_t* memory = NULL;

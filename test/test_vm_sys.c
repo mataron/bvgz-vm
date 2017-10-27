@@ -7,7 +7,7 @@
 
 static void test_timers()
 {
-    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "timers.s");
+    vm_t* vm = mk_vm_for_asm(xstr(PROJECT_ROOT) PRG_PATH "timers.bvgzs");
 
     execute_vm(vm);
     print_vm_state(vm);
