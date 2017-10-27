@@ -18,7 +18,7 @@ Set the last error set in the VM.
 
 ### ID=2 `time(seconds64, nanoseconds64)`
 
-Read the current system time into the arguments. 
+Read the current system time into the arguments.
 
 ### ID=3 `timeout(function_ptr32, timeout_milliseconds64)`
 
@@ -112,13 +112,27 @@ Binds the network address pointed to by the second argument to the socket identi
 
 ### ID=17 `connect(handle64, addr_ptr32, cb_args_ptr32, callback_ptr32)`
 
-Connect the socket specified by the handle provided to the network address pointed to by the second argument. The system call will register an event handler with the callback given, so that it will be called when the connection has been made. The callback is called in its own procedure. 
+Connect the socket specified by the handle provided to the network address pointed to by the second argument. The system call will register an event handler with the callback given, so that it will be called when the connection has been made. The callback is called in its own procedure.
 
 The callback prototype is: `callback(handle64, errno64)`
 
 The first argument is the handle given to `connect()` and the second is the error that occured during the connection attempt. In case the connection operation was completed successfully, then the second argument to the callback will be set to zero.
 
-> TBD
+### ID=18 `listen(handle64)`
+
+Put the given handle to listening mode.
+
+### ID=19 `accept(handle64, cb_args_ptr32, callback_ptr32)`
+
+Accept clients on a listening socket. Each time a new connection is created by a client the callback will be called in its own procedure.
+
+The callback prototype is: `callback(handle64, errno64)`
+
+The first argument is a newly created handle that corresponds to the connection with the client. This handle is non-zero when the connection to the client has been successful, in which case errno is zero. The second argument indicates the error number of the actual `accept()` call.
+
+### ID=20 `peer_address(handle64, addr_ptr32)`
+
+Reads the address of the connected peer into the network address specification pointed to by the second argument.
 
 ## Memory management
 
