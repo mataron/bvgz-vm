@@ -183,6 +183,6 @@ Where:
 
 Returns the size of the code segment.
 
-### ID=29 `codecp(begin64, size64, ptr64)`
+### ID=29 `codecp(begin64, size64, ptr32)`
 
 Copy the contents of the code segment, offset by the first argument into the the buffer pointed to by the third argument. THe second argument specifies the number of bytes to copy.

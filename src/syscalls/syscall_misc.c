@@ -129,7 +129,7 @@ void sys_codesz(vm_t* vm, uint32_t argv, uint32_t retv)
 
 void sys_codecp(vm_t* vm, uint32_t argv, uint32_t retv)
 {
-    uint64_t* args =  (uint64_t*)deref_mem_ptr(argv, 8, vm);
+    uint8_t* args = deref_mem_ptr(argv, 2 * 8 + 4, vm);
     uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
     if (!args || !ret)
     {
@@ -138,13 +138,18 @@ void sys_codecp(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    if (args[0] + args[1] > vm->codesz)
+    uint64_t begin = *(uint64_t*)args;
+    uint64_t size = *(uint64_t*)(args + 8);
+
+    if (begin + size > vm->codesz)
     {
         vm->error_no = EINVAL;
         return;
     }
 
-    uint8_t* ptr = deref_mem_ptr(args[2], args[1], vm);
+    uint32_t ptr_ref = *(uint32_t*)(args + 16);
+
+    uint8_t* ptr = deref_mem_ptr(ptr_ref, size, vm);
     if (!ptr)
     {
         vm->error_no = EFAULT;
@@ -152,6 +157,6 @@ void sys_codecp(vm_t* vm, uint32_t argv, uint32_t retv)
         return;
     }
 
-    memcpy(ptr, vm->code + args[0], args[1]);
+    memcpy(ptr, vm->code + begin, size);
     *ret = 0;
 }
