@@ -317,7 +317,7 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
     uint32_t retv, uint32_t* ptr, uint32_t* len, uint32_t* f_ptr,
     uint32_t* args_ptr, vm_fd_t** fd)
 {
-    uint64_t* args =  (uint64_t*)deref_mem_ptr(argv, 5 * 8, vm);
+    uint8_t* args = deref_mem_ptr(argv, 5 * 8, vm);
     uint64_t* ret = (uint64_t*)deref_mem_ptr(retv, 8, vm);
     if (!args || !ret)
     {
@@ -326,16 +326,8 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
         return NULL;
     }
 
-    if (!FITS_IN_32Bit(args[0]) || !FITS_IN_32Bit(args[1]) ||
-        !FITS_IN_32Bit(args[2]) || !FITS_IN_32Bit(args[3]) ||
-        !FITS_IN_32Bit(args[4]))
-    {
-        vm->error_no = EINVAL;
-        *ret = 1;
-        return NULL;
-    }
-
-    uint32_t fd_idx = FD_HANDLE_TO_IDX(args[0]);
+    uint64_t fd_arg = *(uint64_t*)args;
+    uint32_t fd_idx = FD_HANDLE_TO_IDX(fd_arg);
     if (fd_idx >= vm->io.n_fds || !vm->io.fds[fd_idx].used)
     {
         vm->error_no = EBADF;
@@ -344,8 +336,8 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
     }
     *fd = vm->io.fds + fd_idx;
 
-    *ptr = args[1];
-    *len = args[2];
+    *ptr = *(uint32_t*)(args + 8);
+    *len = *(uint64_t*)(args + 12);
 
     if (!deref(*ptr, *len, vm))
     {
@@ -354,7 +346,7 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
         return NULL;
     }
 
-    *args_ptr = args[3];
+    *args_ptr = *(uint32_t*)(args + 20);
     if (!deref(*args_ptr, 4 * 8, vm))
     {
         vm->error_no = EFAULT;
@@ -362,7 +354,7 @@ static uint64_t* get_io_task_params(vm_t* vm, uint32_t argv,
         return NULL;
     }
 
-    *f_ptr = args[4];
+    *f_ptr = *(uint32_t*)(args + 24);
     if (*f_ptr >= vm->codesz)
     {
         vm->error_no = EINVAL;

@@ -40,9 +40,9 @@ on_connect:
 
 	write64		&scall_args	0	fd
 	write64		&scall_args 8	&rqst
-	write64		&scall_args 16	17
-	write64		&scall_args 24	&cb_args
-	write64		&scall_args 32	&on_rqst_sent
+	write64		&scall_args 12	17
+	write64		&scall_args 20	&cb_args
+	write64		&scall_args 24	&on_rqst_sent
 	syscall 7	&scall_args	&err
     ne          test        err     0
     jtrue       &on_error   test
@@ -62,9 +62,9 @@ on_rqst_sent:
 read_reply:
 	write64     &scall_args 0   fd
     write64     &scall_args 8   &resp
-    write64     &scall_args 16  10240
-    write64     &scall_args 24  &cb_args
-    write64     &scall_args 32  &on_data_read
+    write64     &scall_args 12  10240
+    write64     &scall_args 20  &cb_args
+    write64     &scall_args 24  &on_data_read
     syscall 6   &scall_args &err
 
     ne          test        err     0

@@ -1,6 +1,6 @@
-%data =instn-only.s ; 84 bytes
+%data =instn-only.bvgzs ; 84 bytes
 
-%data @foo =instn-only.s ; 84 bytes
+%data @foo =instn-only.bvgzs ; 84 bytes
 
 %data @bar "\nstn-only.s" ; 11+1 bytes
 

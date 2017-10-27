@@ -34,7 +34,7 @@ Moves the current procedure to end of the procedure's list. This allows for all 
 
 Close an i/o handle. Handles are obtained from `fs_open()` or `socket()`.
 
-### ID=6 `read(handle64, ptr64, size64, cb_args_ptr64, callback_ptr64)`
+### ID=6 `read(handle64, ptr32, size64, cb_args_ptr32, callback_ptr32)`
 
 Read from the specified i/o handle. At most, the specified amount of bytes will be read into the memory location pointed to by the given `ptr`. Upon completion the callback will be invoked in its own procedure. The argument pointer used is the one passed to `read()`.
 
@@ -42,7 +42,7 @@ The callback prototype is: `callback(handle64, size64, errno64)`
 
 The first parameter is the one passed to the `read()` call. The size specifies the actual number of bytes writen to the buffer. After a successful read operation the errno parameter is zero. In case an error occurs the size is zero and the errno argument indicates the error kind.
 
-### ID=7 `write(handle64, ptr64, size64, cb_args_ptr64, callback_ptr64)`
+### ID=7 `write(handle64, ptr32, size64, cb_args_ptr32, callback_ptr32)`
 
 Write to the specified i/o handle. At most, the specified amount of bytes from the memory location pointed to by the given `ptr` will be written. Upon completion the callback will be invoked in its own procedure. The argument pointer used is the one passed to `write()`.
 

@@ -43,9 +43,9 @@ file_read:
 
     write64     &read_args  0       fd
     write64     &read_args  8       next_ptr
-    write64     &read_args  16      512
-    write64     &read_args  24      &read_cb
-    write64     &read_args  32      &read_callback
+    write64     &read_args  12      512
+    write64     &read_args  20      &read_cb
+    write64     &read_args  24      &read_callback
     syscall 6   &read_args  &err
 
     ne          test        err     0
