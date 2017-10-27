@@ -57,13 +57,13 @@ The first parameter is the one passed to the `write()` call. The size specifies 
 Open the file specified by the null-terminated string pointed to by the first argument.
 
 The second argument specifies the open mode. The least significant 3 bits specified read write mode:
-> 0x0: read-only<br>
-> 0x1: write-only<br>
-> 0x2: read-write<br>
+> `0x0`: read-only<br>
+> `0x1`: write-only<br>
+> `0x2`: read-write<br>
 
 Additionally, options can be ORed with the following:
-> 0x040: append-mode (write offset is set to the end-of-file initially)<br>
-> 0x400: create-mode (creates the file if it doesn't already exist)<br>
+> `0x040`: append-mode (write offset is set to the end-of-file initially)<br>
+> `0x400`: create-mode (creates the file if it doesn't already exist)<br>
 
 The `fs_open()` call returns a 64bit i/o handle. Any non-zero value is a valid i/o handle. In case there is an error it returns zero and the errno is set to the VM internal error number, which can be obtained with `getlasterr()`.
 
@@ -92,9 +92,9 @@ Remove the directory specified by the null-terminated string pointed to by the f
 Read the contents of the directory specified by the null-terminated string pointed to by the first argument into the buffer pointed to by the second argument, which is assumed to be of maximum length equal to the size given as the third argument. Note that the special entries . & .. are included in the results.
 
 Upon completion of this call, assuming no errors occured, the buffer will contain an array of 32bit pointers into strings that are also stored into itself. The array is null-terminated, as well as the strings. In addition, assuming they are not null, the locations pointed to by the last three arguments are populated with the following information respectively:
-> number of entries saved into the buffer<br>
-> number of total entries in the directory (includes . & .. entries)<br>
-> minimum size required for the buffer to be able to contain all of the results<br>
+> `n_saved_entries`: number of entries saved into the buffer<br>
+> `n_total_entries`: number of total entries in the directory (includes . & .. entries)<br>
+> `min_buf_sz`: minimum size required for the buffer to be able to contain all of the results<br>
 
 ## Network I/O
 
@@ -103,8 +103,8 @@ A few of the following system calls use network addresses specifications. These 
 ### ID=15 `socket(kind64)`
 
 Creates a socket and returns the respective i/o handle. The second argument specifies the protocol. Supported kinds are:
-> 1: TCP/IP socket<br>
-> 2: UDP/IP socket<br>
+> `1`: TCP/IP socket<br>
+> `2`: UDP/IP socket<br>
 
 ### ID=16 `bind(handle64, addr_ptr32)`
 
@@ -150,7 +150,32 @@ Returns the size of the available memory.
 
 ## Process management
 
-> TBD
+### ID=24 `exec(argc64, argv32)`
+
+Execute a new process with the given argument vector. The argument vector is an array of 32bit pointers to null-terminated strings. The array length is equal to the first argument. The `exec()` system call returns the _pid_ of the process hosting the new application, or zero if an error occurs and the errno is set to the VM internal error number, which can be obtained with `getlasterr()`.
+
+### ID=25 `run(code32, codesz64, mem32, memsz64, entry64)`
+
+Execute a new VM instance. The code for the new VM is pointed to by the 1st argument and the memory contents are pointed to by the 3rd. `entry` is an offset in the code segment where the hosted application entry point is.  The `run()` system call returns the _pid_ of the process hosting the new application, or zero if an error occurs and the errno is set to the VM internal error number, which can be obtained with `getlasterr()`.
+
+### ID=26 `kill(pid64)`
+
+Kills the application specified by the given process id. This system call will effectively send the TERM signal (15) to that process.
+
+### ID=27 `onexit(pid64, cb_args_ptr32, callback_ptr32)`
+
+Sets a callback to be called upon exit of the application specified by the given process id.
+
+The callback prototype is: `callback(pid64, exited64, exit_status64, signaled64, signal64, stopped64, continued64)`
+
+Where:
+> `pid64`: is the process id of the process for which information is received.<br>
+> `exited64`: is a flag indicating whether the process exited.<br>
+> `exit_status64`: _when_ the process has exited (as indicated by `exited64`) this contains the exit status of the process.<br>
+> `signaled64`: is a flag indicating whether the process has received a signal that resulted in its stop.<br>
+> `signal64`: _when_ the process has been signaled (as indicated by `signaled64`) this contains the signal.<br>
+> `stopped64`: is a flag indicating whether the process has been stopped.<br>
+> `continued64`: is a flag indicating whether the process has been resumed.<br>
 
 ## Code management
 
