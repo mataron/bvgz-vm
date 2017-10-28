@@ -14,10 +14,10 @@
 
 // error = close(handle64)
 /* 5 */ SYSCALL(close)
-// error = read(handle64, ptr64, size64, cb_args_ptr,
+// error = read(handle64, ptr32, size64, cb_args_ptr32,
 //              callback(handle64, errno, size64))
 /* 6 */ SYSCALL(read)
-// error = write(handle64, ptr64, size64, cb_args_ptr,
+// error = write(handle64, ptr32, size64, cb_args_ptr32,
 //               callback(handle64, errno, size64))
 /* 7 */ SYSCALL(write)
 
@@ -76,5 +76,5 @@
 
 // size64 = codesz()
 /* 28 */ SYSCALL(codesz)
-// error = codecp(begin64, size64, ptr64)
+// error = codecp(begin64, size64, ptr32)
 /* 29 */ SYSCALL(codecp)
