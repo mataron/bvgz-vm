@@ -28,9 +28,9 @@ int main(int argc, char** argv)
     int retval = 0;
     uint32_t entry_offset = 0;
 
-    parse_args(argc, argv);
-
     setup_instn_defs();
+
+    parse_args(argc, argv);
 
     prs_result_t* result = parse_asm(asmfile, include_paths);
 
@@ -82,7 +82,8 @@ done:
 static void print_help(FILE* out, char* program)
 {
     fprintf(out,
-        "Usage %s [-g] [-I <include>] [-o <output>] [-e <label>] <file>\n",
+        "Usage %s [-g] [-p] [-I <include>] [-o <output>]"
+        " [-e <label>] <file>\n",
         program);
 }
 
@@ -107,16 +108,34 @@ static void make_output_filename(int asmfile_len)
 }
 
 
+static void print_instns()
+{
+    printf("Instructions: %u\n", nInstnDefs);
+    for (uint32_t i = 0; i < nInstnDefs; i++)
+    {
+        instn_def_t* def = InstnDefs + i;
+        printf(" [%2u] %8s /%d :: 0x%04x\n", i,
+            def->name, def->arg_count, def->opcode);
+    }
+}
+
+
 static void parse_args(int argc, char** argv)
 {
     int opt;
 
-    while ((opt = getopt(argc, argv, "hgI:o:e:")) != -1)
+    while ((opt = getopt(argc, argv, "hgpI:o:e:")) != -1)
     {
         switch (opt)
         {
             case 'h':
                 print_help(stdout, argv[0]);
+                free_args();
+                exit(0);
+                break;
+
+            case 'p':
+                print_instns();
                 free_args();
                 exit(0);
                 break;
