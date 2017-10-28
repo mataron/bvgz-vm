@@ -613,19 +613,16 @@ static void add_hex_to_memory(const char* filename, uint32_t lineno,
             uint ## bits ## _t tmp = n;\
             write_to_memory((uint8_t*)&tmp, bits / 8, w_offset,\
                 result);\
-            break;\
         }
 
-    switch (len / 2 + (len & 1))
-    {
-        case 1: WRITE_BITS(8);
-        case 2: WRITE_BITS(16);
-        case 4: WRITE_BITS(32);
-        case 8: WRITE_BITS(64);
-        default:
-            report(result, P_WARN, filename, lineno,
-                "cannot determine number length: default to 64 bits");
-            WRITE_BITS(64);
+    if (len <= 2) {WRITE_BITS(8);}
+    else if (len <= 4 ) {WRITE_BITS(16);}
+    else if (len <= 8 ) {WRITE_BITS(32);}
+    else if (len <= 16 ) {WRITE_BITS(64);}
+    else {
+        report(result, P_WARN, filename, lineno,
+            "cannot determine number length: default to 64 bits");
+        WRITE_BITS(64);
     }
 
 #undef WRITE_BITS
